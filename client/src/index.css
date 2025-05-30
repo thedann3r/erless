@@ -3,251 +3,159 @@
 @tailwind utilities;
 
 :root {
-  /* Erlessed Teal Theme */
-  --background: 0 0% 100%; /* #FFFFFF */
-  --foreground: 184 14% 15%; /* #1B2E2D */
-  --muted: 162 12% 97%; /* #F8FAFC */
-  --muted-foreground: 162 8% 46%; /* #6B7681 */
-  --popover: 0 0% 100%; /* #FFFFFF */
-  --popover-foreground: 184 14% 15%; /* #1B2E2D */
-  --card: 0 0% 100%; /* #FFFFFF */
-  --card-foreground: 184 14% 15%; /* #1B2E2D */
-  --border: 162 12% 90%; /* #E2E8F0 */
-  --input: 162 12% 90%; /* #E2E8F0 */
-  --primary: 172 53% 32%; /* #2D7A70 - Teal Primary */
-  --primary-foreground: 0 0% 100%; /* #FFFFFF */
-  --secondary: 162 12% 97%; /* #F8FAFC */
-  --secondary-foreground: 184 14% 15%; /* #1B2E2D */
-  --accent: 162 12% 97%; /* #F8FAFC */
-  --accent-foreground: 184 14% 15%; /* #1B2E2D */
-  --destructive: 0 84% 60%; /* #EF4444 */
-  --destructive-foreground: 0 0% 100%; /* #FFFFFF */
-  --ring: 172 53% 32%; /* #2D7A70 - Teal Primary */
+  --background: 0 0% 100%;
+  --foreground: 220 14% 4%;
+  --muted: 210 40% 98%;
+  --muted-foreground: 215 16% 47%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 224 71% 4%;
+  --card: 0 0% 100%;
+  --card-foreground: 224 71% 4%;
+  --border: 220 13% 91%;
+  --input: 220 13% 91%;
+  --primary: 180 42% 35%; /* #2D7A70 - Teal Primary */
+  --primary-foreground: 210 40% 98%;
+  --secondary: 180 33% 65%; /* #7DCDC4 - Teal Secondary */
+  --secondary-foreground: 222 84% 5%;
+  --accent: 210 40% 98%;
+  --accent-foreground: 222 84% 5%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 210 40% 98%;
+  --ring: 180 42% 35%;
   --radius: 0.5rem;
   
-  /* Custom Erlessed Colors */
-  --teal-primary: 172 53% 32%; /* #2D7A70 */
-  --teal-secondary: 170 60% 65%; /* #7DCDC4 */
-  --teal-dark: 176 65% 21%; /* #1B5E5A */
-  --clinical-gray: 162 17% 98%; /* #F8FAFA */
+  /* Custom Erlessed colors */
+  --teal-primary: 180 42% 35%; /* #2D7A70 */
+  --teal-secondary: 180 33% 65%; /* #7DCDC4 */
+  --teal-dark: 180 52% 25%; /* #1B5E5A */
+  --surface: 180 30% 98%; /* #F8FAFA */
   --medical-blue: 217 91% 60%; /* #3B82F6 */
-  
-  /* Chart colors */
-  --chart-1: 172 53% 32%; /* #2D7A70 */
-  --chart-2: 170 60% 65%; /* #7DCDC4 */
-  --chart-3: 217 91% 60%; /* #3B82F6 */
-  --chart-4: 142 69% 58%; /* #10B981 */
-  --chart-5: 262 83% 58%; /* #8B5CF6 */
-  
-  /* Sidebar colors */
-  --sidebar-background: 0 0% 100%; /* #FFFFFF */
-  --sidebar-foreground: 184 14% 15%; /* #1B2E2D */
-  --sidebar-primary: 172 53% 32%; /* #2D7A70 */
-  --sidebar-primary-foreground: 0 0% 100%; /* #FFFFFF */
-  --sidebar-accent: 162 12% 97%; /* #F8FAFC */
-  --sidebar-accent-foreground: 184 14% 15%; /* #1B2E2D */
-  --sidebar-border: 162 12% 90%; /* #E2E8F0 */
-  --sidebar-ring: 172 53% 32%; /* #2D7A70 */
+  --clinical-gray: 210 20% 98%; /* #F8FAFC */
 }
 
 .dark {
-  --background: 184 14% 7%; /* #0F1C1B */
-  --foreground: 0 0% 98%; /* #FAFAFA */
-  --muted: 184 14% 12%; /* #1E2D2C */
-  --muted-foreground: 162 8% 65%; /* #94A3B8 */
-  --popover: 184 14% 7%; /* #0F1C1B */
-  --popover-foreground: 0 0% 98%; /* #FAFAFA */
-  --card: 184 14% 7%; /* #0F1C1B */
-  --card-foreground: 0 0% 98%; /* #FAFAFA */
-  --border: 184 14% 12%; /* #1E2D2C */
-  --input: 184 14% 12%; /* #1E2D2C */
-  --primary: 170 60% 65%; /* #7DCDC4 - Light Teal for dark mode */
-  --primary-foreground: 184 14% 7%; /* #0F1C1B */
-  --secondary: 184 14% 12%; /* #1E2D2C */
-  --secondary-foreground: 0 0% 98%; /* #FAFAFA */
-  --accent: 184 14% 12%; /* #1E2D2C */
-  --accent-foreground: 0 0% 98%; /* #FAFAFA */
-  --destructive: 0 62% 30%; /* #991B1B */
-  --destructive-foreground: 0 0% 98%; /* #FAFAFA */
-  --ring: 170 60% 65%; /* #7DCDC4 */
-  
-  /* Sidebar colors for dark mode */
-  --sidebar-background: 184 14% 7%; /* #0F1C1B */
-  --sidebar-foreground: 0 0% 98%; /* #FAFAFA */
-  --sidebar-primary: 170 60% 65%; /* #7DCDC4 */
-  --sidebar-primary-foreground: 184 14% 7%; /* #0F1C1B */
-  --sidebar-accent: 184 14% 12%; /* #1E2D2C */
-  --sidebar-accent-foreground: 0 0% 98%; /* #FAFAFA */
-  --sidebar-border: 184 14% 12%; /* #1E2D2C */
-  --sidebar-ring: 170 60% 65%; /* #7DCDC4 */
+  --background: 224 71% 4%;
+  --foreground: 213 31% 91%;
+  --muted: 223 47% 11%;
+  --muted-foreground: 215 14% 64%;
+  --popover: 224 71% 4%;
+  --popover-foreground: 215 21% 89%;
+  --card: 224 71% 4%;
+  --card-foreground: 213 31% 91%;
+  --border: 216 34% 17%;
+  --input: 216 34% 17%;
+  --primary: 180 42% 35%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 222 47% 11%;
+  --secondary-foreground: 213 31% 91%;
+  --accent: 216 34% 17%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: 0 63% 31%;
+  --destructive-foreground: 210 40% 98%;
+  --ring: 180 42% 35%;
 }
 
 @layer base {
   * {
     @apply border-border;
   }
-  
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-  }
-  
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-semibold;
   }
 }
 
 @layer components {
-  /* Erlessed specific components */
-  .erlessed-logo {
-    @apply relative flex items-center justify-center;
+  .medical-card {
+    @apply bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200;
   }
   
-  .medical-cross {
-    @apply relative bg-gradient-to-br from-teal-600 to-teal-700 rounded-lg;
-  }
-  
-  .medical-cross::before {
-    content: '';
-    @apply absolute inset-2 bg-gradient-to-br from-teal-300 to-teal-400 rounded-sm;
-  }
-  
-  .medical-cross::after {
-    content: '';
-    @apply absolute top-1/2 left-1/2 w-2 h-2 bg-white rounded-full transform -translate-x-1/2 -translate-y-1/2;
+  .teal-button {
+    @apply bg-teal-primary text-white hover:bg-teal-dark focus:ring-2 focus:ring-teal-primary focus:ring-offset-2 transition-colors duration-200;
   }
   
   .ai-indicator {
-    @apply flex items-center space-x-2 bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm font-medium;
+    @apply inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700;
+  }
+  
+  .status-approved {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800;
+  }
+  
+  .status-pending {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800;
+  }
+  
+  .status-denied {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800;
   }
   
   .biometric-scanner {
-    @apply w-24 h-24 bg-gradient-to-br from-teal-100 to-teal-200 rounded-full flex items-center justify-center border-4 border-teal-300 hover:border-teal-400 transition-colors cursor-pointer;
+    @apply relative w-24 h-24 mx-auto bg-gradient-to-br from-teal-primary to-teal-secondary rounded-full flex items-center justify-center shadow-lg;
   }
   
-  .claim-status-badge {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  .fingerprint-icon {
+    @apply text-white text-3xl drop-shadow-sm;
   }
   
-  .claim-status-approved {
-    @apply bg-green-100 text-green-800;
+  .blockchain-hash {
+    @apply font-mono text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded border text-gray-600 dark:text-gray-400 break-all;
   }
   
-  .claim-status-pending {
-    @apply bg-yellow-100 text-yellow-800;
+  .medical-form-input {
+    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-primary focus:border-transparent transition-all duration-200;
   }
   
-  .claim-status-denied {
-    @apply bg-red-100 text-red-800;
+  .nav-item {
+    @apply flex items-center space-x-3 px-4 py-3 text-gray-600 hover:text-teal-primary hover:bg-teal-50 rounded-lg transition-colors duration-200 cursor-pointer;
   }
   
-  .claim-status-void {
-    @apply bg-gray-100 text-gray-800;
-  }
-  
-  .blockchain-indicator {
-    @apply flex items-center space-x-1 bg-purple-50 text-purple-700 px-2 py-1 rounded text-xs font-medium;
-  }
-  
-  .benefit-progress {
-    @apply w-full bg-gray-200 rounded-full h-2;
-  }
-  
-  .benefit-progress-bar {
-    @apply h-2 rounded-full transition-all duration-300;
+  .nav-item.active {
+    @apply text-teal-primary bg-teal-50 font-medium;
   }
 }
 
-@layer utilities {
-  /* Medical-specific utilities */
-  .text-teal-primary {
-    color: hsl(var(--teal-primary));
+/* Custom animations for healthcare UI */
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 1;
   }
-  
-  .text-teal-secondary {
-    color: hsl(var(--teal-secondary));
-  }
-  
-  .bg-teal-primary {
-    background-color: hsl(var(--teal-primary));
-  }
-  
-  .bg-teal-secondary {
-    background-color: hsl(var(--teal-secondary));
-  }
-  
-  .bg-clinical-gray {
-    background-color: hsl(var(--clinical-gray));
-  }
-  
-  .border-teal-primary {
-    border-color: hsl(var(--teal-primary));
-  }
-  
-  .hover-teal-primary:hover {
-    background-color: hsl(var(--teal-primary));
-    color: white;
-  }
-  
-  /* Animation utilities */
-  .pulse-slow {
-    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  }
-  
-  .fade-in {
-    animation: fadeIn 0.5s ease-in-out;
-  }
-  
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
-  /* Verification states */
-  .verification-idle {
-    @apply border-gray-300 bg-gray-50;
-  }
-  
-  .verification-scanning {
-    @apply border-blue-400 bg-blue-50 animate-pulse;
-  }
-  
-  .verification-success {
-    @apply border-green-400 bg-green-50;
-  }
-  
-  .verification-error {
-    @apply border-red-400 bg-red-50;
+  50% {
+    opacity: 0.5;
   }
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
+@keyframes scan-line {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100%);
+  }
 }
 
-::-webkit-scrollbar-track {
-  background: hsl(var(--muted));
+.animate-pulse-slow {
+  animation: pulse-slow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-::-webkit-scrollbar-thumb {
-  background: hsl(var(--border));
-  border-radius: 4px;
+.animate-scan {
+  animation: scan-line 2s ease-in-out infinite;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground));
+/* Medical chart styles */
+.medical-chart {
+  @apply bg-white rounded-lg border border-gray-200 p-4;
 }
 
-/* Focus styles for accessibility */
-.focus-visible:focus-visible {
-  @apply outline-2 outline-offset-2 outline-teal-500;
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse-slow,
+  .animate-scan,
+  .transition-all,
+  .transition-colors,
+  .transition-shadow {
+    animation: none;
+    transition: none;
+  }
 }
 
 /* Print styles for medical documents */
@@ -256,20 +164,7 @@
     display: none !important;
   }
   
-  .print-page-break {
-    page-break-before: always;
-  }
-  
-  body {
-    font-size: 12pt;
-    line-height: 1.4;
-  }
-  
-  h1, h2, h3 {
-    page-break-after: avoid;
-  }
-  
-  table {
-    page-break-inside: avoid;
+  .medical-card {
+    @apply shadow-none border border-gray-400;
   }
 }

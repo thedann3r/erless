@@ -2,79 +2,63 @@ import OpenAI from "openai";
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ 
-  apiKey: process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY_ENV_VAR || "default_key"
+  apiKey: process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY_ENV_VAR || "default_key" 
 });
 
-export interface ClaimAnalysisRequest {
+export interface AIPreauthorizationRequest {
+  patientId: number;
   serviceType: string;
-  procedureCode: string;
-  diagnosisCode: string;
-  cost: number;
-  urgency?: string;
+  clinicalJustification: string;
+  estimatedCost: number;
+  urgency: string;
+  patientHistory?: any;
+  policyData?: any;
 }
 
-export interface MedicationValidationRequest {
-  medicationName: string;
-  dosage: string;
-  patientAge: number;
-  patientWeight: number;
-  patientGender: string;
-  indication: string;
-}
-
-export interface AIAnalysisResponse {
-  decision: 'approved' | 'denied' | 'review-required';
+export interface AIPreauthorizationResponse {
+  decision: 'approved' | 'denied' | 'review';
   confidence: number;
-  reasoning: any;
-  context?: any;
+  reasoning: {
+    step: number;
+    description: string;
+    factor: string;
+  }[];
+  riskFactors: string[];
+  recommendations?: string[];
 }
 
-export interface MedicationValidationResponse {
-  isValid: boolean;
-  notes: any;
-  warnings?: string[];
-  dosageAdjustment?: string;
-}
-
-export async function analyzeClaimForPreauth(request: ClaimAnalysisRequest): Promise<AIAnalysisResponse> {
+export async function analyzePreauthorization(request: AIPreauthorizationRequest): Promise<AIPreauthorizationResponse> {
   try {
-    const prompt = `
-You are a healthcare AI system analyzing a preauthorization request. Provide a detailed chain-of-thought analysis.
+    const prompt = `You are a healthcare AI assistant analyzing a preauthorization request. Use chain-of-thought reasoning to evaluate this request.
 
 Request Details:
 - Service Type: ${request.serviceType}
-- Procedure Code: ${request.procedureCode}
-- Diagnosis Code: ${request.diagnosisCode}
-- Estimated Cost: $${request.cost}
-- Urgency: ${request.urgency || 'routine'}
+- Clinical Justification: ${request.clinicalJustification}
+- Estimated Cost: $${request.estimatedCost}
+- Urgency: ${request.urgency}
+- Patient History: ${JSON.stringify(request.patientHistory || {})}
+- Policy Data: ${JSON.stringify(request.policyData || {})}
 
-Analyze this request considering:
-1. Clinical necessity and appropriateness
-2. Cost-effectiveness
-3. Policy coverage guidelines
-4. Risk factors
-5. Alternative treatments
+Analyze this request step by step:
+1. Review clinical guidelines and medical necessity
+2. Check policy coverage and limitations
+3. Assess cost-effectiveness and alternatives
+4. Evaluate patient's medical history and risk factors
+5. Consider urgency and standard of care
 
-Provide your response in JSON format with:
-- decision: "approved", "denied", or "review-required"
-- confidence: percentage (0-100)
-- reasoning: detailed step-by-step analysis
-- recommendations: any suggestions for alternatives or modifications
-
-Be thorough in your analysis and explain your reasoning clearly.
-`;
+Provide your analysis in JSON format with decision (approved/denied/review), confidence percentage (0-100), detailed reasoning chain, and any risk factors identified.`;
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         {
           role: "system",
-          content: "You are an expert healthcare AI assistant specializing in preauthorization decisions. Always respond with valid JSON.",
+          content: "You are a medical AI assistant with expertise in healthcare preauthorization decisions. Always provide detailed, evidence-based reasoning."
         },
         {
           role: "user",
-          content: prompt,
-        },
+          content: prompt
+        }
       ],
       response_format: { type: "json_object" },
       temperature: 0.3,
@@ -83,63 +67,67 @@ Be thorough in your analysis and explain your reasoning clearly.
     const result = JSON.parse(response.choices[0].message.content || '{}');
     
     return {
-      decision: result.decision || 'review-required',
-      confidence: Math.min(100, Math.max(0, result.confidence || 75)),
-      reasoning: result.reasoning || { summary: "AI analysis completed" },
-      context: result.recommendations || null
+      decision: result.decision || 'review',
+      confidence: Math.min(100, Math.max(0, result.confidence || 50)),
+      reasoning: result.reasoning || [],
+      riskFactors: result.riskFactors || [],
+      recommendations: result.recommendations || []
     };
   } catch (error) {
-    console.error("OpenAI API error:", error);
-    // Fallback response
+    console.error('OpenAI API error:', error);
     return {
-      decision: 'review-required',
-      confidence: 50,
-      reasoning: { error: "AI analysis failed", fallback: true },
-      context: null
+      decision: 'review',
+      confidence: 0,
+      reasoning: [{ step: 1, description: 'AI analysis failed - manual review required', factor: 'system_error' }],
+      riskFactors: ['AI system unavailable'],
+      recommendations: ['Perform manual review of request']
     };
   }
 }
 
-export async function validateMedication(request: MedicationValidationRequest): Promise<MedicationValidationResponse> {
+export interface FraudAnalysisRequest {
+  providerId: number;
+  claimPatterns: any[];
+  billingHistory: any[];
+  timeframe: string;
+}
+
+export interface FraudAnalysisResponse {
+  riskLevel: 'low' | 'medium' | 'high';
+  confidence: number;
+  anomalies: string[];
+  recommendations: string[];
+}
+
+export async function analyzeFraudPatterns(request: FraudAnalysisRequest): Promise<FraudAnalysisResponse> {
   try {
-    const prompt = `
-You are a clinical pharmacist AI validating a medication prescription. Analyze the following:
+    const prompt = `Analyze the following healthcare provider billing patterns for potential fraud indicators:
 
-Medication: ${request.medicationName}
-Dosage: ${request.dosage}
-Patient Details:
-- Age: ${request.patientAge} years
-- Weight: ${request.patientWeight} kg
-- Gender: ${request.patientGender}
-- Indication: ${request.indication}
+Provider ID: ${request.providerId}
+Timeframe: ${request.timeframe}
+Claim Patterns: ${JSON.stringify(request.claimPatterns)}
+Billing History: ${JSON.stringify(request.billingHistory)}
 
-Validate this prescription considering:
-1. Age-appropriate dosing (especially for pediatric patients)
-2. Weight-based dosing requirements
-3. Gender-specific considerations
-4. Drug interactions and contraindications
-5. Indication appropriateness
+Look for:
+- Unusual billing frequency patterns
+- Procedure code combinations that don't make clinical sense
+- Outlier costs compared to similar providers
+- Rapid increases in specific service types
+- Geographic anomalies in patient distribution
 
-Provide response in JSON format with:
-- isValid: boolean
-- notes: detailed validation analysis
-- warnings: array of any safety concerns
-- dosageAdjustment: recommended dosage if adjustment needed
-
-Focus on patient safety and evidence-based guidelines.
-`;
+Provide analysis in JSON format with risk level, confidence percentage, specific anomalies found, and recommendations.`;
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         {
           role: "system",
-          content: "You are a clinical pharmacist AI specializing in medication validation. Always respond with valid JSON.",
+          content: "You are a healthcare fraud detection AI with expertise in identifying billing anomalies and fraudulent patterns."
         },
         {
           role: "user",
-          content: prompt,
-        },
+          content: prompt
+        }
       ],
       response_format: { type: "json_object" },
       temperature: 0.2,
@@ -148,110 +136,136 @@ Focus on patient safety and evidence-based guidelines.
     const result = JSON.parse(response.choices[0].message.content || '{}');
     
     return {
-      isValid: result.isValid !== false,
-      notes: result.notes || { summary: "Medication validated" },
-      warnings: result.warnings || [],
-      dosageAdjustment: result.dosageAdjustment || undefined
+      riskLevel: result.riskLevel || 'low',
+      confidence: Math.min(100, Math.max(0, result.confidence || 50)),
+      anomalies: result.anomalies || [],
+      recommendations: result.recommendations || []
     };
   } catch (error) {
-    console.error("OpenAI API error:", error);
-    // Fallback response
+    console.error('Fraud analysis error:', error);
     return {
-      isValid: true,
-      notes: { error: "AI validation failed", fallback: true },
-      warnings: ["Manual review required due to AI system error"]
+      riskLevel: 'low',
+      confidence: 0,
+      anomalies: ['Analysis failed - system error'],
+      recommendations: ['Manual review recommended due to system error']
     };
   }
 }
 
-export async function generateClaimSuggestions(query: string, type: string): Promise<any> {
-  try {
-    const prompt = `
-Generate healthcare ${type} suggestions for the query: "${query}"
-
-Provide relevant suggestions based on:
-- Common medical procedures and codes
-- Standard diagnostic codes (ICD-10)
-- Healthcare service types
-- Medical terminology
-
-Return a JSON array of suggestions with:
-- code: procedure/diagnosis code if applicable
-- description: human-readable description
-- category: type of service/procedure
-
-Limit to 5-10 most relevant suggestions.
-`;
-
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: [
-        {
-          role: "system",
-          content: "You are a healthcare coding assistant. Always respond with valid JSON.",
-        },
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-      response_format: { type: "json_object" },
-      temperature: 0.3,
-    });
-
-    const result = JSON.parse(response.choices[0].message.content || '{}');
-    return result.suggestions || [];
-  } catch (error) {
-    console.error("OpenAI API error:", error);
-    return [];
-  }
+export interface PharmacyValidationRequest {
+  medicationName: string;
+  dosage: string;
+  frequency: string;
+  patientAge: number;
+  patientWeight?: number;
+  patientGender: string;
+  indication: string;
+  currentMedications: string[];
 }
 
-export async function detectFraudPatterns(claimData: any): Promise<any> {
+export interface PharmacyValidationResponse {
+  isValid: boolean;
+  confidence: number;
+  warnings: string[];
+  recommendations: string[];
+  interactions: string[];
+}
+
+export async function validatePrescription(request: PharmacyValidationRequest): Promise<PharmacyValidationResponse> {
   try {
-    const prompt = `
-Analyze this healthcare claim for potential fraud patterns:
+    const prompt = `Validate this prescription for safety and appropriateness:
 
-${JSON.stringify(claimData, null, 2)}
+Medication: ${request.medicationName}
+Dosage: ${request.dosage}
+Frequency: ${request.frequency}
+Patient Age: ${request.patientAge}
+Patient Weight: ${request.patientWeight || 'Not provided'}kg
+Patient Gender: ${request.patientGender}
+Indication: ${request.indication}
+Current Medications: ${request.currentMedications.join(', ')}
 
-Look for:
-1. Unusual billing patterns
-2. Excessive costs for services
-3. Inappropriate procedure combinations
-4. Frequency anomalies
-5. Provider behavior patterns
+Check for:
+- Age-appropriate dosing
+- Weight-based dosing accuracy (especially for pediatric patients)
+- Gender-specific considerations
+- Drug interactions with current medications
+- Contraindications for the indication
+- Standard dosing guidelines
 
-Respond in JSON format with:
-- riskScore: 0-100 (higher = more suspicious)
-- flaggedPatterns: array of detected patterns
-- recommendations: suggested actions
-- confidence: confidence in fraud detection
-`;
+Provide validation results in JSON format.`;
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         {
           role: "system",
-          content: "You are a healthcare fraud detection AI. Always respond with valid JSON.",
+          content: "You are a clinical pharmacist AI with expertise in medication safety, drug interactions, and dosing guidelines."
         },
         {
           role: "user",
-          content: prompt,
-        },
+          content: prompt
+        }
       ],
       response_format: { type: "json_object" },
       temperature: 0.1,
     });
 
     const result = JSON.parse(response.choices[0].message.content || '{}');
-    return result;
-  } catch (error) {
-    console.error("OpenAI API error:", error);
+    
     return {
-      riskScore: 0,
-      flaggedPatterns: [],
-      recommendations: [],
+      isValid: result.isValid !== false,
+      confidence: Math.min(100, Math.max(0, result.confidence || 80)),
+      warnings: result.warnings || [],
+      recommendations: result.recommendations || [],
+      interactions: result.interactions || []
+    };
+  } catch (error) {
+    console.error('Pharmacy validation error:', error);
+    return {
+      isValid: false,
+      confidence: 0,
+      warnings: ['Validation failed - manual review required'],
+      recommendations: ['Consult with pharmacist for manual validation'],
+      interactions: []
+    };
+  }
+}
+
+export async function suggestClaimCodes(serviceDescription: string, diagnosis?: string): Promise<{codes: string[], confidence: number}> {
+  try {
+    const prompt = `Suggest appropriate CPT and ICD-10 codes for the following medical service:
+
+Service Description: ${serviceDescription}
+Diagnosis: ${diagnosis || 'Not provided'}
+
+Provide the most likely CPT procedure codes and ICD-10 diagnosis codes in JSON format with confidence scores.`;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: "You are a medical coding AI assistant with expertise in CPT and ICD-10 coding guidelines."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.2,
+    });
+
+    const result = JSON.parse(response.choices[0].message.content || '{}');
+    
+    return {
+      codes: result.codes || [],
+      confidence: Math.min(100, Math.max(0, result.confidence || 70))
+    };
+  } catch (error) {
+    console.error('Code suggestion error:', error);
+    return {
+      codes: [],
       confidence: 0
     };
   }

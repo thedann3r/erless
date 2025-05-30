@@ -1,310 +1,263 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
-import { Redirect } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2 } from "lucide-react";
-import { Logo } from "@/components/ui/logo";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-
-const loginSchema = z.object({
-  username: z.string().min(1, "Username is required"),
-  password: z.string().min(1, "Password is required"),
-});
-
-const registerSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters"),
-  email: z.string().email("Valid email is required"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  role: z.string().min(1, "Role is required"),
-});
-
-type LoginForm = z.infer<typeof loginSchema>;
-type RegisterForm = z.infer<typeof registerSchema>;
+import { useToast } from "@/hooks/use-toast";
+import { ErllessedLogo } from "@/components/erlessed-logo";
 
 export default function AuthPage() {
+  const [, setLocation] = useLocation();
   const { user, loginMutation, registerMutation } = useAuth();
-  const [activeTab, setActiveTab] = useState("login");
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
 
-  const loginForm = useForm<LoginForm>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      username: "",
-      password: "",
-    },
-  });
-
-  const registerForm = useForm<RegisterForm>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: {
-      username: "",
-      email: "",
-      password: "",
-      role: "front-office",
-    },
-  });
-
-  // Redirect to dashboard if already logged in
+  // Redirect if already logged in
   if (user) {
-    return <Redirect to="/" />;
+    setLocation("/");
+    return null;
   }
 
-  const handleLogin = (data: LoginForm) => {
-    loginMutation.mutate(data);
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+    
+    const formData = new FormData(e.currentTarget);
+    const username = formData.get("username") as string;
+    const password = formData.get("password") as string;
+    
+    try {
+      await loginMutation.mutateAsync({ username, password });
+      setLocation("/");
+    } catch (error) {
+      toast({
+        title: "Login failed",
+        description: "Please check your credentials and try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleRegister = (data: RegisterForm) => {
-    registerMutation.mutate(data);
+  const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+    
+    const formData = new FormData(e.currentTarget);
+    const username = formData.get("username") as string;
+    const password = formData.get("password") as string;
+    const email = formData.get("email") as string;
+    const name = formData.get("name") as string;
+    
+    try {
+      await registerMutation.mutateAsync({ username, password, email, name });
+      setLocation("/");
+    } catch (error) {
+      toast({
+        title: "Registration failed",
+        description: "Please check your information and try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
-
-  const roleOptions = [
-    { value: "front-office", label: "Front Office" },
-    { value: "doctor", label: "Doctor" },
-    { value: "lab", label: "Lab Technician" },
-    { value: "pharmacy", label: "Pharmacy" },
-    { value: "debtors", label: "Debtors" },
-    { value: "care-manager", label: "Care Manager" },
-  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-clinical-gray to-white flex">
-      {/* Left side - Form */}
+    <div className="min-h-screen bg-gradient-to-br from-teal-50 to-blue-50 flex">
+      {/* Left Panel - Authentication Forms */}
       <div className="flex-1 flex items-center justify-center p-8">
-        <div className="w-full max-w-md space-y-8">
-          {/* Logo and branding */}
-          <div className="text-center">
-            <Logo className="h-16 w-16 mx-auto mb-4" />
-            <h1 className="text-3xl font-bold text-teal-primary">Erlessed</h1>
-            <p className="text-sm text-gray-600 mt-1">Healthcare Claims Processing Platform</p>
-            <p className="text-xs text-gray-400 mt-1">
-              powered by <span className="font-semibold text-gray-800">Aboolean</span>
+        <div className="w-full max-w-md space-y-6">
+          {/* Logo */}
+          <div className="text-center space-y-2">
+            <ErllessedLogo className="mx-auto" />
+            <h1 className="text-2xl font-bold text-gray-900">Welcome to Erlessed</h1>
+            <p className="text-gray-600">Healthcare Claims Processing Platform</p>
+            <p className="text-sm text-gray-500">
+              powered by <span className="font-semibold text-black">Aboolean</span>
             </p>
           </div>
 
-          {/* Auth forms */}
-          <Card className="border-gray-200 shadow-lg">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <CardHeader className="space-y-1 pb-4">
+          {/* Authentication Tabs */}
+          <Card>
+            <CardContent className="p-6">
+              <Tabs defaultValue="login" className="space-y-4">
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="login">Sign In</TabsTrigger>
                   <TabsTrigger value="register">Register</TabsTrigger>
                 </TabsList>
-              </CardHeader>
-
-              <TabsContent value="login" className="space-y-0">
-                <form onSubmit={loginForm.handleSubmit(handleLogin)}>
-                  <CardContent className="space-y-4">
+                
+                <TabsContent value="login" className="space-y-4">
+                  <CardHeader className="p-0">
+                    <CardTitle>Sign In</CardTitle>
+                    <CardDescription>
+                      Enter your credentials to access your dashboard
+                    </CardDescription>
+                  </CardHeader>
+                  
+                  <form onSubmit={handleLogin} className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="login-username">Username</Label>
                       <Input
                         id="login-username"
+                        name="username"
                         type="text"
                         placeholder="Enter your username"
-                        {...loginForm.register("username")}
-                        disabled={loginMutation.isPending}
+                        required
+                        className="medical-form-input"
                       />
-                      {loginForm.formState.errors.username && (
-                        <p className="text-sm text-red-600">
-                          {loginForm.formState.errors.username.message}
-                        </p>
-                      )}
                     </div>
+                    
                     <div className="space-y-2">
                       <Label htmlFor="login-password">Password</Label>
                       <Input
                         id="login-password"
+                        name="password"
                         type="password"
                         placeholder="Enter your password"
-                        {...loginForm.register("password")}
-                        disabled={loginMutation.isPending}
+                        required
+                        className="medical-form-input"
                       />
-                      {loginForm.formState.errors.password && (
-                        <p className="text-sm text-red-600">
-                          {loginForm.formState.errors.password.message}
-                        </p>
-                      )}
                     </div>
-                    {loginMutation.error && (
-                      <Alert variant="destructive">
-                        <AlertDescription>
-                          Invalid credentials. Please try again.
-                        </AlertDescription>
-                      </Alert>
-                    )}
-                  </CardContent>
-                  <CardFooter>
-                    <Button
-                      type="submit"
-                      className="w-full bg-teal-primary hover:bg-teal-dark"
-                      disabled={loginMutation.isPending}
+                    
+                    <Button 
+                      type="submit" 
+                      className="w-full teal-button"
+                      disabled={isLoading || loginMutation.isPending}
                     >
-                      {loginMutation.isPending ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Signing in...
-                        </>
-                      ) : (
-                        "Sign In"
-                      )}
+                      {isLoading || loginMutation.isPending ? "Signing in..." : "Sign In"}
                     </Button>
-                  </CardFooter>
-                </form>
-              </TabsContent>
-
-              <TabsContent value="register" className="space-y-0">
-                <form onSubmit={registerForm.handleSubmit(handleRegister)}>
-                  <CardContent className="space-y-4">
+                  </form>
+                </TabsContent>
+                
+                <TabsContent value="register" className="space-y-4">
+                  <CardHeader className="p-0">
+                    <CardTitle>Create Account</CardTitle>
+                    <CardDescription>
+                      Register for a new healthcare provider account
+                    </CardDescription>
+                  </CardHeader>
+                  
+                  <form onSubmit={handleRegister} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="register-name">Full Name</Label>
+                      <Input
+                        id="register-name"
+                        name="name"
+                        type="text"
+                        placeholder="Dr. Sarah Wilson"
+                        required
+                        className="medical-form-input"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="register-email">Email Address</Label>
+                      <Input
+                        id="register-email"
+                        name="email"
+                        type="email"
+                        placeholder="sarah@hospital.com"
+                        required
+                        className="medical-form-input"
+                      />
+                      <p className="text-xs text-gray-500">
+                        Role will be auto-detected from your email domain
+                      </p>
+                    </div>
+                    
                     <div className="space-y-2">
                       <Label htmlFor="register-username">Username</Label>
                       <Input
                         id="register-username"
+                        name="username"
                         type="text"
                         placeholder="Choose a username"
-                        {...registerForm.register("username")}
-                        disabled={registerMutation.isPending}
+                        required
+                        className="medical-form-input"
                       />
-                      {registerForm.formState.errors.username && (
-                        <p className="text-sm text-red-600">
-                          {registerForm.formState.errors.username.message}
-                        </p>
-                      )}
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="register-email">Email</Label>
-                      <Input
-                        id="register-email"
-                        type="email"
-                        placeholder="doctor@hospital.com"
-                        {...registerForm.register("email")}
-                        disabled={registerMutation.isPending}
-                      />
-                      {registerForm.formState.errors.email && (
-                        <p className="text-sm text-red-600">
-                          {registerForm.formState.errors.email.message}
-                        </p>
-                      )}
-                    </div>
+                    
                     <div className="space-y-2">
                       <Label htmlFor="register-password">Password</Label>
                       <Input
                         id="register-password"
+                        name="password"
                         type="password"
-                        placeholder="Create a password"
-                        {...registerForm.register("password")}
-                        disabled={registerMutation.isPending}
+                        placeholder="Create a secure password"
+                        required
+                        className="medical-form-input"
                       />
-                      {registerForm.formState.errors.password && (
-                        <p className="text-sm text-red-600">
-                          {registerForm.formState.errors.password.message}
-                        </p>
-                      )}
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="register-role">Role</Label>
-                      <select
-                        id="register-role"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-                        {...registerForm.register("role")}
-                        disabled={registerMutation.isPending}
-                      >
-                        {roleOptions.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                      {registerForm.formState.errors.role && (
-                        <p className="text-sm text-red-600">
-                          {registerForm.formState.errors.role.message}
-                        </p>
-                      )}
-                    </div>
-                    {registerMutation.error && (
-                      <Alert variant="destructive">
-                        <AlertDescription>
-                          Registration failed. Please try again.
-                        </AlertDescription>
-                      </Alert>
-                    )}
-                  </CardContent>
-                  <CardFooter>
-                    <Button
-                      type="submit"
-                      className="w-full bg-teal-primary hover:bg-teal-dark"
-                      disabled={registerMutation.isPending}
+                    
+                    <Button 
+                      type="submit" 
+                      className="w-full teal-button"
+                      disabled={isLoading || registerMutation.isPending}
                     >
-                      {registerMutation.isPending ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Creating account...
-                        </>
-                      ) : (
-                        "Register"
-                      )}
+                      {isLoading || registerMutation.isPending ? "Creating account..." : "Create Account"}
                     </Button>
-                  </CardFooter>
-                </form>
-              </TabsContent>
-            </Tabs>
+                  </form>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
           </Card>
-
-          {/* Domain detection info */}
-          <Card className="bg-clinical-gray border-gray-200">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm text-gray-700">
-                Domain-based Role Detection
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-xs space-y-1 text-gray-600">
-              <div><code>@frontoffice.com</code> → Front Office</div>
-              <div><code>@doctor.com</code> → Physician</div>
-              <div><code>@lab.com</code> → Laboratory</div>
-              <div><code>@pharmacy.com</code> → Pharmacy</div>
-              <div><code>@debtors.com</code> → Debtors</div>
-              <div><code>@manager.com</code> → Care Manager</div>
+          
+          {/* Domain Role Detection Preview */}
+          <Card className="bg-gray-50">
+            <CardContent className="p-4">
+              <h3 className="text-sm font-medium text-gray-700 mb-2">
+                Automatic Role Detection
+              </h3>
+              <div className="space-y-1 text-xs text-gray-600">
+                <div><code className="bg-white px-1 rounded">@frontoffice.com</code> → Front Office</div>
+                <div><code className="bg-white px-1 rounded">@doctor.com</code> → Physician</div>
+                <div><code className="bg-white px-1 rounded">@lab.com</code> → Laboratory</div>
+                <div><code className="bg-white px-1 rounded">@pharmacy.com</code> → Pharmacy</div>
+                <div><code className="bg-white px-1 rounded">@care.com</code> → Care Manager</div>
+                <div><code className="bg-white px-1 rounded">@billing.com</code> → Debtors</div>
+              </div>
             </CardContent>
           </Card>
         </div>
       </div>
 
-      {/* Right side - Hero */}
-      <div className="flex-1 bg-gradient-to-br from-teal-primary to-teal-dark text-white p-8 flex items-center justify-center">
-        <div className="max-w-lg text-center space-y-6">
-          <div className="w-24 h-24 mx-auto mb-8">
-            <div className="medical-cross w-full h-full" />
+      {/* Right Panel - Hero Section */}
+      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-teal-primary to-teal-secondary items-center justify-center p-12">
+        <div className="text-center text-white space-y-6 max-w-md">
+          <div className="w-16 h-16 mx-auto bg-white bg-opacity-20 rounded-2xl flex items-center justify-center">
+            <i className="fas fa-shield-alt text-2xl text-white"></i>
           </div>
-          <h2 className="text-4xl font-bold mb-4">
-            AI-Powered Healthcare Claims Processing
+          
+          <h2 className="text-3xl font-bold">
+            Secure Healthcare Claims Processing
           </h2>
-          <p className="text-xl text-teal-100 mb-6">
-            Streamline patient verification, automate preauthorizations, and secure claims with blockchain technology.
+          
+          <p className="text-teal-100 text-lg">
+            AI-powered preauthorization, biometric patient verification, 
+            and blockchain-secured claim anchoring for modern healthcare providers.
           </p>
-          <div className="space-y-4 text-left">
+          
+          <div className="space-y-3 text-sm">
             <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-teal-secondary rounded-full"></div>
-              <span>Biometric & OTP patient verification</span>
+              <i className="fas fa-check-circle text-teal-200"></i>
+              <span>Real-time AI decision making</span>
             </div>
             <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-teal-secondary rounded-full"></div>
-              <span>AI preauthorization with Chain-of-Thought reasoning</span>
+              <i className="fas fa-check-circle text-teal-200"></i>
+              <span>Biometric patient verification</span>
             </div>
             <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-teal-secondary rounded-full"></div>
-              <span>Real-time fraud detection & analytics</span>
+              <i className="fas fa-check-circle text-teal-200"></i>
+              <span>Blockchain claim anchoring</span>
             </div>
             <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-teal-secondary rounded-full"></div>
-              <span>Blockchain claim anchoring on Sepolia</span>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-teal-secondary rounded-full"></div>
-              <span>Comprehensive pharmacy validation</span>
+              <i className="fas fa-check-circle text-teal-200"></i>
+              <span>Fraud pattern detection</span>
             </div>
           </div>
         </div>
