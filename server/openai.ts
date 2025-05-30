@@ -160,6 +160,8 @@ Look for:
 
 Provide analysis in JSON format with risk level, confidence percentage, specific anomalies found, and recommendations.`;
 
+    if (!openai) throw new Error('OpenAI not configured');
+    
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
@@ -251,6 +253,8 @@ Check for:
 
 Provide validation results in JSON format.`;
 
+    if (!openai) throw new Error('OpenAI not configured');
+    
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
@@ -289,6 +293,15 @@ Provide validation results in JSON format.`;
 }
 
 export async function suggestClaimCodes(serviceDescription: string, diagnosis?: string): Promise<{codes: string[], confidence: number}> {
+  if (DEMO_MODE) {
+    // Demo mode with realistic medical codes
+    const mockCodes = ['99213', '99214', 'J1100', '36415'];
+    return {
+      codes: mockCodes.slice(0, 2),
+      confidence: 85
+    };
+  }
+
   try {
     const prompt = `Suggest appropriate CPT and ICD-10 codes for the following medical service:
 
@@ -297,6 +310,8 @@ Diagnosis: ${diagnosis || 'Not provided'}
 
 Provide the most likely CPT procedure codes and ICD-10 diagnosis codes in JSON format with confidence scores.`;
 
+    if (!openai) throw new Error('OpenAI not configured');
+    
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
