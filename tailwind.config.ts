@@ -51,6 +51,11 @@ export default {
           "4": "hsl(var(--chart-4))",
           "5": "hsl(var(--chart-5))",
         },
+        teal: {
+          primary: "hsl(var(--teal-primary))",
+          secondary: "hsl(var(--teal-secondary))",
+          dark: "hsl(var(--teal-dark))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
