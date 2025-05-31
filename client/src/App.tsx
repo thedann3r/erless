@@ -15,6 +15,8 @@ import Pharmacy from "@/pages/pharmacy";
 import CareManager from "@/pages/care-manager";
 import Blockchain from "@/pages/blockchain";
 import Debtors from "@/pages/debtors";
+import PatientQueue from "@/pages/patient-queue";
+import ConsultationForm from "@/pages/consultation-form";
 
 function Router() {
   return (
@@ -27,6 +29,8 @@ function Router() {
       <ProtectedRoute path="/care-manager" component={CareManager} />
       <ProtectedRoute path="/blockchain" component={Blockchain} />
       <ProtectedRoute path="/debtors" component={Debtors} />
+      <ProtectedRoute path="/patient-queue" component={PatientQueue} />
+      <ProtectedRoute path="/consultation" component={ConsultationForm} />
       <Route path="/auth" component={AuthPage} />
       <Route component={NotFound} />
     </Switch>

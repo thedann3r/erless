@@ -37,24 +37,43 @@ export default function Dashboard() {
                 </h1>
                 <p className="text-gray-600">
                   {user?.role === 'care-manager' ? 'Monitor claims and AI decisions' :
-                   user?.role === 'doctor' ? 'Process patient claims and consultations' :
+                   user?.role === 'doctor' ? 'Patient queue and clinical consultations' :
                    user?.role === 'pharmacy' ? 'Validate prescriptions and medications' :
                    'Manage healthcare claims and patient verification'}
                 </p>
               </div>
               <div className="flex space-x-3">
-                <Link href="/verification">
-                  <Button className="teal-button">
-                    <i className="fas fa-fingerprint mr-2"></i>
-                    Verify Patient
-                  </Button>
-                </Link>
-                <Link href="/claims">
-                  <Button variant="outline">
-                    <i className="fas fa-plus mr-2"></i>
-                    New Claim
-                  </Button>
-                </Link>
+                {user?.role === 'doctor' ? (
+                  <>
+                    <Link href="/patient-queue">
+                      <Button className="teal-button">
+                        <i className="fas fa-users mr-2"></i>
+                        Patient Queue
+                      </Button>
+                    </Link>
+                    <Link href="/consultation">
+                      <Button variant="outline">
+                        <i className="fas fa-stethoscope mr-2"></i>
+                        New Consultation
+                      </Button>
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/verification">
+                      <Button className="teal-button">
+                        <i className="fas fa-fingerprint mr-2"></i>
+                        Verify Patient
+                      </Button>
+                    </Link>
+                    <Link href="/claims">
+                      <Button variant="outline">
+                        <i className="fas fa-plus mr-2"></i>
+                        New Claim
+                      </Button>
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>

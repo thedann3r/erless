@@ -17,6 +17,8 @@ export function Sidebar() {
 
   const navItems = [
     { path: "/", icon: "fas fa-chart-line", label: "Dashboard" },
+    { path: "/patient-queue", icon: "fas fa-users", label: "Patient Queue", roles: ["doctor"] },
+    { path: "/consultation", icon: "fas fa-stethoscope", label: "Consultation Form", roles: ["doctor"] },
     { path: "/verification", icon: "fas fa-fingerprint", label: "Patient Verification" },
     { path: "/claims", icon: "fas fa-file-medical", label: "Claims Processing" },
     { path: "/ai-preauth", icon: "fas fa-brain", label: "AI Preauthorization", badge: "AI" },
