@@ -3,14 +3,33 @@ import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+export const careProviders = pgTable("care_providers", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  domain: text("domain").notNull().unique(), // e.g., aku.edu
+  type: text("type").notNull(), // hospital, clinic, pharmacy-chain
+  branch: text("branch"), // for multi-branch facilities
+  address: text("address"),
+  licenseNumber: text("license_number"),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
   email: text("email").notNull().unique(),
-  role: text("role").notNull(), // front-office, doctor, lab, pharmacy, debtors, care-manager
+  role: text("role").notNull(), // doctor, clinician, pharmacist, admin, debtor-officer
   name: text("name").notNull(),
+  careProviderId: integer("care_provider_id").references(() => careProviders.id),
   department: text("department"),
+  cadre: text("cadre"), // specialist, consultant, registrar, etc.
+  registrationNumber: text("registration_number"), // professional license number
+  registrationBody: text("registration_body"), // national medical/pharmacy board
+  isVerified: boolean("is_verified").default(false).notNull(),
+  verificationDate: timestamp("verification_date"),
+  lastLogin: timestamp("last_login"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -153,7 +172,15 @@ export const auditLogs = pgTable("audit_logs", {
 });
 
 // Relations
-export const usersRelations = relations(users, ({ many }) => ({
+export const careProvidersRelations = relations(careProviders, ({ many }) => ({
+  users: many(users),
+}));
+
+export const usersRelations = relations(users, ({ one, many }) => ({
+  careProvider: one(careProviders, {
+    fields: [users.careProviderId],
+    references: [careProviders.id],
+  }),
   claims: many(claims),
   preauthorizations: many(preauthorizations),
   prescriptions: many(prescriptions),
@@ -190,9 +217,21 @@ export const providersRelations = relations(providers, ({ many }) => ({
 }));
 
 // Zod schemas
+export const insertCareProviderSchema = createInsertSchema(careProviders).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
+  lastLogin: true,
+  verificationDate: true,
+}).extend({
+  confirmPassword: z.string().min(8),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
 });
 
 export const insertPatientSchema = createInsertSchema(patients).omit({
@@ -217,6 +256,8 @@ export const insertPrescriptionSchema = createInsertSchema(prescriptions).omit({
 });
 
 // Types
+export type CareProvider = typeof careProviders.$inferSelect;
+export type InsertCareProvider = z.infer<typeof insertCareProviderSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Patient = typeof patients.$inferSelect;

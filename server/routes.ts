@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
+import { authService } from "./auth-service";
 import { z } from "zod";
 import { insertClaimSchema, insertPreauthorizationSchema, insertPrescriptionSchema } from "@shared/schema";
 import { analyzePreauthorization, analyzeFraudPatterns, validatePrescription, suggestClaimCodes } from "./openai";
@@ -9,6 +10,61 @@ import { analyzePreauthorization, analyzeFraudPatterns, validatePrescription, su
 export function registerRoutes(app: Express): Server {
   // Setup authentication routes
   setupAuth(app);
+
+  // Registration validation endpoint
+  app.post("/api/register/validate-role", async (req, res) => {
+    try {
+      const { email, registrationNumber, role, country } = req.body;
+
+      if (!email) {
+        return res.status(400).json({ error: "Email is required" });
+      }
+
+      // Detect care provider and role from domain
+      const domainResult = await authService.detectFromDomain(email);
+      
+      let registrationResult = null;
+      if (registrationNumber && role) {
+        registrationResult = await authService.validateRegistration(registrationNumber, role, country || 'kenya');
+      }
+
+      res.json({
+        domain: domainResult,
+        registration: registrationResult,
+        roleOptions: authService.getRoleOptions(),
+        cadreOptions: role ? authService.getCadreOptions(role) : []
+      });
+    } catch (error) {
+      console.error('Role validation error:', error);
+      res.status(500).json({ error: "Failed to validate role and domain" });
+    }
+  });
+
+  // Get care providers endpoint
+  app.get("/api/care-providers", async (req, res) => {
+    try {
+      const providers = await authService.getAllCareProviders();
+      res.json(providers);
+    } catch (error) {
+      console.error('Error fetching care providers:', error);
+      res.status(500).json({ error: "Failed to fetch care providers" });
+    }
+  });
+
+  // Get role options endpoint
+  app.get("/api/roles", (req, res) => {
+    const { role } = req.query;
+    
+    if (role) {
+      res.json({
+        cadreOptions: authService.getCadreOptions(role as string)
+      });
+    } else {
+      res.json({
+        roleOptions: authService.getRoleOptions()
+      });
+    }
+  });
 
   // Claims routes
   app.get("/api/claims", async (req, res) => {
