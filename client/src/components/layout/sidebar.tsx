@@ -19,9 +19,9 @@ export function Sidebar() {
     { path: "/", icon: "fas fa-chart-line", label: "Dashboard" },
     { path: "/patient-queue", icon: "fas fa-users", label: "Patient Queue", roles: ["doctor"] },
     { path: "/consultation", icon: "fas fa-stethoscope", label: "Consultation Form", roles: ["doctor"] },
-    { path: "/verification", icon: "fas fa-fingerprint", label: "Patient Verification" },
+    { path: "/verification", icon: "fas fa-fingerprint", label: "Patient Verification", roles: ["pharmacy", "front-office"] },
     { path: "/claims", icon: "fas fa-file-medical", label: "Claims Processing" },
-    { path: "/ai-preauth", icon: "fas fa-brain", label: "AI Preauthorization", badge: "AI" },
+    { path: "/ai-preauth", icon: "fas fa-brain", label: "AI Preauthorization", badge: "AI", roles: ["pharmacy", "front-office"] },
     { path: "/pharmacy", icon: "fas fa-pills", label: "Pharmacy" },
     { path: "/care-manager", icon: "fas fa-chart-bar", label: "Analytics", roles: ["care-manager"] },
     { path: "/blockchain", icon: "fas fa-link", label: "Blockchain Audit", badge: "Beta" },
@@ -43,7 +43,7 @@ export function Sidebar() {
       <nav className="p-4 space-y-2">
         {filteredNavItems.map((item) => (
           <Link key={item.path} href={item.path}>
-            <a className={`nav-item ${isActive(item.path) ? 'active' : ''}`}>
+            <div className={`nav-item ${isActive(item.path) ? 'active' : ''}`}>
               <i className={`${item.icon} w-5`}></i>
               <span>{item.label}</span>
               {item.badge && (
@@ -53,7 +53,7 @@ export function Sidebar() {
                   {item.badge}
                 </div>
               )}
-            </a>
+            </div>
           </Link>
         ))}
       </nav>
