@@ -194,7 +194,9 @@ export function registerRoutes(app: Express): Server {
         action: "patient_verification",
         resourceType: "patient",
         resourceId: patient.id.toString(),
-        details: { method: biometricHash ? "biometric" : "manual", patientId: patient.patientId }
+        details: { method: biometricHash ? "biometric" : "manual", patientId: patient.patientId },
+        ipAddress: req.ip || null,
+        userAgent: req.get('User-Agent') || null
       });
       
       res.json({ ...patient, benefits, dependents });

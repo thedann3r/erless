@@ -115,6 +115,8 @@ export class AuthenticationService {
           domain: baseDomain,
           type: knownDomain.type,
           branch: branch,
+          address: null,
+          licenseNumber: null,
           isActive: true
         });
       }

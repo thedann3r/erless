@@ -17,6 +17,7 @@ import Blockchain from "@/pages/blockchain";
 import Debtors from "@/pages/debtors";
 import PatientQueue from "@/pages/patient-queue";
 import ConsultationForm from "@/pages/consultation-form";
+import EnhancedAuthPage from "@/pages/enhanced-auth-page";
 
 function Router() {
   return (
@@ -32,6 +33,7 @@ function Router() {
       <ProtectedRoute path="/patient-queue" component={PatientQueue} />
       <ProtectedRoute path="/consultation" component={ConsultationForm} />
       <Route path="/auth" component={AuthPage} />
+      <Route path="/secure-auth" component={EnhancedAuthPage} />
       <Route component={NotFound} />
     </Switch>
   );
