@@ -207,22 +207,7 @@ export default function AuthPage() {
             </CardContent>
           </Card>
           
-          {/* Domain Role Detection Preview */}
-          <Card className="bg-gray-50">
-            <CardContent className="p-4">
-              <h3 className="text-sm font-medium text-gray-700 mb-2">
-                Automatic Role Detection
-              </h3>
-              <div className="space-y-1 text-xs text-gray-600">
-                <div><code className="bg-white px-1 rounded">@frontoffice.com</code> → Front Office</div>
-                <div><code className="bg-white px-1 rounded">@doctor.com</code> → Physician</div>
-                <div><code className="bg-white px-1 rounded">@lab.com</code> → Laboratory</div>
-                <div><code className="bg-white px-1 rounded">@pharmacy.com</code> → Pharmacy</div>
-                <div><code className="bg-white px-1 rounded">@care.com</code> → Care Manager</div>
-                <div><code className="bg-white px-1 rounded">@billing.com</code> → Debtors</div>
-              </div>
-            </CardContent>
-          </Card>
+
         </div>
       </div>
       {/* Right Panel - Hero Section */}
