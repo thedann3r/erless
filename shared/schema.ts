@@ -171,6 +171,116 @@ export const auditLogs = pgTable("audit_logs", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Lab Orders for Doctor/Clinician Dashboard
+export const labOrders = pgTable("lab_orders", {
+  id: serial("id").primaryKey(),
+  patientId: integer("patient_id").references(() => patients.id).notNull(),
+  providerId: integer("provider_id").references(() => providers.id).notNull(),
+  doctorId: integer("doctor_id").references(() => users.id).notNull(),
+  testType: text("test_type").notNull(),
+  testCode: text("test_code"),
+  urgency: text("urgency").notNull().default("routine"), // routine, urgent, stat
+  clinicalInfo: text("clinical_info"),
+  preauthorizationStatus: text("preauthorization_status").default("pending"),
+  status: text("status").notNull().default("ordered"), // ordered, collected, processing, completed, cancelled
+  estimatedCost: integer("estimated_cost"),
+  results: text("results"),
+  resultDate: timestamp("result_date"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Patient Queue for triage workflow
+export const patientQueue = pgTable("patient_queue", {
+  id: serial("id").primaryKey(),
+  patientId: integer("patient_id").references(() => patients.id).notNull(),
+  providerId: integer("provider_id").references(() => providers.id).notNull(),
+  assignedDoctorId: integer("assigned_doctor_id").references(() => users.id),
+  queueNumber: integer("queue_number").notNull(),
+  priority: text("priority").notNull().default("normal"), // high, normal, low
+  chiefComplaint: text("chief_complaint"),
+  vitals: jsonb("vitals"), // BP, temp, pulse, etc.
+  triageNotes: text("triage_notes"),
+  status: text("status").notNull().default("waiting"), // waiting, in_consultation, completed, cancelled
+  checkedInAt: timestamp("checked_in_at").defaultNow().notNull(),
+  consultationStarted: timestamp("consultation_started"),
+  consultationCompleted: timestamp("consultation_completed"),
+});
+
+// Consultation Records
+export const consultations = pgTable("consultations", {
+  id: serial("id").primaryKey(),
+  patientId: integer("patient_id").references(() => patients.id).notNull(),
+  doctorId: integer("doctor_id").references(() => users.id).notNull(),
+  queueId: integer("queue_id").references(() => patientQueue.id),
+  chiefComplaint: text("chief_complaint"),
+  historyOfPresentingIllness: text("history_of_presenting_illness"),
+  pastMedicalHistory: text("past_medical_history"),
+  examination: text("examination"),
+  diagnosis: text("diagnosis").notNull(),
+  icd10Codes: text("icd10_codes").array(),
+  treatment: text("treatment"),
+  notes: text("notes"),
+  followUpInstructions: text("follow_up_instructions"),
+  signedAt: timestamp("signed_at"),
+  signatureMethod: text("signature_method"), // fingerprint, otp, password
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Insurance Schemes
+export const insuranceSchemes = pgTable("insurance_schemes", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  insurerName: text("insurer_name").notNull(),
+  schemeType: text("scheme_type").notNull(), // nhif, private, corporate
+  benefitCategories: text("benefit_categories").array(),
+  copayPercentage: integer("copay_percentage").default(0),
+  maximumBenefit: integer("maximum_benefit"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Benefit Usage Tracking
+export const benefitUsage = pgTable("benefit_usage", {
+  id: serial("id").primaryKey(),
+  patientId: integer("patient_id").references(() => patients.id).notNull(),
+  schemeId: integer("scheme_id").references(() => insuranceSchemes.id).notNull(),
+  benefitCategory: text("benefit_category").notNull(),
+  usedAmount: integer("used_amount").notNull().default(0),
+  remainingAmount: integer("remaining_amount"),
+  lastUsed: timestamp("last_used"),
+  resetDate: timestamp("reset_date"),
+});
+
+// Pharmacy Dispensing Records
+export const dispensingRecords = pgTable("dispensing_records", {
+  id: serial("id").primaryKey(),
+  prescriptionId: integer("prescription_id").references(() => prescriptions.id).notNull(),
+  pharmacistId: integer("pharmacist_id").references(() => users.id).notNull(),
+  patientId: integer("patient_id").references(() => patients.id).notNull(),
+  medicationName: text("medication_name").notNull(),
+  quantityDispensed: integer("quantity_dispensed").notNull(),
+  daysSupply: integer("days_supply"),
+  benefitUsed: integer("benefit_used"),
+  copayAmount: integer("copay_amount"),
+  preauthorizationRequired: boolean("preauthorization_required").default(false),
+  preauthorizationStatus: text("preauthorization_status"),
+  dispensedAt: timestamp("dispensed_at").defaultNow().notNull(),
+});
+
+// Claim Appeals for Patient Dashboard
+export const claimAppeals = pgTable("claim_appeals", {
+  id: serial("id").primaryKey(),
+  claimId: integer("claim_id").references(() => claims.id).notNull(),
+  patientId: integer("patient_id").references(() => patients.id).notNull(),
+  appealReason: text("appeal_reason").notNull(),
+  supportingDocuments: text("supporting_documents").array(),
+  status: text("status").notNull().default("submitted"), // submitted, under_review, approved, denied
+  reviewedBy: integer("reviewed_by").references(() => users.id),
+  reviewNotes: text("review_notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  resolvedAt: timestamp("resolved_at"),
+});
+
 // Relations
 export const careProvidersRelations = relations(careProviders, ({ many }) => ({
   users: many(users),
@@ -255,6 +365,31 @@ export const insertPrescriptionSchema = createInsertSchema(prescriptions).omit({
   createdAt: true,
 });
 
+export const insertLabOrderSchema = createInsertSchema(labOrders).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertPatientQueueSchema = createInsertSchema(patientQueue).omit({
+  id: true,
+  checkedInAt: true,
+});
+
+export const insertConsultationSchema = createInsertSchema(consultations).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertDispensingRecordSchema = createInsertSchema(dispensingRecords).omit({
+  id: true,
+  dispensedAt: true,
+});
+
+export const insertClaimAppealSchema = createInsertSchema(claimAppeals).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type CareProvider = typeof careProviders.$inferSelect;
 export type InsertCareProvider = z.infer<typeof insertCareProviderSchema>;
@@ -273,3 +408,15 @@ export type Prescription = typeof prescriptions.$inferSelect;
 export type InsertPrescription = z.infer<typeof insertPrescriptionSchema>;
 export type FraudAlert = typeof fraudAlerts.$inferSelect;
 export type AuditLog = typeof auditLogs.$inferSelect;
+export type LabOrder = typeof labOrders.$inferSelect;
+export type InsertLabOrder = z.infer<typeof insertLabOrderSchema>;
+export type PatientQueue = typeof patientQueue.$inferSelect;
+export type InsertPatientQueue = z.infer<typeof insertPatientQueueSchema>;
+export type Consultation = typeof consultations.$inferSelect;
+export type InsertConsultation = z.infer<typeof insertConsultationSchema>;
+export type InsuranceScheme = typeof insuranceSchemes.$inferSelect;
+export type BenefitUsage = typeof benefitUsage.$inferSelect;
+export type DispensingRecord = typeof dispensingRecords.$inferSelect;
+export type InsertDispensingRecord = z.infer<typeof insertDispensingRecordSchema>;
+export type ClaimAppeal = typeof claimAppeals.$inferSelect;
+export type InsertClaimAppeal = z.infer<typeof insertClaimAppealSchema>;
