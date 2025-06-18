@@ -18,6 +18,13 @@ import Debtors from "@/pages/debtors";
 import PatientQueue from "@/pages/patient-queue";
 import ConsultationForm from "@/pages/consultation-form";
 import EnhancedAuthPage from "@/pages/enhanced-auth-page";
+import DoctorDashboard from "@/pages/doctor-dashboard";
+import PharmacyDashboard from "@/pages/pharmacy-dashboard";
+import CareManagerDashboard from "@/pages/care-manager-dashboard";
+import InsurerDashboard from "@/pages/insurer-dashboard";
+import PatientDashboard from "@/pages/patient-dashboard";
+import AdminDashboard from "@/pages/admin-dashboard";
+import DemoDashboard from "@/pages/demo-dashboard";
 
 function Router() {
   return (
@@ -32,6 +39,15 @@ function Router() {
       <ProtectedRoute path="/debtors" component={Debtors} />
       <ProtectedRoute path="/patient-queue" component={PatientQueue} />
       <ProtectedRoute path="/consultation" component={ConsultationForm} />
+      
+      {/* New Role-Based Dashboards */}
+      <ProtectedRoute path="/doctor" component={DoctorDashboard} />
+      <ProtectedRoute path="/pharmacy-dashboard" component={PharmacyDashboard} />
+      <ProtectedRoute path="/care-manager-dashboard" component={CareManagerDashboard} />
+      <ProtectedRoute path="/insurer" component={InsurerDashboard} />
+      <ProtectedRoute path="/patient" component={PatientDashboard} />
+      <ProtectedRoute path="/admin" component={AdminDashboard} />
+      <Route path="/demo" component={DemoDashboard} />
       <Route path="/auth" component={AuthPage} />
       <Route path="/secure-auth" component={EnhancedAuthPage} />
       <Route component={NotFound} />
