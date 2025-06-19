@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { AlertTriangle, TrendingUp, Users, DollarSign, Activity, Shield, Building2 } from "lucide-react";
+import { CostComparisonDashboard } from "@/components/cost-comparison-dashboard";
 
 interface ClaimOverview {
   id: number;
@@ -292,11 +293,12 @@ export default function CareManagerDashboard() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">Claims Overview</TabsTrigger>
           <TabsTrigger value="fraud">Fraud Alerts</TabsTrigger>
           <TabsTrigger value="providers">Provider Analytics</TabsTrigger>
           <TabsTrigger value="benchmarks">Cost Benchmarks</TabsTrigger>
+          <TabsTrigger value="cost-comparison">Cost Comparison</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -650,6 +652,23 @@ export default function CareManagerDashboard() {
                   </div>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="cost-comparison" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <DollarSign className="w-5 h-5 mr-2 text-green-600" />
+                Premium Cost Comparison Analytics
+              </CardTitle>
+              <CardDescription>
+                Real-time cost analysis and provider benchmarking for premium care managers
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <CostComparisonDashboard />
             </CardContent>
           </Card>
         </TabsContent>

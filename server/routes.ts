@@ -500,6 +500,221 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Cost Comparison Analytics API
+  app.get("/api/analytics/cost-metrics", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const { timeRange, category, region } = req.query;
+      
+      // Simulate real-time cost metrics calculation
+      const metrics = {
+        totalCosts: 2847500 + Math.floor(Math.random() * 500000),
+        avgCostPerClaim: 3250 + Math.floor(Math.random() * 500),
+        costTrend: (Math.random() - 0.5) * 20, // -10% to +10%
+        topCostDrivers: [
+          { category: "Inpatient Care", amount: 1420000, percentage: 49.9 },
+          { category: "Specialist Consultations", amount: 568000, percentage: 19.9 },
+          { category: "Diagnostic Imaging", amount: 341000, percentage: 12.0 },
+          { category: "Laboratory Tests", amount: 284000, percentage: 10.0 },
+          { category: "Emergency Services", amount: 234500, percentage: 8.2 }
+        ]
+      };
+      
+      res.json(metrics);
+    } catch (error) {
+      console.error("Cost metrics error:", error);
+      res.status(500).json({ error: "Failed to retrieve cost metrics" });
+    }
+  });
+
+  app.get("/api/analytics/provider-comparison", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const { timeRange, category } = req.query;
+      
+      const providers = [
+        {
+          providerId: "P001",
+          providerName: "Kenyatta National Hospital",
+          providerType: "Public Hospital",
+          totalClaims: 1250 + Math.floor(Math.random() * 200),
+          totalCosts: 4875000 + Math.floor(Math.random() * 500000),
+          avgCostPerClaim: 3900 + Math.floor(Math.random() * 300),
+          costEfficiencyRank: 3,
+          specialtyFocus: "General Medicine",
+          qualityScore: 87,
+          patientSatisfaction: 78
+        },
+        {
+          providerId: "P002",
+          providerName: "Aga Khan University Hospital",
+          providerType: "Private Hospital",
+          totalClaims: 890 + Math.floor(Math.random() * 150),
+          totalCosts: 3560000 + Math.floor(Math.random() * 400000),
+          avgCostPerClaim: 4000 + Math.floor(Math.random() * 400),
+          costEfficiencyRank: 4,
+          specialtyFocus: "Specialist Care",
+          qualityScore: 94,
+          patientSatisfaction: 92
+        },
+        {
+          providerId: "P003",
+          providerName: "Nairobi Hospital",
+          providerType: "Private Hospital",
+          totalClaims: 756 + Math.floor(Math.random() * 120),
+          totalCosts: 2268000 + Math.floor(Math.random() * 300000),
+          avgCostPerClaim: 3000 + Math.floor(Math.random() * 250),
+          costEfficiencyRank: 1,
+          specialtyFocus: "Cardiology",
+          qualityScore: 91,
+          patientSatisfaction: 89
+        },
+        {
+          providerId: "P004",
+          providerName: "MP Shah Hospital",
+          providerType: "Private Hospital",
+          totalClaims: 623 + Math.floor(Math.random() * 100),
+          totalCosts: 2180500 + Math.floor(Math.random() * 250000),
+          avgCostPerClaim: 3500 + Math.floor(Math.random() * 300),
+          costEfficiencyRank: 2,
+          specialtyFocus: "Maternity Care",
+          qualityScore: 88,
+          patientSatisfaction: 85
+        },
+        {
+          providerId: "P005",
+          providerName: "Mater Hospital",
+          providerType: "Private Hospital",
+          totalClaims: 445 + Math.floor(Math.random() * 80),
+          totalCosts: 1780000 + Math.floor(Math.random() * 200000),
+          avgCostPerClaim: 4000 + Math.floor(Math.random() * 350),
+          costEfficiencyRank: 5,
+          specialtyFocus: "Pediatrics",
+          qualityScore: 90,
+          patientSatisfaction: 87
+        }
+      ];
+      
+      res.json(providers);
+    } catch (error) {
+      console.error("Provider comparison error:", error);
+      res.status(500).json({ error: "Failed to retrieve provider comparison data" });
+    }
+  });
+
+  app.get("/api/analytics/service-comparison", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const services = [
+        {
+          serviceCode: "99213",
+          serviceName: "Office Visit - Established Patient",
+          category: "Primary Care",
+          minCost: 1500,
+          maxCost: 4500,
+          avgCost: 2750 + Math.floor(Math.random() * 200),
+          medianCost: 2600,
+          standardDeviation: 650,
+          providerCount: 45,
+          claimVolume: 2340 + Math.floor(Math.random() * 100)
+        },
+        {
+          serviceCode: "99285",
+          serviceName: "Emergency Department Visit - High Complexity",
+          category: "Emergency Care",
+          minCost: 8000,
+          maxCost: 25000,
+          avgCost: 15500 + Math.floor(Math.random() * 1000),
+          medianCost: 14000,
+          standardDeviation: 4200,
+          providerCount: 12,
+          claimVolume: 567 + Math.floor(Math.random() * 50)
+        },
+        {
+          serviceCode: "73030",
+          serviceName: "X-Ray Shoulder",
+          category: "Diagnostic Imaging",
+          minCost: 2500,
+          maxCost: 8000,
+          avgCost: 4250 + Math.floor(Math.random() * 300),
+          medianCost: 4000,
+          standardDeviation: 1100,
+          providerCount: 28,
+          claimVolume: 890 + Math.floor(Math.random() * 80)
+        },
+        {
+          serviceCode: "80053",
+          serviceName: "Comprehensive Metabolic Panel",
+          category: "Laboratory",
+          minCost: 800,
+          maxCost: 2500,
+          avgCost: 1400 + Math.floor(Math.random() * 150),
+          medianCost: 1300,
+          standardDeviation: 380,
+          providerCount: 35,
+          claimVolume: 1560 + Math.floor(Math.random() * 120)
+        }
+      ];
+      
+      res.json(services);
+    } catch (error) {
+      console.error("Service comparison error:", error);
+      res.status(500).json({ error: "Failed to retrieve service comparison data" });
+    }
+  });
+
+  app.get("/api/analytics/regional-costs", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const regions = [
+        { 
+          region: "Nairobi", 
+          avgCost: 3800 + Math.floor(Math.random() * 200), 
+          claimVolume: 4567 + Math.floor(Math.random() * 200), 
+          providerCount: 45, 
+          costTrend: (Math.random() - 0.5) * 10 
+        },
+        { 
+          region: "Mombasa", 
+          avgCost: 3200 + Math.floor(Math.random() * 150), 
+          claimVolume: 2890 + Math.floor(Math.random() * 150), 
+          providerCount: 28, 
+          costTrend: (Math.random() - 0.5) * 8 
+        },
+        { 
+          region: "Kisumu", 
+          avgCost: 2850 + Math.floor(Math.random() * 120), 
+          claimVolume: 1780 + Math.floor(Math.random() * 100), 
+          providerCount: 18, 
+          costTrend: (Math.random() - 0.5) * 6 
+        },
+        { 
+          region: "Nakuru", 
+          avgCost: 2950 + Math.floor(Math.random() * 130), 
+          claimVolume: 1456 + Math.floor(Math.random() * 80), 
+          providerCount: 15, 
+          costTrend: (Math.random() - 0.5) * 7 
+        },
+        { 
+          region: "Eldoret", 
+          avgCost: 2700 + Math.floor(Math.random() * 100), 
+          claimVolume: 1234 + Math.floor(Math.random() * 60), 
+          providerCount: 12, 
+          costTrend: (Math.random() - 0.5) * 5 
+        }
+      ];
+      
+      res.json(regions);
+    } catch (error) {
+      console.error("Regional costs error:", error);
+      res.status(500).json({ error: "Failed to retrieve regional cost data" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
