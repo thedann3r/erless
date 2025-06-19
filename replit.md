@@ -132,6 +132,15 @@ Preferred communication style: Simple, everyday language.
 - Chain-of-thought reasoning display for transparency
 - Fraud pattern detection with risk scoring
 
+**Kenya Clinical Registration Board Integration:**
+- Professional license validation API with `/verify-registration` endpoint
+- KMPDC, Clinical Officers Council, and PPB board integration
+- 15 realistic practitioner records with proper Kenyan naming conventions
+- Comprehensive validation including license expiry, suspension status
+- Returns 403 for invalid/inactive/suspended registrations
+- Admin Dashboard registration validator with testing interface
+- Real-time verification with detailed practitioner information
+
 ## Changelog
 
 - June 18, 2025. Initial setup
