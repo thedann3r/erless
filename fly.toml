@@ -1,0 +1,85 @@
+# Fly.io configuration for Erlessed Healthcare Platform
+app = "erlessed-healthcare"
+primary_region = "jnb"  # Johannesburg for Africa coverage
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  NODE_ENV = "production"
+  PORT = "5000"
+  TZ = "Africa/Nairobi"
+  PYTHONPATH = "/app/hms_integration"
+
+[[services]]
+  protocol = "tcp"
+  internal_port = 5000
+  processes = ["app"]
+
+  [[services.ports]]
+    port = 80
+    handlers = ["http"]
+    force_https = true
+
+  [[services.ports]]
+    port = 443
+    handlers = ["tls", "http"]
+
+  [services.concurrency]
+    type = "connections"
+    hard_limit = 25
+    soft_limit = 20
+
+  [[services.tcp_checks]]
+    interval = "15s"
+    timeout = "2s"
+    grace_period = "10s"
+
+  [[services.http_checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "10s"
+    method = "get"
+    path = "/health"
+    protocol = "http"
+    tls_skip_verify = false
+
+# HMS Integration microservice
+[[services]]
+  protocol = "tcp"
+  internal_port = 8001
+  processes = ["app"]
+
+  [[services.ports]]
+    port = 8001
+    handlers = ["http"]
+
+  [services.concurrency]
+    type = "connections"
+    hard_limit = 10
+    soft_limit = 5
+
+  [[services.http_checks]]
+    interval = "60s"
+    timeout = "10s"
+    grace_period = "15s"
+    method = "get"
+    path = "/health"
+    protocol = "http"
+
+[http_service]
+  internal_port = 5000
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 1
+  max_machines_running = 5
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 512
+
+[metrics]
+  port = 9091
+  path = "/metrics"

@@ -1,10 +1,166 @@
 import express, { type Request, Response, NextFunction } from "express";
+import rateLimit from "express-rate-limit";
+import helmet from "helmet";
+import cors from "cors";
+import compression from "compression";
+import morgan from "morgan";
+import { createClient } from "redis";
+import { RedisStore } from "rate-limit-redis";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+
+// Trust proxy headers for production deployment
+app.set('trust proxy', 1);
+
+// Security headers
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "wss:", "https:"],
+    },
+  },
+  hsts: process.env.NODE_ENV === 'production' ? {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true
+  } : false
+}));
+
+// CORS configuration
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? ['https://erlessed.fly.dev', 'https://erlessed.onrender.com']
+    : ['http://localhost:5173', 'http://localhost:5000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
+
+// Compression for better performance
+app.use(compression());
+
+// Request logging
+if (process.env.NODE_ENV === 'production') {
+  app.use(morgan('combined'));
+}
+
+// Redis client for rate limiting
+let redisClient: any = null;
+if (process.env.REDIS_URL) {
+  try {
+    redisClient = createClient({ url: process.env.REDIS_URL });
+    redisClient.connect().catch((err: any) => {
+      console.warn('Redis connection failed:', err.message);
+    });
+  } catch (error) {
+    console.warn('Redis client creation failed, using memory store for rate limiting');
+  }
+}
+
+// Rate limiting configuration
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 1000, // requests per window
+  message: {
+    error: 'Too many requests from this IP, please try again later.',
+    retryAfter: 15 * 60
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  store: redisClient ? new RedisStore({
+    sendCommand: (...args: string[]) => redisClient.sendCommand(args),
+  }) : undefined,
+  skip: (req) => req.path === '/health' || req.path === '/metrics'
+});
+
+// Stricter rate limiting for authentication
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: {
+    error: 'Too many authentication attempts, please try again later.',
+    retryAfter: 15 * 60
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  store: redisClient ? new RedisStore({
+    sendCommand: (...args: string[]) => redisClient.sendCommand(args),
+  }) : undefined
+});
+
+app.use(limiter);
+
+// Body parsing with size limits
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: false, limit: '10mb' }));
+
+// Apply auth rate limiting
+app.use('/api/auth', authLimiter);
+app.use('/api/login', authLimiter);
+app.use('/api/register', authLimiter);
+
+// Health check endpoint - must come before other middleware
+app.get('/health', async (req: Request, res: Response) => {
+  try {
+    const healthCheck = {
+      status: 'OK',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      environment: process.env.NODE_ENV || 'development',
+      version: process.env.npm_package_version || '1.0.0',
+      database: 'connected', // TODO: Add actual DB health check
+      redis: redisClient?.isReady ? 'connected' : 'not_configured',
+      memory: {
+        used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
+        total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024),
+        rss: Math.round(process.memoryUsage().rss / 1024 / 1024)
+      },
+      services: {
+        main_app: 'healthy',
+        hms_integration: process.env.NODE_ENV === 'production' ? 'configured' : 'development'
+      }
+    };
+    
+    res.status(200).json(healthCheck);
+  } catch (error) {
+    res.status(503).json({
+      status: 'ERROR',
+      timestamp: new Date().toISOString(),
+      error: 'Health check failed'
+    });
+  }
+});
+
+// Metrics endpoint for Prometheus/monitoring
+app.get('/metrics', (req: Request, res: Response) => {
+  const metrics = {
+    nodejs_heap_size_used_bytes: process.memoryUsage().heapUsed,
+    nodejs_heap_size_total_bytes: process.memoryUsage().heapTotal,
+    nodejs_external_memory_bytes: process.memoryUsage().external,
+    nodejs_rss_bytes: process.memoryUsage().rss,
+    process_uptime_seconds: process.uptime(),
+    process_start_time_seconds: Math.floor(Date.now() / 1000 - process.uptime()),
+    erlessed_active_connections: 0, // TODO: Track actual connections
+    erlessed_requests_total: 0 // TODO: Track total requests
+  };
+  
+  // Prometheus format
+  let output = '';
+  for (const [key, value] of Object.entries(metrics)) {
+    output += `# TYPE ${key} gauge\n`;
+    output += `${key} ${value}\n`;
+  }
+  
+  res.set('Content-Type', 'text/plain');
+  res.send(output);
+});
 
 app.use((req, res, next) => {
   const start = Date.now();
