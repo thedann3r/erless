@@ -48,12 +48,8 @@ export default function OnboardingPage() {
 
   const submitMutation = useMutation({
     mutationFn: (data: OnboardingForm) => 
-      apiRequest("/api/onboarding/submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      }),
-    onSuccess: (result) => {
+      apiRequest("/api/onboarding/submit", "POST", data),
+    onSuccess: (result: any) => {
       setSubmitStatus('success');
       setApplicationId(result.applicationId);
       toast({
