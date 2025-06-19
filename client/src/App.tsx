@@ -25,6 +25,7 @@ import InsurerDashboard from "@/pages/insurer-dashboard";
 import PatientDashboard from "@/pages/patient-dashboard";
 import AdminDashboard from "@/pages/admin-dashboard";
 import DemoDashboard from "@/pages/demo-dashboard";
+import AnalyticsPage from "@/pages/analytics-page";
 
 function Router() {
   return (
@@ -47,6 +48,7 @@ function Router() {
       <ProtectedRoute path="/insurer" component={InsurerDashboard} />
       <ProtectedRoute path="/patient" component={PatientDashboard} />
       <ProtectedRoute path="/admin" component={AdminDashboard} />
+      <ProtectedRoute path="/analytics" component={AnalyticsPage} />
       <Route path="/demo" component={DemoDashboard} />
       <Route path="/auth" component={AuthPage} />
       <Route path="/secure-auth" component={EnhancedAuthPage} />

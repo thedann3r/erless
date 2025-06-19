@@ -715,6 +715,250 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Advanced Analytics and Prognosis API
+  app.get("/api/analytics/prognosis-models", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const models = [
+        {
+          modelId: "diabetes-prediction",
+          modelName: "Diabetes Progression Predictor",
+          condition: "Type 2 Diabetes",
+          accuracy: 89.5 + Math.random() * 5,
+          lastTrained: "2024-06-15",
+          dataPoints: 15400 + Math.floor(Math.random() * 1000),
+          status: "active"
+        },
+        {
+          modelId: "cardiovascular-risk",
+          modelName: "Cardiovascular Risk Assessment",
+          condition: "Heart Disease",
+          accuracy: 92.1 + Math.random() * 3,
+          lastTrained: "2024-06-10",
+          dataPoints: 22100 + Math.floor(Math.random() * 1500),
+          status: "active"
+        },
+        {
+          modelId: "cancer-prognosis",
+          modelName: "Cancer Treatment Response",
+          condition: "Various Cancers",
+          accuracy: 87.3 + Math.random() * 4,
+          lastTrained: "2024-06-08",
+          dataPoints: 8750 + Math.floor(Math.random() * 800),
+          status: "active"
+        },
+        {
+          modelId: "mental-health",
+          modelName: "Mental Health Outcome Predictor",
+          condition: "Depression/Anxiety",
+          accuracy: 84.7 + Math.random() * 6,
+          lastTrained: "2024-06-12",
+          dataPoints: 12600 + Math.floor(Math.random() * 1200),
+          status: Math.random() > 0.7 ? "training" : "active"
+        }
+      ];
+      
+      res.json(models);
+    } catch (error) {
+      console.error("Prognosis models error:", error);
+      res.status(500).json({ error: "Failed to retrieve prognosis models" });
+    }
+  });
+
+  app.get("/api/analytics/outcome-tracking", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const { condition, timeframe } = req.query;
+      
+      const outcomes = [
+        {
+          patientId: "P12345",
+          patientName: "John Kamau",
+          condition: "Type 2 Diabetes",
+          initialDiagnosis: "HbA1c: 8.5%, Fasting glucose: 180mg/dL",
+          treatmentPlan: "Metformin + Lifestyle modification",
+          predictedOutcome: {
+            recoveryProbability: 78 + Math.floor(Math.random() * 15),
+            timeToRecovery: 180 + Math.floor(Math.random() * 60),
+            riskFactors: ["Obesity", "Family history", "Sedentary lifestyle"],
+            confidenceLevel: 89 + Math.floor(Math.random() * 8)
+          },
+          actualOutcome: {
+            status: Math.random() > 0.5 ? "improved" : "stable",
+            timeToOutcome: 165 + Math.floor(Math.random() * 30),
+            complications: Math.random() > 0.8 ? ["Mild hypoglycemia"] : [],
+            followUpRequired: true
+          },
+          lastUpdated: "2024-06-18"
+        },
+        {
+          patientId: "P12346",
+          patientName: "Mary Wanjiku",
+          condition: "Hypertension",
+          initialDiagnosis: "BP: 165/95 mmHg, Stage 2 HTN",
+          treatmentPlan: "ACE inhibitor + Diet modification",
+          predictedOutcome: {
+            recoveryProbability: 85 + Math.floor(Math.random() * 10),
+            timeToRecovery: 90 + Math.floor(Math.random() * 30),
+            riskFactors: ["Age >50", "Salt intake", "Stress"],
+            confidenceLevel: 92 + Math.floor(Math.random() * 6)
+          },
+          actualOutcome: {
+            status: Math.random() > 0.3 ? "stable" : "improved",
+            timeToOutcome: 95 + Math.floor(Math.random() * 20),
+            complications: [],
+            followUpRequired: true
+          },
+          lastUpdated: "2024-06-17"
+        },
+        {
+          patientId: "P12347",
+          patientName: "Peter Ochieng",
+          condition: "Asthma",
+          initialDiagnosis: "Moderate persistent asthma, FEV1: 65%",
+          treatmentPlan: "ICS/LABA + Action plan",
+          predictedOutcome: {
+            recoveryProbability: 92 + Math.floor(Math.random() * 6),
+            timeToRecovery: 60 + Math.floor(Math.random() * 30),
+            riskFactors: ["Environmental triggers", "Compliance"],
+            confidenceLevel: 87 + Math.floor(Math.random() * 10)
+          },
+          lastUpdated: "2024-06-16"
+        }
+      ];
+      
+      res.json(outcomes);
+    } catch (error) {
+      console.error("Outcome tracking error:", error);
+      res.status(500).json({ error: "Failed to retrieve outcome tracking data" });
+    }
+  });
+
+  app.get("/api/analytics/population-trends", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const { timeframe } = req.query;
+      
+      const trends = [
+        { 
+          timeperiod: "Jan 2024", 
+          condition: "Diabetes", 
+          incidenceRate: 4.2 + Math.random() * 0.5, 
+          mortalityRate: 0.8 + Math.random() * 0.2, 
+          recoveryRate: 78 + Math.random() * 5, 
+          avgTreatmentCost: 45000 + Math.floor(Math.random() * 5000), 
+          riskScore: 6.5 + Math.random() * 0.5 
+        },
+        { 
+          timeperiod: "Feb 2024", 
+          condition: "Diabetes", 
+          incidenceRate: 4.5 + Math.random() * 0.5, 
+          mortalityRate: 0.7 + Math.random() * 0.2, 
+          recoveryRate: 79 + Math.random() * 5, 
+          avgTreatmentCost: 46000 + Math.floor(Math.random() * 5000), 
+          riskScore: 6.3 + Math.random() * 0.5 
+        },
+        { 
+          timeperiod: "Mar 2024", 
+          condition: "Diabetes", 
+          incidenceRate: 4.1 + Math.random() * 0.5, 
+          mortalityRate: 0.6 + Math.random() * 0.2, 
+          recoveryRate: 81 + Math.random() * 5, 
+          avgTreatmentCost: 44500 + Math.floor(Math.random() * 5000), 
+          riskScore: 6.1 + Math.random() * 0.5 
+        },
+        { 
+          timeperiod: "Apr 2024", 
+          condition: "Diabetes", 
+          incidenceRate: 3.9 + Math.random() * 0.5, 
+          mortalityRate: 0.5 + Math.random() * 0.2, 
+          recoveryRate: 83 + Math.random() * 5, 
+          avgTreatmentCost: 43000 + Math.floor(Math.random() * 5000), 
+          riskScore: 5.9 + Math.random() * 0.5 
+        },
+        { 
+          timeperiod: "May 2024", 
+          condition: "Diabetes", 
+          incidenceRate: 3.7 + Math.random() * 0.5, 
+          mortalityRate: 0.5 + Math.random() * 0.2, 
+          recoveryRate: 85 + Math.random() * 5, 
+          avgTreatmentCost: 42000 + Math.floor(Math.random() * 5000), 
+          riskScore: 5.7 + Math.random() * 0.5 
+        },
+        { 
+          timeperiod: "Jun 2024", 
+          condition: "Diabetes", 
+          incidenceRate: 3.5 + Math.random() * 0.5, 
+          mortalityRate: 0.4 + Math.random() * 0.2, 
+          recoveryRate: 87 + Math.random() * 5, 
+          avgTreatmentCost: 41000 + Math.floor(Math.random() * 5000), 
+          riskScore: 5.5 + Math.random() * 0.5 
+        }
+      ];
+      
+      res.json(trends);
+    } catch (error) {
+      console.error("Population trends error:", error);
+      res.status(500).json({ error: "Failed to retrieve population trends" });
+    }
+  });
+
+  app.get("/api/analytics/risk-assessments", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const assessments = [
+        {
+          patientId: "P98765",
+          patientName: "Grace Muthoni",
+          age: 45,
+          gender: "Female",
+          riskFactors: [
+            { factor: "Hypertension", severity: "medium", impact: 6.5 + Math.random() * 1 },
+            { factor: "Family History of CVD", severity: "high", impact: 8.2 + Math.random() * 0.5 },
+            { factor: "Smoking", severity: "high", impact: 9.1 + Math.random() * 0.5 },
+            { factor: "High Cholesterol", severity: "medium", impact: 6.8 + Math.random() * 0.8 }
+          ],
+          overallRiskScore: 7.6 + Math.random() * 0.8,
+          recommendations: [
+            "Smoking cessation program",
+            "Cholesterol management",
+            "Regular BP monitoring",
+            "Cardiology consultation"
+          ],
+          nextReviewDate: "2024-09-15"
+        },
+        {
+          patientId: "P98766",
+          patientName: "Samuel Kiprop",
+          age: 38,
+          gender: "Male",
+          riskFactors: [
+            { factor: "Obesity (BMI >30)", severity: "medium", impact: 5.8 + Math.random() * 0.8 },
+            { factor: "Sedentary Lifestyle", severity: "medium", impact: 4.9 + Math.random() * 0.7 },
+            { factor: "Pre-diabetes", severity: "high", impact: 7.3 + Math.random() * 0.5 }
+          ],
+          overallRiskScore: 6.0 + Math.random() * 0.8,
+          recommendations: [
+            "Weight management program",
+            "Exercise prescription",
+            "Dietary counseling",
+            "Regular glucose monitoring"
+          ],
+          nextReviewDate: "2024-08-20"
+        }
+      ];
+      
+      res.json(assessments);
+    } catch (error) {
+      console.error("Risk assessments error:", error);
+      res.status(500).json({ error: "Failed to retrieve risk assessments" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
