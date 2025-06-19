@@ -150,6 +150,16 @@ Preferred communication style: Simple, everyday language.
 - Comprehensive outcome metrics with treatment plan effectiveness
 - Risk factor analysis with severity grading and recommendations
 
+**Secure FastAPI HMS Integration Microservice:**
+- Comprehensive microservice for hospital management system integration
+- Support for OpenMRS, AfyaPro, and custom EMR systems
+- REST API and FHIR protocol compatibility with OAuth2/token authentication
+- Real-time data synchronization for vitals, labs, prescriptions, and diagnoses
+- Patient consent management with fingerprint/OTP verification
+- CSV/XML file upload fallback for offline data import
+- Secure database mapping to Erlessed PostgreSQL schema
+- Audit logging and compliance tracking for all sync operations
+
 ## Changelog
 
 - June 18, 2025. Initial setup

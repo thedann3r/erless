@@ -26,6 +26,7 @@ import PatientDashboard from "@/pages/patient-dashboard";
 import AdminDashboard from "@/pages/admin-dashboard";
 import DemoDashboard from "@/pages/demo-dashboard";
 import AnalyticsPage from "@/pages/analytics-page";
+import HMSIntegrationPage from "@/pages/hms-integration";
 
 function Router() {
   return (
@@ -49,6 +50,7 @@ function Router() {
       <ProtectedRoute path="/patient" component={PatientDashboard} />
       <ProtectedRoute path="/admin" component={AdminDashboard} />
       <ProtectedRoute path="/analytics" component={AnalyticsPage} />
+      <ProtectedRoute path="/hms-integration" component={HMSIntegrationPage} />
       <Route path="/demo" component={DemoDashboard} />
       <Route path="/auth" component={AuthPage} />
       <Route path="/secure-auth" component={EnhancedAuthPage} />
