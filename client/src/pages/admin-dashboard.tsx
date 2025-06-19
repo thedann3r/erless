@@ -13,6 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { Settings, Users, Building2, BarChart3, Bot, Shield, Plus, Edit, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { RegistrationValidator } from "@/components/registration-validator";
 
 interface SystemUser {
   id: number;
@@ -386,10 +387,11 @@ export default function AdminDashboard() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">System Overview</TabsTrigger>
           <TabsTrigger value="users">User Management</TabsTrigger>
           <TabsTrigger value="providers">Care Providers</TabsTrigger>
+          <TabsTrigger value="registration">License Validation</TabsTrigger>
           <TabsTrigger value="ai-config">AI Configuration</TabsTrigger>
         </TabsList>
 

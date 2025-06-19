@@ -6,6 +6,7 @@ import { authService } from "./auth-service";
 import { z } from "zod";
 import { insertClaimSchema, insertPreauthorizationSchema, insertPrescriptionSchema } from "@shared/schema";
 import { analyzePreauthorization, analyzeFraudPatterns, validatePrescription, suggestClaimCodes } from "./openai";
+import { registrationService } from "./registration-service";
 
 export function registerRoutes(app: Express): Server {
   // Setup authentication routes
@@ -413,6 +414,90 @@ export function registerRoutes(app: Express): Server {
     };
     
     res.json(status);
+  });
+
+  // Professional License Verification API
+  app.post("/api/verify-registration", async (req, res) => {
+    try {
+      const { registrationNumber, cadre } = req.body;
+
+      if (!registrationNumber) {
+        return res.status(400).json({
+          error: "Registration number is required",
+          isValid: false
+        });
+      }
+
+      const verificationResult = await registrationService.verifyRegistration({
+        registrationNumber,
+        cadre
+      });
+
+      if (!verificationResult.isValid) {
+        return res.status(403).json({
+          error: verificationResult.error,
+          isValid: false
+        });
+      }
+
+      res.json({
+        isValid: true,
+        practitioner: verificationResult.practitioner
+      });
+
+    } catch (error) {
+      console.error("Registration verification error:", error);
+      res.status(500).json({
+        error: "Verification service temporarily unavailable",
+        isValid: false
+      });
+    }
+  });
+
+  // Get registration boards
+  app.get("/api/registration/boards", async (req, res) => {
+    try {
+      const boards = await registrationService.getAllBoards();
+      res.json({ boards });
+    } catch (error) {
+      console.error("Failed to get boards:", error);
+      res.status(500).json({ error: "Failed to retrieve board information" });
+    }
+  });
+
+  // Get registration statistics
+  app.get("/api/registration/statistics", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const stats = await registrationService.getStatistics();
+      res.json(stats);
+    } catch (error) {
+      console.error("Failed to get registration statistics:", error);
+      res.status(500).json({ error: "Failed to retrieve statistics" });
+    }
+  });
+
+  // Search practitioners
+  app.get("/api/registration/search", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const { name, facility, cadre, board, status } = req.query;
+      const searchQuery = {
+        name: name as string,
+        facility: facility as string,
+        cadre: cadre as string,
+        board: board as string,
+        status: status as string
+      };
+
+      const results = await registrationService.searchPractitioners(searchQuery);
+      res.json({ practitioners: results });
+    } catch (error) {
+      console.error("Practitioner search error:", error);
+      res.status(500).json({ error: "Search service temporarily unavailable" });
+    }
   });
 
   const httpServer = createServer(app);
