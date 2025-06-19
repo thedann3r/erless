@@ -155,8 +155,8 @@ export default function OnboardingManagement() {
     "admin", "users", "claims", "preauth", "analytics", "pharmacy", "billing", "reports"
   ];
 
-  const pendingApplications = applications.filter((app: OnboardingApplication) => app.onboardingStatus === 'pending');
-  const processedApplications = applications.filter((app: OnboardingApplication) => app.onboardingStatus !== 'pending');
+  const pendingApplications = applicationsArray.filter((app: OnboardingApplication) => app.onboardingStatus === 'pending');
+  const processedApplications = applicationsArray.filter((app: OnboardingApplication) => app.onboardingStatus !== 'pending');
 
   if (isLoading) {
     return (

@@ -381,7 +381,6 @@ export class DatabaseStorage implements IStorage {
     await db
       .update(sampleClaimFlows)
       .set({ 
-        completed: true,
         completedAt: new Date()
       })
       .where(eq(sampleClaimFlows.id, flowId));
