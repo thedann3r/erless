@@ -1,10 +1,12 @@
 import { 
   users, patients, claims, providers, benefits, dependents, 
   preauthorizations, prescriptions, fraudAlerts, auditLogs,
+  careProviders, insurancePolicies, onboardingAudits, sampleClaimFlows,
   type User, type InsertUser, type Patient, type InsertPatient,
   type Claim, type InsertClaim, type Provider, type Benefit,
   type Dependent, type Preauthorization, type InsertPreauthorization,
-  type Prescription, type InsertPrescription, type FraudAlert, type AuditLog
+  type Prescription, type InsertPrescription, type FraudAlert, type AuditLog,
+  type CareProvider, type InsertCareProvider
 } from "@shared/schema";
 import { db, pool } from "./db";
 import { eq, and, desc, sql } from "drizzle-orm";
@@ -52,6 +54,18 @@ export interface IStorage {
   
   // Audit logging
   createAuditLog(log: Omit<AuditLog, 'id' | 'createdAt'>): Promise<AuditLog>;
+  
+  // Onboarding
+  createOnboardingApplication(data: any): Promise<any>;
+  getOnboardingApplications(): Promise<any[]>;
+  approveOnboardingApplication(id: number, approvedBy: number): Promise<void>;
+  rejectOnboardingApplication(id: number, rejectedBy: number, reason: string): Promise<void>;
+  logOnboardingAudit(audit: any): Promise<void>;
+  generateSampleClaimFlows(providerId: number): Promise<void>;
+  getSampleClaimFlows(providerId: number): Promise<any[]>;
+  completeSampleFlow(flowId: number): Promise<void>;
+  getInsurancePolicies(): Promise<any[]>;
+  seedInsurancePolicies(): Promise<void>;
   
   sessionStore: any;
 }
@@ -247,6 +261,200 @@ export class DatabaseStorage implements IStorage {
       .values(log)
       .returning();
     return auditLog;
+  }
+
+  // Onboarding implementation
+  async createOnboardingApplication(data: any): Promise<any> {
+    const [provider] = await db
+      .insert(careProviders)
+      .values({
+        organizationType: data.organizationType,
+        organizationName: data.organizationName,
+        domain: data.domain,
+        contactPerson: data.contactPerson,
+        contactEmail: data.contactEmail,
+        contactPhone: data.contactPhone,
+        address: data.address,
+        licenseNumber: data.licenseNumber,
+        schemesSupported: data.schemesSupported,
+        branch: data.branch,
+        servicesOffered: data.servicesOffered,
+        specializations: data.specializations,
+        operatingHours: data.operatingHours,
+        emergencyServices: data.emergencyServices,
+        onboardingStatus: 'pending',
+        onboardingData: data
+      })
+      .returning();
+    return provider;
+  }
+
+  async getOnboardingApplications(): Promise<any[]> {
+    return await db
+      .select()
+      .from(careProviders)
+      .where(sql`${careProviders.onboardingStatus} IN ('pending', 'approved', 'rejected')`)
+      .orderBy(desc(careProviders.createdAt));
+  }
+
+  async approveOnboardingApplication(id: number, approvedBy: number): Promise<void> {
+    await db
+      .update(careProviders)
+      .set({ 
+        onboardingStatus: 'approved',
+        approvedBy,
+        approvedAt: new Date()
+      })
+      .where(eq(careProviders.id, id));
+  }
+
+  async rejectOnboardingApplication(id: number, rejectedBy: number, reason: string): Promise<void> {
+    await db
+      .update(careProviders)
+      .set({ 
+        onboardingStatus: 'rejected',
+        rejectedBy,
+        rejectedAt: new Date(),
+        rejectionReason: reason
+      })
+      .where(eq(careProviders.id, id));
+  }
+
+  async logOnboardingAudit(audit: any): Promise<void> {
+    await db
+      .insert(onboardingAudits)
+      .values({
+        providerId: audit.providerId,
+        action: audit.action,
+        actionBy: audit.actionBy,
+        details: audit.details,
+        ipAddress: audit.ipAddress,
+        userAgent: audit.userAgent
+      });
+  }
+
+  async generateSampleClaimFlows(providerId: number): Promise<void> {
+    const sampleFlows = [
+      {
+        providerId,
+        flowType: 'outpatient_consultation',
+        title: 'Outpatient Consultation',
+        description: 'Submit and process a routine outpatient consultation claim',
+        steps: ['Patient registration', 'Service delivery', 'Claim submission', 'Processing', 'Payment'],
+        estimatedDuration: 30,
+        completed: false
+      },
+      {
+        providerId,
+        flowType: 'emergency_visit',
+        title: 'Emergency Department Visit',
+        description: 'Handle emergency department visit with preauthorization',
+        steps: ['Emergency admission', 'Immediate preauth', 'Treatment', 'Claim processing'],
+        estimatedDuration: 45,
+        completed: false
+      },
+      {
+        providerId,
+        flowType: 'pharmacy_dispensing',
+        title: 'Pharmacy Dispensing',
+        description: 'Process prescription validation and dispensing',
+        steps: ['Prescription verification', 'Benefit checking', 'Dispensing', 'Claim submission'],
+        estimatedDuration: 20,
+        completed: false
+      }
+    ];
+
+    for (const flow of sampleFlows) {
+      await db.insert(sampleClaimFlows).values(flow);
+    }
+  }
+
+  async getSampleClaimFlows(providerId: number): Promise<any[]> {
+    return await db
+      .select()
+      .from(sampleClaimFlows)
+      .where(eq(sampleClaimFlows.providerId, providerId))
+      .orderBy(sampleClaimFlows.createdAt);
+  }
+
+  async completeSampleFlow(flowId: number): Promise<void> {
+    await db
+      .update(sampleClaimFlows)
+      .set({ 
+        completed: true,
+        completedAt: new Date()
+      })
+      .where(eq(sampleClaimFlows.id, flowId));
+  }
+
+  async getInsurancePolicies(): Promise<any[]> {
+    return await db
+      .select()
+      .from(insurancePolicies)
+      .orderBy(insurancePolicies.policyName);
+  }
+
+  async seedInsurancePolicies(): Promise<void> {
+    const policies = [
+      {
+        policyName: 'SHA Universal Health Coverage',
+        provider: 'Social Health Authority',
+        coverageType: 'comprehensive',
+        benefitLimits: {
+          annual: 1000000,
+          outpatient: 50000,
+          inpatient: 500000,
+          emergency: 200000
+        },
+        copayStructure: {
+          outpatient: 200,
+          inpatient: 2000,
+          emergency: 1000
+        },
+        excludedServices: ['cosmetic surgery', 'experimental treatments'],
+        isActive: true
+      },
+      {
+        policyName: 'UNHCR Refugee Health Insurance',
+        provider: 'United Nations High Commissioner for Refugees',
+        coverageType: 'basic',
+        benefitLimits: {
+          annual: 500000,
+          outpatient: 30000,
+          inpatient: 300000,
+          emergency: 150000
+        },
+        copayStructure: {
+          outpatient: 100,
+          inpatient: 1000,
+          emergency: 500
+        },
+        excludedServices: ['dental', 'vision correction'],
+        isActive: true
+      },
+      {
+        policyName: 'CIC General Insurance',
+        provider: 'CIC Insurance Group',
+        coverageType: 'premium',
+        benefitLimits: {
+          annual: 2000000,
+          outpatient: 100000,
+          inpatient: 1000000,
+          emergency: 400000
+        },
+        copayStructure: {
+          outpatient: 500,
+          inpatient: 5000,
+          emergency: 2000
+        },
+        excludedServices: [],
+        isActive: true
+      }
+    ];
+
+    for (const policy of policies) {
+      await db.insert(insurancePolicies).values(policy);
+    }
   }
 }
 

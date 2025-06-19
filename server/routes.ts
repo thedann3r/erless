@@ -959,6 +959,168 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Onboarding API Routes
+  app.post("/api/onboarding/submit", async (req, res) => {
+    try {
+      const formData = req.body;
+      
+      // Create onboarding record
+      const provider = await storage.createOnboardingApplication({
+        ...formData,
+        onboardingStatus: 'pending',
+        onboardingData: formData
+      });
+
+      // Log audit trail
+      await storage.logOnboardingAudit({
+        providerId: provider.id,
+        action: 'form_submitted',
+        details: { formData },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      // Send verification email (simulated)
+      console.log(`Verification email would be sent to: ${formData.contactEmail}`);
+
+      res.json({ 
+        message: 'Onboarding application submitted successfully',
+        applicationId: provider.id,
+        status: 'pending_verification'
+      });
+    } catch (error) {
+      console.error("Onboarding submission error:", error);
+      res.status(500).json({ message: "Failed to submit onboarding application" });
+    }
+  });
+
+  app.get("/api/onboarding/applications", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const applications = await storage.getOnboardingApplications();
+      res.json(applications);
+    } catch (error) {
+      console.error("Failed to fetch onboarding applications:", error);
+      res.status(500).json({ message: "Failed to fetch applications" });
+    }
+  });
+
+  app.post("/api/onboarding/approve/:id", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const { id } = req.params;
+      const { users = [] } = req.body;
+      
+      // Update provider status
+      await storage.approveOnboardingApplication(parseInt(id), req.user!.id);
+      
+      // Create user accounts
+      for (const userData of users) {
+        await storage.createUser({
+          ...userData,
+          careProviderId: parseInt(id),
+          password: 'temp123', // Temporary password
+          isVerified: false
+        });
+      }
+
+      // Generate sample claim flows
+      await storage.generateSampleClaimFlows(parseInt(id));
+
+      // Log approval
+      await storage.logOnboardingAudit({
+        providerId: parseInt(id),
+        action: 'approved',
+        actionBy: req.user!.id,
+        details: { userCount: users.length },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.json({ message: 'Application approved successfully' });
+    } catch (error) {
+      console.error("Approval error:", error);
+      res.status(500).json({ message: "Failed to approve application" });
+    }
+  });
+
+  app.post("/api/onboarding/reject/:id", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const { id } = req.params;
+      const { reason } = req.body;
+      
+      await storage.rejectOnboardingApplication(parseInt(id), req.user!.id, reason);
+      
+      await storage.logOnboardingAudit({
+        providerId: parseInt(id),
+        action: 'rejected',
+        actionBy: req.user!.id,
+        details: { reason },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.json({ message: 'Application rejected' });
+    } catch (error) {
+      console.error("Rejection error:", error);
+      res.status(500).json({ message: "Failed to reject application" });
+    }
+  });
+
+  app.get("/api/onboarding/sample-flows/:providerId", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const { providerId } = req.params;
+      const flows = await storage.getSampleClaimFlows(parseInt(providerId));
+      res.json(flows);
+    } catch (error) {
+      console.error("Failed to fetch sample flows:", error);
+      res.status(500).json({ message: "Failed to fetch sample flows" });
+    }
+  });
+
+  app.post("/api/onboarding/complete-flow/:flowId", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const { flowId } = req.params;
+      await storage.completeSampleFlow(parseInt(flowId));
+      res.json({ message: 'Sample flow completed' });
+    } catch (error) {
+      console.error("Flow completion error:", error);
+      res.status(500).json({ message: "Failed to complete flow" });
+    }
+  });
+
+  app.get("/api/insurance-policies", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const policies = await storage.getInsurancePolicies();
+      res.json(policies);
+    } catch (error) {
+      console.error("Failed to fetch insurance policies:", error);
+      res.status(500).json({ message: "Failed to fetch policies" });
+    }
+  });
+
+  app.post("/api/onboarding/seed-policies", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      await storage.seedInsurancePolicies();
+      res.json({ message: 'Insurance policies seeded successfully' });
+    } catch (error) {
+      console.error("Policy seeding error:", error);
+      res.status(500).json({ message: "Failed to seed policies" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

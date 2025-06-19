@@ -435,6 +435,51 @@ export const insertClaimAppealSchema = createInsertSchema(claimAppeals).omit({
   createdAt: true,
 });
 
+export const insertInsurancePolicySchema = createInsertSchema(insurancePolicies).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertOnboardingAuditSchema = createInsertSchema(onboardingAudits).omit({
+  id: true,
+  timestamp: true,
+});
+
+export const insertSampleClaimFlowSchema = createInsertSchema(sampleClaimFlows).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const onboardingFormSchema = z.object({
+  organizationType: z.enum(["hospital", "clinic", "pharmacy-chain", "insurer"]),
+  organizationName: z.string().min(2, "Organization name is required"),
+  domain: z.string().min(3, "Domain is required").regex(/^[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$/, "Invalid domain format"),
+  contactPerson: z.string().min(2, "Contact person is required"),
+  contactEmail: z.string().email("Valid email is required"),
+  contactPhone: z.string().min(10, "Valid phone number is required"),
+  address: z.string().min(10, "Complete address is required"),
+  licenseNumber: z.string().min(5, "License number is required"),
+  schemesSupported: z.array(z.string()).min(1, "Select at least one scheme"),
+  branch: z.string().optional(),
+  servicesOffered: z.array(z.string()).optional(),
+  specializations: z.array(z.string()).optional(),
+  operatingHours: z.string().optional(),
+  emergencyServices: z.boolean().optional(),
+});
+
+export const userPermissionSchema = z.object({
+  providerId: z.number(),
+  users: z.array(z.object({
+    name: z.string().min(2),
+    email: z.string().email(),
+    role: z.enum(["doctor", "pharmacist", "care-manager", "front-office", "admin"]),
+    department: z.string().optional(),
+    cadre: z.string().optional(),
+    registrationNumber: z.string().optional(),
+    permissions: z.array(z.string()),
+  })),
+});
+
 // Types
 export type CareProvider = typeof careProviders.$inferSelect;
 export type InsertCareProvider = z.infer<typeof insertCareProviderSchema>;
@@ -465,3 +510,11 @@ export type DispensingRecord = typeof dispensingRecords.$inferSelect;
 export type InsertDispensingRecord = z.infer<typeof insertDispensingRecordSchema>;
 export type ClaimAppeal = typeof claimAppeals.$inferSelect;
 export type InsertClaimAppeal = z.infer<typeof insertClaimAppealSchema>;
+export type InsurancePolicy = typeof insurancePolicies.$inferSelect;
+export type InsertInsurancePolicy = z.infer<typeof insertInsurancePolicySchema>;
+export type OnboardingAudit = typeof onboardingAudits.$inferSelect;
+export type InsertOnboardingAudit = z.infer<typeof insertOnboardingAuditSchema>;
+export type SampleClaimFlow = typeof sampleClaimFlows.$inferSelect;
+export type InsertSampleClaimFlow = z.infer<typeof insertSampleClaimFlowSchema>;
+export type OnboardingForm = z.infer<typeof onboardingFormSchema>;
+export type UserPermission = z.infer<typeof userPermissionSchema>;
