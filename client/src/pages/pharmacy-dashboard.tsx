@@ -10,7 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { AlertTriangle, Pill, ShieldCheck, CreditCard, User, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { LogoutButton } from "@/components/ui/logout-button";
 
 interface PendingPrescription {
   id: number;
@@ -228,11 +230,7 @@ export default function PharmacyDashboard() {
       daysSupply: number;
       copayAmount: number;
     }) => {
-      return apiRequest("/api/pharmacy/dispense", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
+      return apiRequest("POST", "/api/pharmacy/dispense", data);
     },
     onSuccess: () => {
       toast({
@@ -300,6 +298,7 @@ export default function PharmacyDashboard() {
             <Pill className="w-4 h-4 mr-1" />
             Pharmacist
           </Badge>
+          <LogoutButton variant="dropdown" />
         </div>
       </div>
 

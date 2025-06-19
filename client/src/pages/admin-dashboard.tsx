@@ -12,8 +12,10 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Settings, Users, Building2, BarChart3, Bot, Shield, Plus, Edit, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { RegistrationValidator } from "@/components/registration-validator";
+import { LogoutButton } from "@/components/ui/logout-button";
 
 interface SystemUser {
   id: number;
@@ -318,6 +320,7 @@ export default function AdminDashboard() {
             <Shield className="w-4 h-4 mr-1" />
             Super Admin
           </Badge>
+          <LogoutButton variant="dropdown" />
         </div>
       </div>
 

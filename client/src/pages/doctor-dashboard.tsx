@@ -265,6 +265,7 @@ export default function DoctorDashboard() {
             <Stethoscope className="w-4 h-4 mr-1" />
             Clinician
           </Badge>
+          <LogoutButton variant="dropdown" />
         </div>
       </div>
 

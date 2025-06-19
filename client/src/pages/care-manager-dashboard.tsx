@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { AlertTriangle, TrendingUp, Users, DollarSign, Activity, Shield, Building2 } from "lucide-react";
 import { CostComparisonDashboard } from "@/components/cost-comparison-dashboard";
+import { useAuth } from "@/hooks/use-auth";
+import { LogoutButton } from "@/components/ui/logout-button";
 
 interface ClaimOverview {
   id: number;
