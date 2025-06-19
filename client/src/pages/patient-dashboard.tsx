@@ -314,6 +314,7 @@ export default function PatientDashboard() {
             <User className="w-4 h-4 mr-1" />
             {patientInfo.scheme}
           </Badge>
+          <LogoutButton variant="dropdown" />
         </div>
       </div>
 

@@ -11,7 +11,7 @@ import { ErllessedLogo } from "@/components/erlessed-logo";
 
 export default function AuthPage() {
   const [, setLocation] = useLocation();
-  const { user, loginMutation, registerMutation } = useAuth();
+  const { user, login } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -30,7 +30,7 @@ export default function AuthPage() {
     const password = formData.get("password") as string;
     
     try {
-      await loginMutation.mutateAsync({ username, password });
+      await login(username, password);
       setLocation("/");
     } catch (error) {
       toast({
@@ -127,9 +127,9 @@ export default function AuthPage() {
                     <Button 
                       type="submit" 
                       className="w-full teal-button"
-                      disabled={isLoading || loginMutation.isPending}
+                      disabled={isLoading}
                     >
-                      {isLoading || loginMutation.isPending ? "Signing in..." : "Sign In"}
+                      {isLoading ? "Signing in..." : "Sign In"}
                     </Button>
                   </form>
                 </TabsContent>

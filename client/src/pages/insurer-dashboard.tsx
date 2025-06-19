@@ -290,8 +290,9 @@ export default function InsurerDashboard() {
         <div className="flex items-center space-x-4">
           <Badge variant="outline" className="text-teal-600 border-teal-200">
             <Shield className="w-4 h-4 mr-1" />
-            Underwriter
+            Insurer
           </Badge>
+          <LogoutButton variant="dropdown" />
         </div>
       </div>
 

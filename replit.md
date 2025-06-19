@@ -199,6 +199,14 @@ Preferred communication style: Simple, everyday language.
 - Integrated support widgets into all user dashboards with contextual help based on user roles and workflows
 - Created comprehensive documentation system with deployment guides and external chat integration options
 
+**December 19, 2024 - Universal Logout Functionality Implementation:**
+- Implemented comprehensive logout functionality across all 6 role-based dashboards (Doctor, Pharmacist, Care Manager, Insurer, Patient, Admin)
+- Created reusable LogoutButton component with dropdown variant showing session timeout and user information
+- Added server-side `/api/logout` route with session destruction and cookie cleanup
+- Implemented 15-minute auto-logout functionality for users handling sensitive claims and patient data
+- Added activity tracking with inactivity warnings and session timeout notifications
+- Enhanced authentication system with comprehensive session management and security features
+
 ## Changelog
 
 - June 18, 2025. Initial setup

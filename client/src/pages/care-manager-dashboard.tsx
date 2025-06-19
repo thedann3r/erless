@@ -232,6 +232,7 @@ export default function CareManagerDashboard() {
             <Shield className="w-4 h-4 mr-1" />
             Care Manager
           </Badge>
+          <LogoutButton variant="dropdown" />
         </div>
       </div>
 
