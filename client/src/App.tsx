@@ -29,6 +29,7 @@ import AnalyticsPage from "@/pages/analytics-page";
 import HMSIntegrationPage from "@/pages/hms-integration";
 import OnboardingPage from "@/pages/onboarding-page";
 import OnboardingManagement from "@/pages/onboarding-management";
+import SupportDashboard from "@/pages/support-dashboard";
 
 function Router() {
   return (
@@ -54,6 +55,7 @@ function Router() {
       <ProtectedRoute path="/analytics" component={AnalyticsPage} />
       <ProtectedRoute path="/hms-integration" component={HMSIntegrationPage} />
       <ProtectedRoute path="/onboarding-management" component={OnboardingManagement} />
+      <ProtectedRoute path="/support-dashboard" component={SupportDashboard} />
       <Route path="/onboarding" component={OnboardingPage} />
       <Route path="/demo" component={DemoDashboard} />
       <Route path="/auth" component={AuthPage} />
