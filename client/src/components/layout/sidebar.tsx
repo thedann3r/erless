@@ -4,11 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "wouter";
 
 export function Sidebar() {
-  const { user, logoutMutation } = useAuth();
+  const { user, logout } = useAuth();
   const [location] = useLocation();
 
   const handleLogout = () => {
-    logoutMutation.mutate();
+    logout();
   };
 
   const isActive = (path: string) => {
