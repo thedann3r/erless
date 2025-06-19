@@ -54,8 +54,8 @@ export default function AuthPage() {
     const name = formData.get("name") as string;
     
     try {
-      await registerMutation.mutateAsync({ username, password, email, name });
-      setLocation("/");
+      // Registration functionality - redirect to onboarding for now
+      setLocation("/onboarding");
     } catch (error) {
       toast({
         title: "Registration failed",
@@ -71,55 +71,63 @@ export default function AuthPage() {
     <div className="min-h-screen bg-gradient-to-br from-teal-50 to-blue-50 flex">
       {/* Left Panel - Authentication Forms */}
       <div className="flex-1 flex items-center justify-center p-8">
-        <div className="w-full max-w-md space-y-6">
-          {/* Logo */}
-          <div className="text-center space-y-2">
-            <ErllessedLogo className="mx-auto" />
-            <h1 className="text-2xl font-bold text-gray-900">Welcome to Erlessed</h1>
-            <p className="text-gray-600">Outdoing an Undoable</p>
-            <p className="text-sm text-gray-500">
-              powered by <span className="font-semibold text-black">Aboolean</span>
+        <div className="w-full max-w-md space-y-8">
+          <div className="text-center">
+            <ErllessedLogo className="mx-auto h-20 w-auto mb-4" />
+            <h2 className="text-3xl font-bold text-gray-900">Welcome to Erlessed</h2>
+            <p className="mt-2 text-sm text-gray-600">
+              Advanced Healthcare Claims Management Platform
             </p>
           </div>
 
-          {/* Authentication Tabs */}
-          <Card>
-            <CardContent className="p-6">
-              <Tabs defaultValue="login" className="space-y-4">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="login">Sign In</TabsTrigger>
-                  <TabsTrigger value="register">Register</TabsTrigger>
+          <Card className="w-full border-0 shadow-xl bg-white/80 backdrop-blur-sm">
+            <CardHeader className="text-center pb-4">
+              <CardTitle className="text-2xl font-semibold text-gray-800">
+                Access Your Dashboard
+              </CardTitle>
+              <CardDescription className="text-gray-600">
+                Sign in to manage healthcare claims and patient data
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue="login" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 mb-6">
+                  <TabsTrigger value="login" className="text-sm font-medium">
+                    Sign In
+                  </TabsTrigger>
+                  <TabsTrigger value="register" className="text-sm font-medium">
+                    Register
+                  </TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="login" className="space-y-4">
-                  <CardHeader className="p-0">
-                    <CardTitle>Sign In</CardTitle>
-                    <CardDescription>
-                      Enter your credentials to access your dashboard
-                    </CardDescription>
-                  </CardHeader>
-                  
                   <form onSubmit={handleLogin} className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="login-username">Username</Label>
+                      <Label htmlFor="username" className="text-sm font-medium text-gray-700">
+                        Username
+                      </Label>
                       <Input
-                        id="login-username"
+                        id="username"
                         name="username"
                         type="text"
-                        placeholder="Enter your username"
+                        autoComplete="username"
                         required
+                        placeholder="Enter your username"
                         className="medical-form-input"
                       />
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="login-password">Password</Label>
+                      <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                        Password
+                      </Label>
                       <Input
-                        id="login-password"
+                        id="password"
                         name="password"
                         type="password"
-                        placeholder="Enter your password"
+                        autoComplete="current-password"
                         required
+                        placeholder="Enter your password"
                         className="medical-form-input"
                       />
                     </div>
@@ -133,63 +141,65 @@ export default function AuthPage() {
                     </Button>
                   </form>
                 </TabsContent>
-                
+
                 <TabsContent value="register" className="space-y-4">
-                  <CardHeader className="p-0">
-                    <CardTitle>Create Account</CardTitle>
-                    <CardDescription>
-                      Register for a new healthcare provider account
-                    </CardDescription>
-                  </CardHeader>
-                  
                   <form onSubmit={handleRegister} className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="register-name">Full Name</Label>
+                      <Label htmlFor="name" className="text-sm font-medium text-gray-700">
+                        Full Name
+                      </Label>
                       <Input
-                        id="register-name"
+                        id="name"
                         name="name"
                         type="text"
-                        placeholder="Dr. Sarah Wilson"
+                        autoComplete="name"
                         required
+                        placeholder="Enter your full name"
                         className="medical-form-input"
                       />
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="register-email">Email Address</Label>
+                      <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                        Email Address
+                      </Label>
                       <Input
-                        id="register-email"
+                        id="email"
                         name="email"
                         type="email"
-                        placeholder="sarah@hospital.com"
+                        autoComplete="email"
                         required
+                        placeholder="Enter your email address"
                         className="medical-form-input"
                       />
-                      <p className="text-xs text-gray-500">
-                        Role will be auto-detected from your email domain
-                      </p>
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="register-username">Username</Label>
+                      <Label htmlFor="reg-username" className="text-sm font-medium text-gray-700">
+                        Username
+                      </Label>
                       <Input
-                        id="register-username"
+                        id="reg-username"
                         name="username"
                         type="text"
-                        placeholder="Choose a username"
+                        autoComplete="username"
                         required
+                        placeholder="Choose a username"
                         className="medical-form-input"
                       />
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="register-password">Password</Label>
+                      <Label htmlFor="reg-password" className="text-sm font-medium text-gray-700">
+                        Password
+                      </Label>
                       <Input
-                        id="register-password"
+                        id="reg-password"
                         name="password"
                         type="password"
-                        placeholder="Create a secure password"
+                        autoComplete="new-password"
                         required
+                        placeholder="Create a secure password"
                         className="medical-form-input"
                       />
                     </div>
@@ -197,9 +207,9 @@ export default function AuthPage() {
                     <Button 
                       type="submit" 
                       className="w-full teal-button"
-                      disabled={isLoading || registerMutation.isPending}
+                      disabled={isLoading}
                     >
-                      {isLoading || registerMutation.isPending ? "Creating account..." : "Create Account"}
+                      {isLoading ? "Creating account..." : "Create Account"}
                     </Button>
                   </form>
                 </TabsContent>
@@ -207,41 +217,59 @@ export default function AuthPage() {
             </CardContent>
           </Card>
           
-
+          <div className="text-center">
+            <p className="text-xs text-gray-500">
+              Secure healthcare data management platform
+            </p>
+            <p className="text-xs text-gray-400 mt-1">
+              Powered by Aboolean Systems
+            </p>
+          </div>
         </div>
       </div>
-      {/* Right Panel - Hero Section */}
-      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-teal-primary to-teal-secondary items-center justify-center p-12">
-        <div className="text-center text-white space-y-6 max-w-md">
-          <div className="w-16 h-16 mx-auto bg-white bg-opacity-20 rounded-2xl flex items-center justify-center">
-            <i className="fas fa-shield-alt text-2xl text-white"></i>
-          </div>
+
+      {/* Right Panel - Features Overview */}
+      <div className="hidden lg:flex lg:flex-1 bg-gradient-to-br from-teal-600 to-blue-700 text-white p-12 items-center justify-center">
+        <div className="max-w-lg">
+          <h3 className="text-3xl font-bold mb-8">
+            Comprehensive Healthcare Management
+          </h3>
           
-          <h2 className="text-3xl font-bold">
-            Secure Healthcare Claims Processing
-          </h2>
-          
-          <p className="text-teal-100 text-lg">
-            AI-powered preauthorization, biometric patient verification, 
-            and blockchain-secured claim anchoring for modern healthcare providers.
-          </p>
-          
-          <div className="space-y-3 text-sm">
-            <div className="flex items-center space-x-3">
-              <i className="fas fa-check-circle text-teal-200"></i>
-              <span>Real-time AI decision making</span>
+          <div className="space-y-6">
+            <div className="flex items-start space-x-4">
+              <div className="flex-shrink-0 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                <span className="text-sm font-bold">1</span>
+              </div>
+              <div>
+                <h4 className="font-semibold text-lg">AI-Powered Claims Processing</h4>
+                <p className="text-teal-100 text-sm">
+                  Intelligent preauthorization with real-time decision making
+                </p>
+              </div>
             </div>
-            <div className="flex items-center space-x-3">
-              <i className="fas fa-check-circle text-teal-200"></i>
-              <span>Biometric patient verification</span>
+            
+            <div className="flex items-start space-x-4">
+              <div className="flex-shrink-0 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                <span className="text-sm font-bold">2</span>
+              </div>
+              <div>
+                <h4 className="font-semibold text-lg">Multi-Role Dashboards</h4>
+                <p className="text-teal-100 text-sm">
+                  Specialized interfaces for doctors, pharmacists, and administrators
+                </p>
+              </div>
             </div>
-            <div className="flex items-center space-x-3">
-              <i className="fas fa-check-circle text-teal-200"></i>
-              <span>Blockchain claim anchoring</span>
-            </div>
-            <div className="flex items-center space-x-3">
-              <i className="fas fa-check-circle text-teal-200"></i>
-              <span>Fraud pattern detection</span>
+            
+            <div className="flex items-start space-x-4">
+              <div className="flex-shrink-0 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                <span className="text-sm font-bold">3</span>
+              </div>
+              <div>
+                <h4 className="font-semibold text-lg">Regulatory Compliance</h4>
+                <p className="text-teal-100 text-sm">
+                  Full compliance with Kenyan healthcare regulations and data protection
+                </p>
+              </div>
             </div>
           </div>
         </div>
