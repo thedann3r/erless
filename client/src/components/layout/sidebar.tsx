@@ -65,7 +65,7 @@ export function Sidebar() {
             <i className="fas fa-user text-white text-sm"></i>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">{user?.name}</p>
+            <p className="text-sm font-medium truncate">{user?.username}</p>
             <p className="text-xs text-gray-500 capitalize">{user?.role?.replace('-', ' ')}</p>
           </div>
           <Button
@@ -73,7 +73,6 @@ export function Sidebar() {
             size="sm"
             onClick={handleLogout}
             className="text-gray-400 hover:text-gray-600"
-            disabled={logoutMutation.isPending}
           >
             <i className="fas fa-sign-out-alt"></i>
           </Button>
