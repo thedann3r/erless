@@ -12,6 +12,8 @@ import { Separator } from "@/components/ui/separator";
 import { Clock, User, AlertTriangle, Stethoscope, FileText, Pill, TestTube } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { SupportWidget } from "@/components/ui/support-widget";
+import { ChatSupport } from "@/components/ui/chat-support";
 
 interface QueuePatient {
   id: number;
@@ -803,6 +805,10 @@ export default function DoctorDashboard() {
       <div className="text-center text-sm text-gray-500 mt-8">
         Powered by Aboolean
       </div>
+
+      {/* Support Widgets */}
+      <SupportWidget userRole="doctor" className="fixed" />
+      <ChatSupport userRole="doctor" userName="Dr. User" className="fixed" />
     </div>
   );
 }
