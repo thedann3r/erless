@@ -72,8 +72,9 @@ export function RegistrationValidator() {
   const { data: stats } = useQuery({
     queryKey: ["/api/registration/statistics"],
     queryFn: async () => {
-      const response = await apiRequest("/api/registration/statistics");
-      return response as RegistrationStats;
+      const response = await fetch("/api/registration/statistics");
+      const data = await response.json();
+      return data as RegistrationStats;
     },
   });
 
@@ -123,8 +124,11 @@ export function RegistrationValidator() {
         if (value) params.append(key, value);
       });
       
-      const response = await apiRequest(`/api/registration/search?${params}`);
-      return response.practitioners || [];
+      const response = await fetch(`/api/registration/search?${params}`, {
+        credentials: 'include'
+      });
+      const data = await response.json();
+      return data.practitioners || [];
     },
     onSuccess: () => {
       toast({

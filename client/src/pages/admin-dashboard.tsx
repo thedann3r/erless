@@ -774,6 +774,10 @@ export default function AdminDashboard() {
           )}
         </TabsContent>
 
+        <TabsContent value="registration" className="space-y-4">
+          <RegistrationValidator />
+        </TabsContent>
+
         <TabsContent value="ai-config" className="space-y-4">
           <Card>
             <CardHeader>
