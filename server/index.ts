@@ -109,14 +109,34 @@ app.use('/api/register', authLimiter);
 // Health check endpoint - must come before other middleware
 app.get('/health', async (req: Request, res: Response) => {
   try {
+    // Database health check
+    let dbStatus = 'unknown';
+    let dbResponseTime = 0;
+    
+    try {
+      const startTime = Date.now();
+      const { db } = await import('./db');
+      await db.execute('SELECT 1');
+      dbResponseTime = Date.now() - startTime;
+      dbStatus = 'connected';
+    } catch (dbError) {
+      dbStatus = 'disconnected';
+      console.error('Database health check failed:', dbError);
+    }
+
     const healthCheck = {
-      status: 'OK',
+      status: dbStatus === 'connected' ? 'OK' : 'DEGRADED',
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
       environment: process.env.NODE_ENV || 'development',
       version: process.env.npm_package_version || '1.0.0',
-      database: 'connected', // TODO: Add actual DB health check
-      redis: redisClient?.isReady ? 'connected' : 'not_configured',
+      database: {
+        status: dbStatus,
+        responseTime: `${dbResponseTime}ms`
+      },
+      redis: {
+        status: redisClient?.isReady ? 'connected' : 'not_configured'
+      },
       memory: {
         used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
         total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024),
@@ -128,7 +148,8 @@ app.get('/health', async (req: Request, res: Response) => {
       }
     };
     
-    res.status(200).json(healthCheck);
+    const statusCode = healthCheck.status === 'OK' ? 200 : 503;
+    res.status(statusCode).json(healthCheck);
   } catch (error) {
     res.status(503).json({
       status: 'ERROR',
@@ -215,12 +236,53 @@ app.use((req, res, next) => {
   // ALWAYS serve the app on port 5000
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
-  const port = 5000;
+  const port = parseInt(process.env.PORT || '5000');
   server.listen({
     port,
     host: "0.0.0.0",
     reusePort: true,
   }, () => {
     log(`serving on port ${port}`);
+    log(`environment: ${process.env.NODE_ENV || 'development'}`);
+    log(`health check: http://localhost:${port}/health`);
+  });
+
+  // Graceful shutdown handlers
+  const gracefulShutdown = (signal: string) => {
+    log(`${signal} received, shutting down gracefully`);
+    server.close(() => {
+      log('HTTP server closed');
+      if (redisClient) {
+        redisClient.quit().then(() => {
+          log('Redis connection closed');
+          process.exit(0);
+        }).catch(() => {
+          process.exit(1);
+        });
+      } else {
+        process.exit(0);
+      }
+    });
+
+    // Force close after 30 seconds
+    setTimeout(() => {
+      log('Forced shutdown after timeout');
+      process.exit(1);
+    }, 30000);
+  };
+
+  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+  // Handle uncaught exceptions and rejections
+  process.on('uncaughtException', (error) => {
+    log(`Uncaught Exception: ${error.message}`);
+    console.error(error);
+    gracefulShutdown('UNCAUGHT_EXCEPTION');
+  });
+
+  process.on('unhandledRejection', (reason, promise) => {
+    log(`Unhandled Rejection at: ${promise}, reason: ${reason}`);
+    console.error(reason);
   });
 })();
