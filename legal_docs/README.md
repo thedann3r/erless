@@ -27,7 +27,7 @@ This repository contains the complete legal framework for the Erlessed Healthcar
 |----------------|------------------|----------------------|
 | **Data Protection Act of Kenya (2019)** | All documents | ✅ Fully Compliant |
 | **Health Act (2017)** | Terms of Service, Privacy Policy | ✅ Fully Compliant |
-| **NHIF Medical Billing Guidelines** | Terms of Service, Compliance Summary | ✅ Fully Compliant |
+| **SHA Medical Billing Guidelines** | Terms of Service, Compliance Summary | ✅ Fully Compliant |
 
 ### Professional Licensing Compliance
 
@@ -61,8 +61,8 @@ This repository contains the complete legal framework for the Erlessed Healthcar
 - **Appeal mechanisms** for automated decisions
 - **Multi-language support** (English/Swahili)
 
-### NHIF Integration Compliance
-- **Real-time tariff verification** against current NHIF schedules
+### SHA Integration Compliance
+- **Real-time tariff verification** against current SHA schedules
 - **ICD-10 coding validation** with automatic updates
 - **Audit trail maintenance** for all claims processing
 - **Documentation requirements** automation
@@ -77,7 +77,7 @@ This repository contains the complete legal framework for the Erlessed Healthcar
 
 ### For Insurance Providers
 1. **Review Terms of Service** (Section 4.2 - Insurance Provider Uses)
-2. **Understand NHIF compliance requirements** (Section 11 - NHIF Billing)
+2. **Understand SHA compliance requirements** (Section 11 - SHA Billing)
 3. **Review data sharing provisions** (Privacy Policy Section 9)
 4. **Understand audit and reporting obligations** (Section 17 - Regulatory Compliance)
 
@@ -125,7 +125,7 @@ This repository contains the complete legal framework for the Erlessed Healthcar
 ### Technical Implementation
 - [x] Consent management system integrated
 - [x] Professional license verification API
-- [x] Real-time NHIF tariff checking
+- [x] Real-time SHA tariff checking
 - [x] Biometric data encryption (AES-256)
 - [x] Audit logging for all data access
 - [x] AI decision transparency features
@@ -139,7 +139,7 @@ This repository contains the complete legal framework for the Erlessed Healthcar
 
 ### Regulatory Engagement
 - [ ] Data Protection Commissioner consultation
-- [ ] NHIF compliance verification
+- [ ] SHA compliance verification
 - [ ] Professional board coordination
 - [ ] Legal counsel final review
 
@@ -160,7 +160,7 @@ Email: info@odpc.go.ke
 Phone: +254 20 2628 000  
 Website: www.odpc.go.ke
 
-**National Hospital Insurance Fund (NHIF)**  
+**National Hospital Insurance Fund (SHA)**  
 Email: info@nhif.or.ke  
 Phone: +254 20 2724 000  
 Website: www.nhif.or.ke

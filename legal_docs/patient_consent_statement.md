@@ -47,7 +47,7 @@ With your explicit consent, we may collect:
 **Important:** Biometric data receives special legal protection and is encrypted using advanced security measures.
 
 ### 2.3 Insurance and Billing Information
-- **NHIF membership details:** Your scheme information and coverage details
+- **SHA membership details:** Your scheme information and coverage details
 - **Private insurance:** Policy numbers, coverage limits, and benefit information
 - **Billing records:** Costs of care, payments made, and outstanding balances
 - **Claims history:** Previous insurance claims and their outcomes
@@ -63,7 +63,7 @@ With your explicit consent, we may collect:
 ### 3.1 Primary Healthcare Uses
 Your information will be used to:
 - **Coordinate your care:** Share information between your doctors, specialists, and other healthcare providers
-- **Process insurance claims:** Submit claims to NHIF or private insurance for payment
+- **Process insurance claims:** Submit claims to SHA or private insurance for payment
 - **Prevent medical errors:** Alert providers to allergies, drug interactions, and contraindications
 - **Emergency treatment:** Provide critical information during medical emergencies
 - **Appointment scheduling:** Coordinate care across multiple healthcare providers
@@ -142,7 +142,7 @@ Your information may be shared with:
 
 ### 6.2 Insurance and Payment
 Information shared for payment includes:
-- **NHIF:** Claims processing and benefit verification
+- **SHA:** Claims processing and benefit verification
 - **Private insurance:** Coverage verification and claims submission
 - **Audit compliance:** Providing documentation for insurance audits
 - **Government health schemes:** Processing claims for government programs
@@ -309,19 +309,19 @@ When turning 18:
 - **New consents:** Updated consent forms for adult privacy rules
 - **Support available:** Help understanding new rights and responsibilities
 
-## 13. NHIF AND INSURANCE SPECIFIC PROVISIONS
+## 13. SHA AND INSURANCE SPECIFIC PROVISIONS
 
-### 13.1 NHIF Claims Processing
-For NHIF members:
-- **Eligibility verification:** Confirming your NHIF membership and coverage
+### 13.1 SHA Claims Processing
+For SHA members:
+- **Eligibility verification:** Confirming your SHA membership and coverage
 - **Benefit limits:** Tracking your benefit usage against policy limits
-- **Tariff compliance:** Ensuring charges comply with NHIF approved rates
-- **Documentation requirements:** Maintaining records per NHIF standards
+- **Tariff compliance:** Ensuring charges comply with SHA approved rates
+- **Documentation requirements:** Maintaining records per SHA standards
 
 ### 13.2 Claims Submission and Processing
-- **Automatic submission:** Claims automatically submitted to NHIF when possible
+- **Automatic submission:** Claims automatically submitted to SHA when possible
 - **Real-time verification:** Immediate checking of coverage and benefits
-- **Audit support:** Maintaining documentation for NHIF audits
+- **Audit support:** Maintaining documentation for SHA audits
 - **Appeals process:** Supporting appeals of denied claims
 
 ### 13.3 Private Insurance Coordination
@@ -502,4 +502,4 @@ Phone: +254 20 2628 000
 **Next Review Date:** December 19, 2025  
 **Language:** English (Swahili translation available upon request)
 
-**IMPORTANT:** This consent form complies with the Data Protection Act of Kenya (2019), Health Act (2017), and NHIF regulations. Patients have the right to receive a copy of this completed form and access legal assistance in understanding their rights.
+**IMPORTANT:** This consent form complies with the Data Protection Act of Kenya (2019), Health Act (2017), and SHA regulations. Patients have the right to receive a copy of this completed form and access legal assistance in understanding their rights.

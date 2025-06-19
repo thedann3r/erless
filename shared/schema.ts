@@ -7,11 +7,56 @@ export const careProviders = pgTable("care_providers", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   domain: text("domain").notNull().unique(), // e.g., aku.edu
-  type: text("type").notNull(), // hospital, clinic, pharmacy-chain
+  type: text("type").notNull(), // hospital, clinic, pharmacy-chain, insurer
   branch: text("branch"), // for multi-branch facilities
   address: text("address"),
   licenseNumber: text("license_number"),
+  contactEmail: text("contact_email"),
+  contactPhone: text("contact_phone"),
+  contactPerson: text("contact_person"),
+  schemesSupported: text("schemes_supported").array(), // SHA, CIC, UNHCR, etc.
+  onboardingStatus: text("onboarding_status").default("pending").notNull(), // pending, in_progress, approved, rejected
+  onboardingData: jsonb("onboarding_data"), // Store form data
+  verificationDocuments: text("verification_documents").array(), // uploaded document paths
+  approvedBy: integer("approved_by").references(() => users.id),
+  approvedAt: timestamp("approved_at"),
   isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insurancePolicies = pgTable("insurance_policies", {
+  id: serial("id").primaryKey(),
+  policyName: text("policy_name").notNull(),
+  insurerName: text("insurer_name").notNull(), // SHA, CIC, UNHCR
+  policyType: text("policy_type").notNull(), // basic, premium, specialist
+  coverageDetails: jsonb("coverage_details").notNull(), // benefit limits, copays, exclusions
+  benefitCategories: jsonb("benefit_categories").notNull(), // consultation, lab, pharmacy, etc.
+  preauthorizationRules: jsonb("preauthorization_rules").notNull(), // automatic approval thresholds
+  exclusions: text("exclusions").array(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const onboardingAudits = pgTable("onboarding_audits", {
+  id: serial("id").primaryKey(),
+  providerId: integer("provider_id").references(() => careProviders.id).notNull(),
+  action: text("action").notNull(), // form_submitted, documents_uploaded, approved, rejected
+  actionBy: integer("action_by").references(() => users.id),
+  details: jsonb("details"), // action-specific data
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+});
+
+export const sampleClaimFlows = pgTable("sample_claim_flows", {
+  id: serial("id").primaryKey(),
+  providerId: integer("provider_id").references(() => careProviders.id).notNull(),
+  flowName: text("flow_name").notNull(), // "General Consultation", "Emergency Care", etc.
+  flowType: text("flow_type").notNull(), // consultation, lab, pharmacy, combined
+  steps: jsonb("steps").notNull(), // array of step definitions
+  testData: jsonb("test_data").notNull(), // sample patient and claim data
+  isCompleted: boolean("is_completed").default(false).notNull(),
+  completedAt: timestamp("completed_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

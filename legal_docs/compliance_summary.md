@@ -23,7 +23,7 @@
 - Medical data security and access controls
 - Health information exchange standards
 
-**NHIF Medical Billing Guidelines**
+**SHA Medical Billing Guidelines**
 - Real-time tariff compliance checking
 - ICD-10 coding validation
 - Documentation requirements automation
@@ -62,7 +62,7 @@
 - Healthcare provider terms (21 sections)
 - Insurance provider terms
 - AI disclaimer provisions
-- NHIF billing compliance requirements
+- SHA billing compliance requirements
 - Professional liability limitations
 - Dispute resolution mechanisms
 
@@ -154,7 +154,7 @@
 - Alternative authentication options
 - No discrimination for biometric refusal
 
-## 5. NHIF INTEGRATION COMPLIANCE
+## 5. SHA INTEGRATION COMPLIANCE
 
 ### 5.1 Billing and Claims Processing
 **Tariff Compliance:**
@@ -170,7 +170,7 @@
 - Regulatory reporting
 
 ### 5.2 Member Data Protection
-**NHIF Data Handling:**
+**SHA Data Handling:**
 - Member consent verification
 - Benefit limit tracking
 - Eligibility confirmation
@@ -210,7 +210,7 @@
 ### 7.2 External Compliance Verification
 **Regulatory Reporting:**
 - Annual compliance reports to Data Protection Office
-- NHIF audit cooperation procedures
+- SHA audit cooperation procedures
 - Professional board reporting requirements
 - Insurance regulatory submissions
 
@@ -381,7 +381,7 @@ Email: info@odpc.go.ke
 Phone: +254 20 2628 000  
 Website: www.odpc.go.ke
 
-**National Hospital Insurance Fund (NHIF)**  
+**National Hospital Insurance Fund (SHA)**  
 Email: info@nhif.or.ke  
 Phone: +254 20 2724 000  
 Website: www.nhif.or.ke

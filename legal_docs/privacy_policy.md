@@ -51,7 +51,7 @@ We collect and process the following biometric identifiers:
 ### 3.3 Claims and Billing Data
 - **Insurance information:** Policy numbers, coverage details, beneficiary status
 - **Financial data:** Billing amounts, payment records, outstanding balances
-- **NHIF data:** Member numbers, scheme details, co-payment information
+- **SHA data:** Member numbers, scheme details, co-payment information
 - **Provider billing:** Service codes, treatment costs, reimbursement claims
 
 ### 3.4 Demographic and Contact Information
@@ -83,7 +83,7 @@ We process personal data under the following lawful bases:
 - Business operations and administration
 
 ### 4.3 Legal Obligation
-- NHIF reporting requirements
+- SHA reporting requirements
 - Regulatory compliance reporting
 - Tax and accounting obligations
 - Professional licensing verification
@@ -117,7 +117,7 @@ We process personal data under the following lawful bases:
 - Electronic health records
 
 ### 5.3 Third-Party Sources
-- NHIF member databases
+- SHA member databases
 - Professional licensing boards
 - Insurance provider systems
 - Government health registries
@@ -134,7 +134,7 @@ We process personal data under the following lawful bases:
 ### 6.2 Claims Processing and Billing
 - **Preauthorization:** Automated and manual review of treatment requests
 - **Claims adjudication:** Processing insurance reimbursement requests
-- **NHIF compliance:** Ensuring adherence to national health insurance guidelines
+- **SHA compliance:** Ensuring adherence to national health insurance guidelines
 - **Financial reconciliation:** Accurate billing and payment processing
 
 ### 6.3 Fraud Detection and Prevention
@@ -199,7 +199,7 @@ Under the Data Protection Act 2019, you have the right to:
 - **Emergency care:** Critical information shared during medical emergencies
 - **Care coordination:** Multi-disciplinary team access for comprehensive care
 
-### 9.2 Insurance and NHIF
+### 9.2 Insurance and SHA
 - **Claims processing:** Sharing necessary data for reimbursement
 - **Eligibility verification:** Confirming coverage and benefits
 - **Audit compliance:** Providing documentation for insurance audits
@@ -232,7 +232,7 @@ Under the Data Protection Act 2019, you have the right to:
 - **Template data:** Immediate deletion upon account closure
 
 ### 10.3 Claims and Financial Data
-- **Processed claims:** 7 years per NHIF requirements
+- **Processed claims:** 7 years per SHA requirements
 - **Billing records:** 7 years per tax and accounting regulations
 - **Audit trails:** 10 years for compliance and fraud investigation
 - **Payment records:** 6 years per financial regulations

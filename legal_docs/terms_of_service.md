@@ -9,7 +9,7 @@
 
 ## 1. ACCEPTANCE OF TERMS
 
-By accessing or using the Erlessed Healthcare Platform ("Platform"), healthcare providers, insurance companies, and associated entities ("Users") agree to be bound by these Terms of Service ("Terms"). These Terms comply with the Data Protection Act of Kenya (2019), Health Act (2017), and NHIF medical billing guidelines.
+By accessing or using the Erlessed Healthcare Platform ("Platform"), healthcare providers, insurance companies, and associated entities ("Users") agree to be bound by these Terms of Service ("Terms"). These Terms comply with the Data Protection Act of Kenya (2019), Health Act (2017), and SHA (Social Health Authority) medical billing guidelines.
 
 ## 2. PLATFORM DESCRIPTION
 
@@ -29,8 +29,8 @@ Erlessed is a comprehensive healthcare claims management platform that provides:
 
 ### 3.2 Insurance Provider Registration
 - Must be licensed by the Insurance Regulatory Authority (IRA) of Kenya
-- NHIF-approved schemes must maintain current certification
-- All billing must comply with NHIF tariff structures
+- SHA-approved schemes must maintain current certification
+- All billing must comply with SHA tariff structures
 
 ## 4. PERMITTED USES
 
@@ -130,17 +130,17 @@ The Platform utilizes artificial intelligence for:
 - Predictive analytics assist in care planning
 - Patient identity is protected in all analytics
 
-## 11. NHIF BILLING COMPLIANCE
+## 11. SHA BILLING COMPLIANCE
 
 ### 11.1 Tariff Adherence
-- All billing must comply with current NHIF tariff schedules
+- All billing must comply with current SHA tariff schedules
 - Unauthorized charges are prohibited
 - Rate updates are automatically applied
 
 ### 11.2 Documentation Requirements
-- Claims must include all required NHIF documentation
+- Claims must include all required SHA documentation
 - ICD-10 coding must be accurate and current
-- Supporting documents must be retained per NHIF guidelines
+- Supporting documents must be retained per SHA guidelines
 
 ## 12. PLATFORM AVAILABILITY AND MAINTENANCE
 
