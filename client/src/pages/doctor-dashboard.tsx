@@ -11,9 +11,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { Clock, User, AlertTriangle, Stethoscope, FileText, Pill, TestTube } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { SupportWidget } from "@/components/ui/support-widget";
 import { ChatSupport } from "@/components/ui/chat-support";
+import { LogoutButton } from "@/components/ui/logout-button";
 
 interface QueuePatient {
   id: number;
@@ -153,9 +155,7 @@ export default function DoctorDashboard() {
 
   const startConsultationMutation = useMutation({
     mutationFn: async (queueId: number) => {
-      return apiRequest(`/api/doctor/queue/${queueId}/start`, {
-        method: "POST",
-      });
+      return apiRequest("POST", `/api/doctor/queue/${queueId}/start`);
     },
     onSuccess: () => {
       toast({
@@ -168,11 +168,7 @@ export default function DoctorDashboard() {
 
   const submitConsultationMutation = useMutation({
     mutationFn: async (data: ConsultationForm) => {
-      return apiRequest("/api/doctor/consultations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
+      return apiRequest("POST", "/api/doctor/consultations", data);
     },
     onSuccess: () => {
       toast({
