@@ -28,6 +28,13 @@ import DemoDashboard from "@/pages/demo-dashboard";
 import AnalyticsPage from "@/pages/analytics-page";
 import HMSIntegrationPage from "@/pages/hms-integration";
 import OnboardingPage from "@/pages/onboarding-page";
+import ModernAuthPage from "@/pages/modern-auth-page";
+import ModernDoctorDashboard from "@/pages/modern-doctor-dashboard";
+import ModernPharmacyDashboard from "@/pages/modern-pharmacy-dashboard";
+import ModernCareManagerDashboard from "@/pages/modern-care-manager-dashboard";
+import ModernInsurerDashboard from "@/pages/modern-insurer-dashboard";
+import ModernPatientDashboard from "@/pages/modern-patient-dashboard";
+import ModernAdminDashboard from "@/pages/modern-admin-dashboard";
 import OnboardingManagement from "@/pages/onboarding-management";
 import SupportDashboard from "@/pages/support-dashboard";
 import MobileFieldWorker from "@/pages/mobile-field-worker";
@@ -67,8 +74,17 @@ function Router() {
       <Route path="/onboarding" component={OnboardingPage} />
       <Route path="/demo" component={DemoDashboard} />
       <Route path="/auth" component={AuthPage} />
+      <Route path="/modern-auth" component={ModernAuthPage} />
       <Route path="/signup" component={EnhancedSignup} />
       <Route path="/secure-auth" component={EnhancedAuthPage} />
+      
+      {/* Modern Dashboard Routes */}
+      <ProtectedRoute path="/modern-doctor" component={ModernDoctorDashboard} />
+      <ProtectedRoute path="/modern-pharmacy" component={ModernPharmacyDashboard} />
+      <ProtectedRoute path="/modern-care-manager" component={ModernCareManagerDashboard} />
+      <ProtectedRoute path="/modern-insurer" component={ModernInsurerDashboard} />
+      <ProtectedRoute path="/modern-patient" component={ModernPatientDashboard} />
+      <ProtectedRoute path="/modern-admin" component={ModernAdminDashboard} />
       <Route component={NotFound} />
     </Switch>
   );
