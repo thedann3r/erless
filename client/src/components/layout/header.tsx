@@ -1,5 +1,6 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
+import { LogoutButton } from "@/components/ui/logout-button";
 
 export function Header() {
   const { user } = useAuth();
@@ -46,6 +47,9 @@ export function Header() {
                 3
               </span>
             </Button>
+
+            {/* Logout Button */}
+            <LogoutButton variant="dropdown" />
           </div>
         </div>
       </div>
