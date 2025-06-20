@@ -33,11 +33,7 @@ export default function AuthPage() {
     
     try {
       await login(emailOrUsername, password);
-      toast({
-        title: "Login successful",
-        description: "Welcome back to Erlessed!",
-      });
-      setLocation("/");
+      // Redirect is handled by auth hook based on user role
     } catch (error) {
       const errorMessage = "Invalid email/username or password. Please try again.";
       setLoginError(errorMessage);

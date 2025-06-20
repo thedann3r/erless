@@ -6,7 +6,10 @@ import { useToast } from "@/hooks/use-toast";
 interface User {
   id: number;
   username: string;
+  email: string;
+  name: string;
   role: string;
+  department: string | null;
 }
 
 interface AuthContextType {
@@ -53,12 +56,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (userData) => {
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      queryClient.setQueryData(["/api/user"], userData);
       updateActivity();
+      
+      // Redirect based on user role
+      const roleDashboards: Record<string, string> = {
+        doctor: "/doctor",
+        pharmacist: "/pharmacy-dashboard", 
+        "care-manager": "/care-manager-dashboard",
+        insurer: "/insurer",
+        patient: "/patient",
+        admin: "/admin"
+      };
+      
+      const targetDashboard = roleDashboards[userData.role] || "/";
+      setLocation(targetDashboard);
+      
       toast({
         title: "Login Successful",
-        description: "Welcome to Erlessed Healthcare Platform",
+        description: `Welcome to your ${userData.role} dashboard!`,
       });
     },
     onError: (error: Error) => {

@@ -29,11 +29,18 @@ async function comparePasswords(supplied: string, stored: string) {
 }
 
 export function setupAuth(app: Express) {
+  const sessionSecret = process.env.SESSION_SECRET || "erlessed-healthcare-session-secret-2025";
+  
   const sessionSettings: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET!,
+    secret: sessionSecret,
     resave: false,
     saveUninitialized: false,
     store: storage.sessionStore,
+    cookie: {
+      secure: false, // Set to true in production with HTTPS
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    },
   };
 
   app.set("trust proxy", 1);
@@ -76,10 +83,25 @@ export function setupAuth(app: Express) {
     }),
   );
 
-  passport.serializeUser((user, done) => done(null, user.id));
+  passport.serializeUser((user: any, done) => {
+    console.log('Serializing user:', user.id);
+    done(null, user.id);
+  });
+  
   passport.deserializeUser(async (id: number, done) => {
-    const user = await storage.getUser(id);
-    done(null, user);
+    try {
+      console.log('Deserializing user ID:', id);
+      const user = await storage.getUser(id);
+      if (!user) {
+        console.log('User not found during deserialization');
+        return done(null, false);
+      }
+      console.log('User deserialized successfully:', user.username);
+      done(null, user);
+    } catch (error) {
+      console.error('Deserialization error:', error);
+      done(error, null);
+    }
   });
 
   app.post("/api/register", async (req, res, next) => {
