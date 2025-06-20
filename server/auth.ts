@@ -44,21 +44,33 @@ export function setupAuth(app: Express) {
   passport.use(
     new LocalStrategy(async (emailOrUsername, password, done) => {
       try {
+        console.log(`Login attempt for: ${emailOrUsername}`);
         let user;
         
         // Check if input contains @ symbol to determine if it's email or username
         if (emailOrUsername.includes('@')) {
+          console.log('Attempting email login');
           user = await storage.getUserByEmail(emailOrUsername);
         } else {
+          console.log('Attempting username login');
           user = await storage.getUserByUsername(emailOrUsername);
         }
         
-        if (!user || !(await comparePasswords(password, user.password))) {
-          return done(null, false);
-        } else {
-          return done(null, user);
+        if (!user) {
+          console.log('User not found');
+          return done(null, false, { message: 'User not found' });
         }
+        
+        const passwordMatch = await comparePasswords(password, user.password);
+        if (!passwordMatch) {
+          console.log('Password mismatch');
+          return done(null, false, { message: 'Invalid password' });
+        }
+        
+        console.log('Login successful for user:', user.username);
+        return done(null, user);
       } catch (error) {
+        console.error('Authentication error:', error);
         return done(error);
       }
     }),
@@ -87,8 +99,38 @@ export function setupAuth(app: Express) {
     });
   });
 
-  app.post("/api/login", passport.authenticate("local"), (req, res) => {
-    res.status(200).json(req.user);
+  app.post("/api/login", (req, res, next) => {
+    passport.authenticate("local", (err, user, info) => {
+      if (err) {
+        console.error("Authentication error:", err);
+        return res.status(500).json({ message: "Authentication failed" });
+      }
+      
+      if (!user) {
+        return res.status(401).json({ 
+          message: "Invalid email/username or password" 
+        });
+      }
+      
+      req.login(user, (loginErr) => {
+        if (loginErr) {
+          console.error("Login error:", loginErr);
+          return res.status(500).json({ message: "Login failed" });
+        }
+        
+        // Update last login time (optional)
+        // storage.updateLastLogin(user.id).catch(console.error);
+        
+        res.status(200).json({
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+          department: user.department
+        });
+      });
+    })(req, res, next);
   });
 
   app.post("/api/logout", (req, res, next) => {

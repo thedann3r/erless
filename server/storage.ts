@@ -21,6 +21,7 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateLastLogin(userId: number): Promise<void>;
   
   // Patient management
   getAllPatients(): Promise<Patient[]>;
@@ -105,6 +106,13 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     return user;
+  }
+
+  async updateLastLogin(userId: number): Promise<void> {
+    await db
+      .update(users)
+      .set({ lastLogin: new Date() })
+      .where(eq(users.id, userId));
   }
 
   private detectRoleFromEmail(email: string): string {
