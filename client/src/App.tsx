@@ -32,6 +32,7 @@ import OnboardingManagement from "@/pages/onboarding-management";
 import SupportDashboard from "@/pages/support-dashboard";
 import MobileFieldWorker from "@/pages/mobile-field-worker";
 import MobilePatientPortal from "@/pages/mobile-patient-portal";
+import EnhancedSignup from "@/pages/enhanced-signup";
 
 function Router() {
   return (
@@ -66,6 +67,7 @@ function Router() {
       <Route path="/onboarding" component={OnboardingPage} />
       <Route path="/demo" component={DemoDashboard} />
       <Route path="/auth" component={AuthPage} />
+      <Route path="/signup" component={EnhancedSignup} />
       <Route path="/secure-auth" component={EnhancedAuthPage} />
       <Route component={NotFound} />
     </Switch>

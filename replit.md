@@ -217,6 +217,16 @@ Preferred communication style: Simple, everyday language.
 - Integrated emergency services access and supervisor communication for field workers
 - Patient portal features benefit tracking, medication reminders, and health score visualization
 
+**December 20, 2024 - Enhanced Professional Registration System:**
+- Implemented comprehensive two-step onboarding flow (`/signup`) with professional validation
+- Step 1: Basic information collection (name, email, password) with care provider auto-detection
+- Step 2: Role selection with clinical/non-clinical differentiation and automatic facility assignment
+- Added Kenya regulatory board integration (KMPDC, COC, PPB) with license verification for clinical roles
+- Non-clinical roles (Billing Officer, Care Manager, Front Office, Insurer Officer) skip regulatory validation
+- Integrated care provider domain detection for major Kenyan healthcare institutions
+- Role-based dashboard redirection after successful registration
+- Enhanced form validation with real-time feedback and professional license verification stub
+
 ## Changelog
 
 - June 18, 2025. Initial setup

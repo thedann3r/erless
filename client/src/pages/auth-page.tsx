@@ -54,8 +54,8 @@ export default function AuthPage() {
     const name = formData.get("name") as string;
     
     try {
-      // Registration functionality - redirect to onboarding for now
-      setLocation("/onboarding");
+      // Registration functionality - redirect to enhanced signup flow
+      setLocation("/signup");
     } catch (error) {
       toast({
         title: "Registration failed",
@@ -141,75 +141,29 @@ export default function AuthPage() {
                 </TabsContent>
 
                 <TabsContent value="register" className="space-y-4">
-                  <form onSubmit={handleRegister} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name" className="text-sm font-medium text-gray-700">
-                        Full Name
-                      </Label>
-                      <Input
-                        id="name"
-                        name="name"
-                        type="text"
-                        autoComplete="name"
-                        required
-                        placeholder="Enter your full name"
-                        className="medical-form-input"
-                      />
+                  <div className="text-center space-y-4">
+                    <div className="p-6 bg-teal-50 border border-teal-200 rounded-lg">
+                      <h3 className="text-lg font-semibold text-teal-800 mb-2">
+                        Professional Registration
+                      </h3>
+                      <p className="text-sm text-teal-700 mb-4">
+                        Join Erlessed with our comprehensive onboarding process designed for healthcare professionals
+                      </p>
+                      <Button 
+                        onClick={() => setLocation("/signup")}
+                        className="w-full teal-button"
+                      >
+                        Start Professional Registration
+                      </Button>
                     </div>
                     
-                    <div className="space-y-2">
-                      <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-                        Email Address
-                      </Label>
-                      <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        autoComplete="email"
-                        required
-                        placeholder="Enter your email address"
-                        className="medical-form-input"
-                      />
+                    <div className="space-y-2 text-xs text-gray-600">
+                      <p>✓ Automatic care provider detection</p>
+                      <p>✓ Professional license verification</p>
+                      <p>✓ Role-based dashboard access</p>
+                      <p>✓ Kenya regulatory compliance</p>
                     </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="reg-username" className="text-sm font-medium text-gray-700">
-                        Username
-                      </Label>
-                      <Input
-                        id="reg-username"
-                        name="username"
-                        type="text"
-                        autoComplete="username"
-                        required
-                        placeholder="Choose a username"
-                        className="medical-form-input"
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="reg-password" className="text-sm font-medium text-gray-700">
-                        Password
-                      </Label>
-                      <Input
-                        id="reg-password"
-                        name="password"
-                        type="password"
-                        autoComplete="new-password"
-                        required
-                        placeholder="Create a secure password"
-                        className="medical-form-input"
-                      />
-                    </div>
-                    
-                    <Button 
-                      type="submit" 
-                      className="w-full teal-button"
-                      disabled={isLoading}
-                    >
-                      {isLoading ? "Creating account..." : "Create Account"}
-                    </Button>
-                  </form>
+                  </div>
                 </TabsContent>
               </Tabs>
             </CardContent>
