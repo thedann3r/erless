@@ -14,6 +14,7 @@ export default function AuthPage() {
   const { user, login } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [loginError, setLoginError] = useState("");
 
   // Redirect if already logged in
   if (user) {
@@ -24,6 +25,7 @@ export default function AuthPage() {
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
+    setLoginError("");
     
     const formData = new FormData(e.currentTarget);
     const emailOrUsername = formData.get("emailOrUsername") as string;
@@ -31,11 +33,17 @@ export default function AuthPage() {
     
     try {
       await login(emailOrUsername, password);
+      toast({
+        title: "Login successful",
+        description: "Welcome back to Erlessed!",
+      });
       setLocation("/");
     } catch (error) {
+      const errorMessage = "Invalid email/username or password. Please try again.";
+      setLoginError(errorMessage);
       toast({
         title: "Login failed",
-        description: "Please check your credentials and try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -100,6 +108,16 @@ export default function AuthPage() {
                 
                 <TabsContent value="login" className="space-y-4">
                   <form onSubmit={handleLogin} className="space-y-4">
+                    {loginError && (
+                      <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                        <p className="text-sm text-red-700 flex items-center">
+                          <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                          {loginError}
+                        </p>
+                      </div>
+                    )}
                     <div className="space-y-2">
                       <Label htmlFor="emailOrUsername" className="text-sm font-medium text-gray-700">
                         Email or Username
@@ -113,6 +131,9 @@ export default function AuthPage() {
                         placeholder="Enter your email or username"
                         className="medical-form-input"
                       />
+                      <p className="text-xs text-gray-500">
+                        You can login with either your email address or username
+                      </p>
                     </div>
                     
                     <div className="space-y-2">

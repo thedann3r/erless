@@ -227,6 +227,15 @@ Preferred communication style: Simple, everyday language.
 - Role-based dashboard redirection after successful registration
 - Enhanced form validation with real-time feedback and professional license verification stub
 
+**December 20, 2024 - Flexible Email/Username Authentication System:**
+- Updated login form to accept single "Email or Username" input field
+- Backend automatically detects @ symbol to determine authentication method
+- Enhanced LocalStrategy to support both getUserByEmail and getUserByUsername queries
+- Added comprehensive error handling with inline error messaging
+- Created test user for authentication validation (username: testuser, email: test@aku.edu)
+- Implemented proper session management and login response formatting
+- Added visual feedback for authentication attempts with Erlessed teal/blue theming
+
 ## Changelog
 
 - June 18, 2025. Initial setup
