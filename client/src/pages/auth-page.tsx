@@ -75,9 +75,7 @@ export default function AuthPage() {
           <div className="text-center">
             <ErllessedLogo className="mx-auto h-20 w-auto mb-4" />
             <h2 className="text-3xl font-bold text-gray-900">Welcome to Erlessed</h2>
-            <p className="mt-2 text-sm text-gray-600">
-              Advanced Healthcare Claims Management Platform
-            </p>
+            <p className="mt-2 text-sm text-gray-600">Outdoing an Undoable</p>
           </div>
 
           <Card className="w-full border-0 shadow-xl bg-white/80 backdrop-blur-sm">
@@ -227,7 +225,6 @@ export default function AuthPage() {
           </div>
         </div>
       </div>
-
       {/* Right Panel - Features Overview */}
       <div className="hidden lg:flex lg:flex-1 bg-gradient-to-br from-teal-600 to-blue-700 text-white p-12 items-center justify-center">
         <div className="max-w-lg">
