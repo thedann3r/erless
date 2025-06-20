@@ -30,6 +30,8 @@ import HMSIntegrationPage from "@/pages/hms-integration";
 import OnboardingPage from "@/pages/onboarding-page";
 import OnboardingManagement from "@/pages/onboarding-management";
 import SupportDashboard from "@/pages/support-dashboard";
+import MobileFieldWorker from "@/pages/mobile-field-worker";
+import MobilePatientPortal from "@/pages/mobile-patient-portal";
 
 function Router() {
   return (
@@ -56,6 +58,11 @@ function Router() {
       <ProtectedRoute path="/hms-integration" component={HMSIntegrationPage} />
       <ProtectedRoute path="/onboarding-management" component={OnboardingManagement} />
       <ProtectedRoute path="/support-dashboard" component={SupportDashboard} />
+      
+      {/* Mobile Applications */}
+      <ProtectedRoute path="/mobile-field-worker" component={MobileFieldWorker} />
+      <ProtectedRoute path="/mobile-patient-portal" component={MobilePatientPortal} />
+      
       <Route path="/onboarding" component={OnboardingPage} />
       <Route path="/demo" component={DemoDashboard} />
       <Route path="/auth" component={AuthPage} />
