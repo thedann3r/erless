@@ -42,12 +42,24 @@ export function setupAuth(app: Express) {
   app.use(passport.session());
 
   passport.use(
-    new LocalStrategy(async (username, password, done) => {
-      const user = await storage.getUserByUsername(username);
-      if (!user || !(await comparePasswords(password, user.password))) {
-        return done(null, false);
-      } else {
-        return done(null, user);
+    new LocalStrategy(async (emailOrUsername, password, done) => {
+      try {
+        let user;
+        
+        // Check if input contains @ symbol to determine if it's email or username
+        if (emailOrUsername.includes('@')) {
+          user = await storage.getUserByEmail(emailOrUsername);
+        } else {
+          user = await storage.getUserByUsername(emailOrUsername);
+        }
+        
+        if (!user || !(await comparePasswords(password, user.password))) {
+          return done(null, false);
+        } else {
+          return done(null, user);
+        }
+      } catch (error) {
+        return done(error);
       }
     }),
   );

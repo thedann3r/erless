@@ -26,11 +26,11 @@ export default function AuthPage() {
     setIsLoading(true);
     
     const formData = new FormData(e.currentTarget);
-    const username = formData.get("username") as string;
+    const emailOrUsername = formData.get("emailOrUsername") as string;
     const password = formData.get("password") as string;
     
     try {
-      await login(username, password);
+      await login(emailOrUsername, password);
       setLocation("/");
     } catch (error) {
       toast({
@@ -101,16 +101,16 @@ export default function AuthPage() {
                 <TabsContent value="login" className="space-y-4">
                   <form onSubmit={handleLogin} className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="username" className="text-sm font-medium text-gray-700">
-                        Username
+                      <Label htmlFor="emailOrUsername" className="text-sm font-medium text-gray-700">
+                        Email or Username
                       </Label>
                       <Input
-                        id="username"
-                        name="username"
+                        id="emailOrUsername"
+                        name="emailOrUsername"
                         type="text"
                         autoComplete="username"
                         required
-                        placeholder="Enter your username"
+                        placeholder="Enter your email or username"
                         className="medical-form-input"
                       />
                     </div>

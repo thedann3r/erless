@@ -387,7 +387,7 @@ export default function EnhancedSignup() {
                         <Label>Registration Number</Label>
                         <div className="flex space-x-2">
                           <Input
-                            value={formData.registrationNumber}
+                            value={formData.registrationNumber || ""}
                             onChange={(e) => setFormData({...formData, registrationNumber: e.target.value})}
                             placeholder="Enter your registration number"
                             className="medical-form-input flex-1"
