@@ -22,7 +22,7 @@
   --destructive: 0 84% 60%;
   --destructive-foreground: 210 40% 98%;
   --ring: 180 42% 35%;
-  --radius: 0.5rem;
+  --radius: 1rem; /* Modern rounded corners */
   
   /* Custom Erlessed colors */
   --teal-primary: 180 42% 35%; /* #2D7A70 */
