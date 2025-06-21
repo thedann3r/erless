@@ -109,8 +109,8 @@ export default function ModernFrontOfficeDashboard() {
         patientId: "PT-2024-003",
         phoneNumber: "+254734567890",
         email: "grace.w@email.com",
-        insuranceProvider: "NHIF",
-        memberId: "NHIF-567890123"
+        insuranceProvider: "SHA",
+        memberId: "SHA-567890123"
       },
       appointmentType: "Specialist Consultation",
       scheduledTime: "2024-06-21T14:00:00Z",
@@ -470,7 +470,7 @@ export default function ModernFrontOfficeDashboard() {
                         <SelectContent>
                           <SelectItem value="CIC">CIC Insurance</SelectItem>
                           <SelectItem value="AAR">AAR Insurance</SelectItem>
-                          <SelectItem value="NHIF">NHIF</SelectItem>
+                          <SelectItem value="SHA">Social Health Authority</SelectItem>
                           <SelectItem value="SHA">Social Health Authority</SelectItem>
                         </SelectContent>
                       </Select>

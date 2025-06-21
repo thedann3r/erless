@@ -183,7 +183,7 @@ export default function ModernInsurerDashboard() {
   const schemeUsage: SchemeUsage[] = [
     {
       schemeId: "NHIF-ESS",
-      schemeName: "NHIF Essential Package",
+      schemeName: "SHA Essential Package",
       totalLimit: 50000000,
       usedAmount: 42000000,
       remainingAmount: 8000000,

@@ -166,13 +166,13 @@ Preferred communication style: Simple, everyday language.
 - Detailed Patient Consent and Data Access Statement (16 sections with 5 consent forms)
 - AI-powered decision making disclaimers and patient rights protection
 - Biometric data special protections with AES-256 encryption requirements
-- SHA (Social Health Authority) billing guidelines integration and real-time compliance checking
+- SHA (Social Health Authority) billing guidelines integration and real-time compliance checking (replacing NHIF)
 - Professional license verification requirements (KMPDC, PPB, Clinical Officers Council)
 - Cross-border data transfer safeguards and adequacy decision compliance
 
 **December 19, 2024 - Legal Compliance Framework Completion:**
 - Created comprehensive 4-document legal framework ensuring full Kenyan healthcare compliance
-- Updated all references from NHIF to SHA (Social Health Authority) per current system structure
+- Updated all references from NHIF to SHA (Social Health Authority) per current Kenyan healthcare system structure
 - Implemented Data Protection Act 2019 complete compliance with all 45 articles covered
 - Added AI transparency requirements with human review rights and explainable decision-making
 - Enhanced biometric data protections with AES-256 encryption and separate consent mechanisms
@@ -256,13 +256,20 @@ Preferred communication style: Simple, everyday language.
 
 **June 21, 2025 - Biometric Verification and Insurance Claim Form Generation:**
 - Added comprehensive biometric verification system with fingerprint scanning and SMS OTP verification
-- Implemented insurer-specific claim form generation using PDFMake with support for CIC, AAR, SHA, and NHIF templates
+- Implemented insurer-specific claim form generation using PDFMake with support for CIC, AAR, and SHA templates (NHIF replaced by SHA)
 - Enhanced pharmacy dashboard with patient identity verification before dispensing medications
 - Integrated claim form generator with auto-populated patient, provider, and service data from current encounters
 - Added front office dashboard (/modern-front-office) for appointment management, walk-in registration, and insurance verification
 - Enhanced doctor dashboard with patient verification and claim generation workflow integration
 - Claim forms include proper insurer branding, patient demographics, clinical information, service details, and signature sections
 - All claim generation activities are logged and linked to current patient encounters for audit trails
+
+**June 21, 2025 - NHIF to SHA System Update:**
+- Updated all platform references from NHIF to SHA (Social Health Authority) to reflect current Kenyan healthcare system
+- Modified claim form templates, member ID formats, and insurer selection options throughout all dashboards
+- Updated biometric verification system to use SHA member identifiers and branding
+- Ensured compliance with current Social Health Authority billing guidelines and procedures
+- All user interfaces now display SHA terminology instead of deprecated NHIF references
 
 ## Changelog
 

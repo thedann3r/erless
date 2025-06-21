@@ -81,10 +81,10 @@ export function ClaimFormGenerator({ isOpen, onClose, patientData }: ClaimFormGe
       requiresPreauth: false
     },
     NHIF: {
-      id: "NHIF",
-      name: "National Hospital Insurance Fund",
-      colors: { primary: "#003366", secondary: "#E6F3FF" },
-      formFields: ["nhifNumber", "memberCategory", "serviceProvider", "claimDetails"],
+      id: "SHA",
+      name: "Social Health Authority",
+      colors: { primary: "#006600", secondary: "#F0FFF0" },
+      formFields: ["shaNumber", "facilityCode", "serviceCategory", "icd10Code"],
       requiresPreauth: false
     }
   };
