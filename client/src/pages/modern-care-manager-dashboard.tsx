@@ -279,7 +279,7 @@ export default function ModernCareManagerDashboard() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Schemes</SelectItem>
-                  <SelectItem value="nhif">NHIF</SelectItem>
+                  <SelectItem value="sha">SHA</SelectItem>
                   <SelectItem value="private">Private Insurance</SelectItem>
                   <SelectItem value="corporate">Corporate</SelectItem>
                 </SelectContent>

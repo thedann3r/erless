@@ -478,11 +478,11 @@ export default function ModernPatientDashboard() {
                     <div className="text-sm space-y-2">
                       <div className="flex justify-between">
                         <span>Member ID:</span>
-                        <span className="font-medium">NHIF-001234567</span>
+                        <span className="font-medium">SHA-001234567</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Plan:</span>
-                        <span className="font-medium">Essential Health Package</span>
+                        <span className="font-medium">SHA Essential Health Package</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Coverage Start:</span>

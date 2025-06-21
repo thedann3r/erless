@@ -471,7 +471,6 @@ export default function ModernFrontOfficeDashboard() {
                           <SelectItem value="CIC">CIC Insurance</SelectItem>
                           <SelectItem value="AAR">AAR Insurance</SelectItem>
                           <SelectItem value="SHA">Social Health Authority</SelectItem>
-                          <SelectItem value="SHA">Social Health Authority</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
