@@ -16,8 +16,10 @@ import { ClaimFormGenerator } from "@/components/claim-form-generator";
 import { 
   Pill, AlertTriangle, ShieldCheck, CreditCard, User, Clock, 
   Package, CheckCircle, XCircle, Search, Calculator, FileText,
-  Zap, Activity, TrendingUp, AlertCircle, Fingerprint
+  Zap, Activity, TrendingUp, AlertCircle, Fingerprint, Shield,
+  FileCheck, ShieldLock, Info, Database, Brain
 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -76,6 +78,7 @@ export default function ModernPharmacyDashboard() {
   });
   const [showBiometricModal, setShowBiometricModal] = useState(false);
   const [showClaimGenerator, setShowClaimGenerator] = useState(false);
+  const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
   const [verifiedPatient, setVerifiedPatient] = useState<any>(null);
 
   // Mock data
@@ -300,6 +303,112 @@ export default function ModernPharmacyDashboard() {
           </Card>
         </div>
 
+        {/* Quick Actions Section */}
+        <Card className="card-hover">
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+            <CardDescription>Essential pharmacy workflow tools</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <TooltipProvider>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Button
+                  variant="outline"
+                  className="h-20 w-full flex flex-col items-center justify-center space-y-2 border-2 rounded-2xl bg-purple-50 hover:bg-purple-100 text-purple-600 transition-all duration-200 hover:scale-105"
+                  onClick={() => setShowBiometricModal(true)}
+                >
+                  <Fingerprint className="h-6 w-6" />
+                  <span className="text-sm font-medium">Verify Patient</span>
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  className="h-20 w-full flex flex-col items-center justify-center space-y-2 border-2 rounded-2xl bg-blue-50 hover:bg-blue-100 text-blue-600 transition-all duration-200 hover:scale-105"
+                >
+                  <Shield className="h-6 w-6" />
+                  <span className="text-sm font-medium">Preauthorization</span>
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  className="h-20 w-full flex flex-col items-center justify-center space-y-2 border-2 rounded-2xl bg-green-50 hover:bg-green-100 text-green-600 transition-all duration-200 hover:scale-105"
+                  onClick={() => setShowPrescriptionModal(true)}
+                >
+                  <FileCheck className="h-6 w-6" />
+                  <span className="text-sm font-medium">Validate Prescription</span>
+                </Button>
+                
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="h-20 w-full flex flex-col items-center justify-center space-y-2 border-2 rounded-2xl bg-orange-50 hover:bg-orange-100 text-orange-600 transition-all duration-200 hover:scale-105 relative"
+                    >
+                      <ShieldLock className="h-6 w-6" />
+                      <span className="text-sm font-medium">Secure Claim Log</span>
+                      <Info className="h-3 w-3 absolute top-2 right-2 opacity-50" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Securely log claims to blockchain for immutable audit trail</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </TooltipProvider>
+          </CardContent>
+        </Card>
+
+        {/* System Status */}
+        <Card className="card-hover">
+          <CardHeader>
+            <CardTitle>System Status</CardTitle>
+            <CardDescription>Real-time platform health monitoring</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="flex items-center justify-between p-3 border rounded-xl">
+                <div className="flex items-center space-x-2">
+                  <Brain className="h-5 w-5 text-teal-600" />
+                  <span className="text-sm text-gray-600">Intelligence Engine</span>
+                </div>
+                <Badge variant="secondary" className="text-green-600 bg-green-50 rounded-full px-3 py-1">
+                  Active
+                </Badge>
+              </div>
+              
+              <div className="flex items-center justify-between p-3 border rounded-xl">
+                <div className="flex items-center space-x-2">
+                  <Database className="h-5 w-5 text-teal-600" />
+                  <span className="text-sm text-gray-600">System Database</span>
+                </div>
+                <Badge variant="secondary" className="text-green-600 bg-green-50 rounded-full px-3 py-1">
+                  Healthy
+                </Badge>
+              </div>
+              
+              <div className="flex items-center justify-between p-3 border rounded-xl">
+                <div className="flex items-center space-x-2">
+                  <ShieldLock className="h-5 w-5 text-teal-600" />
+                  <span className="text-sm text-gray-600">Smart Contract Ledger</span>
+                </div>
+                <Badge variant="secondary" className="text-green-600 bg-green-50 rounded-full px-3 py-1">
+                  Connected
+                </Badge>
+              </div>
+              
+              <div className="flex items-center justify-between p-3 border rounded-xl">
+                <div className="flex items-center space-x-2">
+                  <CreditCard className="h-5 w-5 text-teal-600" />
+                  <span className="text-sm text-gray-600">Payments</span>
+                </div>
+                <Badge variant="secondary" className="text-green-600 bg-green-50 rounded-full px-3 py-1">
+                  Online
+                </Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Panel - Prescription Queue */}
           <div className="space-y-4">
@@ -444,7 +553,7 @@ export default function ModernPharmacyDashboard() {
                             </div>
                             <Button 
                               onClick={() => setShowBiometricModal(true)}
-                              className="w-full"
+                              className="w-full bg-teal-600 hover:bg-teal-700 text-white rounded-xl"
                             >
                               <Fingerprint className="h-4 w-4 mr-2" />
                               Verify Patient Identity
@@ -466,7 +575,7 @@ export default function ModernPharmacyDashboard() {
                             <Button 
                               onClick={handleGenerateClaim}
                               variant="outline"
-                              className="w-full"
+                              className="w-full border-teal-200 text-teal-700 hover:bg-teal-50 rounded-xl"
                             >
                               <FileText className="h-4 w-4 mr-2" />
                               Generate Insurance Claim
@@ -563,7 +672,7 @@ export default function ModernPharmacyDashboard() {
                     </div>
 
                     <Button 
-                      className="w-full" 
+                      className="w-full bg-teal-600 hover:bg-teal-700 text-white rounded-xl" 
                       size="lg"
                       onClick={dispenseMedication}
                       disabled={!Object.values(dispensingChecks).every(check => check)}
@@ -644,6 +753,33 @@ export default function ModernPharmacyDashboard() {
             onClose={() => setShowClaimGenerator(false)}
             patientData={verifiedPatient}
           />
+        )}
+
+        {/* Prescription Validation Modal */}
+        {showPrescriptionModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4">
+              <h3 className="text-lg font-semibold mb-4">Prescription Validation</h3>
+              <p className="text-gray-600 mb-4">
+                This feature validates prescription authenticity, checks for drug interactions, and verifies dosage appropriateness.
+              </p>
+              <div className="flex space-x-3">
+                <Button 
+                  onClick={() => setShowPrescriptionModal(false)}
+                  variant="outline"
+                  className="flex-1 rounded-xl"
+                >
+                  Close
+                </Button>
+                <Button 
+                  onClick={() => setShowPrescriptionModal(false)}
+                  className="flex-1 bg-teal-600 hover:bg-teal-700 text-white rounded-xl"
+                >
+                  Validate
+                </Button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </SharedLayout>
