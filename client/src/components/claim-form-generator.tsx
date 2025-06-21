@@ -6,11 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { FileText, Download, Printer, Eye, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import pdfMake from "pdfmake/build/pdfmake";
-import pdfFonts from "pdfmake/build/vfs_fonts";
-
-// Configure pdfMake
-pdfMake.vfs = pdfFonts.pdfMake.vfs;
 
 interface ClaimFormGeneratorProps {
   isOpen: boolean;
@@ -322,13 +317,21 @@ export function ClaimFormGenerator({ isOpen, onClose, patientData }: ClaimFormGe
     setIsGenerating(true);
     
     try {
-      // Generate claim based on insurer type
-      const claimData = generateCICClaimForm(); // We'll expand this for other insurers
+      const claimNumber = generateClaimNumber();
+      const totalCost = patientData.currentEncounter?.services.reduce((sum, service) => sum + service.cost, 0) || 0;
+      
+      const claimData = {
+        claimNumber,
+        totalCost,
+        patientData,
+        insurerTemplate: currentTemplate,
+        generatedAt: new Date().toISOString()
+      };
       
       setGeneratedClaim(claimData);
       
       // Log the claim generation
-      await logClaimGeneration(claimData.claimNumber);
+      await logClaimGeneration(claimNumber);
       
       toast({
         title: "Claim Form Generated",
@@ -351,27 +354,66 @@ export function ClaimFormGenerator({ isOpen, onClose, patientData }: ClaimFormGe
     console.log(`Claim generated: ${claimNumber} for patient ${patientData.id}`);
   };
 
-  const downloadPDF = () => {
+  const downloadPDF = async () => {
     if (!generatedClaim) return;
     
-    pdfMake.createPdf(generatedClaim.docDefinition).download(`claim-${generatedClaim.claimNumber}.pdf`);
-    
-    toast({
-      title: "Download Started",
-      description: "Claim form PDF is being downloaded",
-    });
+    try {
+      // Dynamic import to avoid build issues
+      const pdfMake = await import("pdfmake/build/pdfmake");
+      const pdfFonts = await import("pdfmake/build/vfs_fonts");
+      
+      // Configure pdfMake
+      pdfMake.default.vfs = pdfFonts.default.pdfMake.vfs;
+      
+      pdfMake.default.createPdf(generatedClaim.docDefinition).download(`claim-${generatedClaim.claimNumber}.pdf`);
+      
+      toast({
+        title: "Download Started",
+        description: "Claim form PDF is being downloaded",
+      });
+    } catch (error) {
+      toast({
+        title: "Download Failed",
+        description: "Unable to generate PDF. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
-  const printPDF = () => {
+  const printPDF = async () => {
     if (!generatedClaim) return;
     
-    pdfMake.createPdf(generatedClaim.docDefinition).print();
+    try {
+      const pdfMake = await import("pdfmake/build/pdfmake");
+      const pdfFonts = await import("pdfmake/build/vfs_fonts");
+      
+      pdfMake.default.vfs = pdfFonts.default.pdfMake.vfs;
+      pdfMake.default.createPdf(generatedClaim.docDefinition).print();
+    } catch (error) {
+      toast({
+        title: "Print Failed",
+        description: "Unable to print PDF. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
-  const previewPDF = () => {
+  const previewPDF = async () => {
     if (!generatedClaim) return;
     
-    pdfMake.createPdf(generatedClaim.docDefinition).open();
+    try {
+      const pdfMake = await import("pdfmake/build/pdfmake");
+      const pdfFonts = await import("pdfmake/build/vfs_fonts");
+      
+      pdfMake.default.vfs = pdfFonts.default.pdfMake.vfs;
+      pdfMake.default.createPdf(generatedClaim.docDefinition).open();
+    } catch (error) {
+      toast({
+        title: "Preview Failed",
+        description: "Unable to preview PDF. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -492,17 +534,9 @@ export function ClaimFormGenerator({ isOpen, onClose, patientData }: ClaimFormGe
               </Button>
             ) : (
               <>
-                <Button onClick={previewPDF} variant="outline" className="flex-1">
+                <Button onClick={() => setShowPreview(true)} variant="outline" className="flex-1">
                   <Eye className="h-4 w-4 mr-2" />
-                  Preview
-                </Button>
-                <Button onClick={downloadPDF} variant="outline" className="flex-1">
-                  <Download className="h-4 w-4 mr-2" />
-                  Download
-                </Button>
-                <Button onClick={printPDF} variant="outline" className="flex-1">
-                  <Printer className="h-4 w-4 mr-2" />
-                  Print
+                  Preview & Download
                 </Button>
               </>
             )}
@@ -515,6 +549,15 @@ export function ClaimFormGenerator({ isOpen, onClose, patientData }: ClaimFormGe
             </div>
           )}
         </div>
+
+        {/* Claim Preview Modal */}
+        {generatedClaim && (
+          <ClaimPreviewModal
+            isOpen={showPreview}
+            onClose={() => setShowPreview(false)}
+            claimData={generatedClaim}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );
