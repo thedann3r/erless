@@ -11,10 +11,12 @@ import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SharedLayout } from "@/components/layout/shared-layout";
+import { BiometricVerificationModal } from "@/components/biometric-verification-modal";
+import { ClaimFormGenerator } from "@/components/claim-form-generator";
 import { 
   Pill, AlertTriangle, ShieldCheck, CreditCard, User, Clock, 
   Package, CheckCircle, XCircle, Search, Calculator, FileText,
-  Zap, Activity, TrendingUp, AlertCircle
+  Zap, Activity, TrendingUp, AlertCircle, Fingerprint
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
@@ -72,6 +74,9 @@ export default function ModernPharmacyDashboard() {
     insuranceCovered: false,
     patientCounseled: false
   });
+  const [showBiometricModal, setShowBiometricModal] = useState(false);
+  const [showClaimGenerator, setShowClaimGenerator] = useState(false);
+  const [verifiedPatient, setVerifiedPatient] = useState<any>(null);
 
   // Mock data
   const pendingPrescriptions: PendingPrescription[] = [
@@ -194,6 +199,27 @@ export default function ModernPharmacyDashboard() {
     return { total: medicationCost, copay, covered: medicationCost - copay };
   };
 
+  const handleBiometricVerification = (patientData: any) => {
+    setVerifiedPatient(patientData);
+    setDispensingChecks(prev => ({ ...prev, patientVerified: true }));
+    toast({
+      title: "Patient Verified",
+      description: `Identity confirmed for ${patientData.firstName} ${patientData.lastName}`,
+    });
+  };
+
+  const handleGenerateClaim = () => {
+    if (!verifiedPatient) {
+      toast({
+        title: "Verification Required",
+        description: "Please verify patient identity first",
+        variant: "destructive"
+      });
+      return;
+    }
+    setShowClaimGenerator(true);
+  };
+
   const dispenseMedication = async () => {
     if (!selectedPrescription) return;
     
@@ -213,6 +239,7 @@ export default function ModernPharmacyDashboard() {
     });
 
     setSelectedPrescription(null);
+    setVerifiedPatient(null);
     setDispensingChecks({
       patientVerified: false,
       dosageVerified: false,
@@ -404,6 +431,51 @@ export default function ModernPharmacyDashboard() {
                       </div>
                     )}
 
+                    {/* Biometric Verification Section */}
+                    <div className="space-y-4">
+                      <h4 className="font-medium">Patient Verification</h4>
+                      <div className="p-4 border rounded-xl bg-muted/50">
+                        {!dispensingChecks.patientVerified ? (
+                          <div className="text-center space-y-3">
+                            <Fingerprint className="h-12 w-12 text-muted-foreground mx-auto" />
+                            <div>
+                              <p className="text-sm font-medium">Identity Verification Required</p>
+                              <p className="text-xs text-muted-foreground">Verify patient identity to access insurance details</p>
+                            </div>
+                            <Button 
+                              onClick={() => setShowBiometricModal(true)}
+                              className="w-full"
+                            >
+                              <Fingerprint className="h-4 w-4 mr-2" />
+                              Verify Patient Identity
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            <div className="flex items-center space-x-2 text-green-600">
+                              <CheckCircle className="h-4 w-4" />
+                              <span className="text-sm font-medium">Patient Verified</span>
+                            </div>
+                            {verifiedPatient && (
+                              <div className="text-sm space-y-1">
+                                <p><span className="font-medium">Name:</span> {verifiedPatient.firstName} {verifiedPatient.lastName}</p>
+                                <p><span className="font-medium">Member ID:</span> {verifiedPatient.memberId}</p>
+                                <p><span className="font-medium">Insurer:</span> {verifiedPatient.insurerName}</p>
+                              </div>
+                            )}
+                            <Button 
+                              onClick={handleGenerateClaim}
+                              variant="outline"
+                              className="w-full"
+                            >
+                              <FileText className="h-4 w-4 mr-2" />
+                              Generate Insurance Claim
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
                     {/* Dispensing Checklist */}
                     <div className="space-y-4">
                       <h4 className="font-medium">Dispensing Safety Checklist</h4>
@@ -415,6 +487,7 @@ export default function ModernPharmacyDashboard() {
                             onCheckedChange={(checked) => 
                               setDispensingChecks(prev => ({ ...prev, patientVerified: checked as boolean }))
                             }
+                            disabled={true} // This is now controlled by biometric verification
                           />
                           <Label htmlFor="patient-verified">Patient identity verified</Label>
                         </div>
@@ -555,6 +628,23 @@ export default function ModernPharmacyDashboard() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Biometric Verification Modal */}
+        <BiometricVerificationModal
+          isOpen={showBiometricModal}
+          onClose={() => setShowBiometricModal(false)}
+          onVerificationComplete={handleBiometricVerification}
+          patientId={selectedPrescription?.patient.patientId}
+        />
+
+        {/* Claim Form Generator */}
+        {verifiedPatient && (
+          <ClaimFormGenerator
+            isOpen={showClaimGenerator}
+            onClose={() => setShowClaimGenerator(false)}
+            patientData={verifiedPatient}
+          />
+        )}
       </div>
     </SharedLayout>
   );

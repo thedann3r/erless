@@ -11,10 +11,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { SharedLayout } from "@/components/layout/shared-layout";
+import { BiometricVerificationModal } from "@/components/biometric-verification-modal";
+import { ClaimFormGenerator } from "@/components/claim-form-generator";
 import { 
   Stethoscope, Users, FileText, Pill, TestTube, Clock, User, 
   AlertTriangle, Heart, Thermometer, Activity, Search, Plus,
-  CheckCircle, Calendar, MapPin, Phone
+  CheckCircle, Calendar, MapPin, Phone, Fingerprint
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
@@ -66,6 +68,10 @@ export default function ModernDoctorDashboard() {
   const [selectedPatient, setSelectedPatient] = useState<QueuePatient | null>(null);
   const [activeTab, setActiveTab] = useState("history");
   const [searchQuery, setSearchQuery] = useState("");
+  const [showBiometricModal, setShowBiometricModal] = useState(false);
+  const [showClaimGenerator, setShowClaimGenerator] = useState(false);
+  const [verifiedPatient, setVerifiedPatient] = useState<any>(null);
+  const [consultationCompleted, setConsultationCompleted] = useState(false);
 
   // Mock data - replace with actual API calls
   const queuePatients: QueuePatient[] = [
@@ -177,10 +183,53 @@ export default function ModernDoctorDashboard() {
   const startConsultation = (patient: QueuePatient) => {
     setSelectedPatient(patient);
     setActiveTab("history");
+    setConsultationCompleted(false);
+    setVerifiedPatient(null);
     toast({
       title: "Consultation Started",
       description: `Started consultation with ${patient.patient.firstName} ${patient.patient.lastName}`,
     });
+  };
+
+  const handleBiometricVerification = (patientData: any) => {
+    setVerifiedPatient(patientData);
+    toast({
+      title: "Patient Verified",
+      description: `Identity confirmed for ${patientData.firstName} ${patientData.lastName}`,
+    });
+  };
+
+  const handleGenerateClaim = () => {
+    if (!verifiedPatient) {
+      toast({
+        title: "Verification Required",
+        description: "Please verify patient identity first",
+        variant: "destructive"
+      });
+      return;
+    }
+    setShowClaimGenerator(true);
+  };
+
+  const completeConsultation = () => {
+    if (!consultationCompleted) {
+      toast({
+        title: "Complete Documentation",
+        description: "Please complete all consultation tabs before finalizing",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    toast({
+      title: "Consultation Completed",
+      description: `Consultation completed for ${selectedPatient?.patient.firstName} ${selectedPatient?.patient.lastName}`,
+    });
+
+    setSelectedPatient(null);
+    setVerifiedPatient(null);
+    setConsultationCompleted(false);
+    setActiveTab("history");
   };
 
   return (
@@ -481,8 +530,54 @@ export default function ModernDoctorDashboard() {
                             rows={2}
                           />
                         </div>
+                        {/* Patient Verification and Claim Generation */}
+                        <div className="space-y-4">
+                          <div className="p-4 border rounded-xl bg-muted/50">
+                            {!verifiedPatient ? (
+                              <div className="text-center space-y-3">
+                                <Fingerprint className="h-8 w-8 text-muted-foreground mx-auto" />
+                                <div>
+                                  <p className="text-sm font-medium">Patient Verification</p>
+                                  <p className="text-xs text-muted-foreground">Verify identity for insurance claim generation</p>
+                                </div>
+                                <Button 
+                                  onClick={() => setShowBiometricModal(true)}
+                                  variant="outline"
+                                  className="w-full"
+                                >
+                                  <Fingerprint className="h-4 w-4 mr-2" />
+                                  Verify Patient Identity
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="space-y-3">
+                                <div className="flex items-center space-x-2 text-green-600">
+                                  <CheckCircle className="h-4 w-4" />
+                                  <span className="text-sm font-medium">Patient Verified</span>
+                                </div>
+                                <div className="text-sm space-y-1">
+                                  <p><span className="font-medium">Name:</span> {verifiedPatient.firstName} {verifiedPatient.lastName}</p>
+                                  <p><span className="font-medium">Member ID:</span> {verifiedPatient.memberId}</p>
+                                  <p><span className="font-medium">Insurer:</span> {verifiedPatient.insurerName}</p>
+                                </div>
+                                <Button 
+                                  onClick={handleGenerateClaim}
+                                  variant="outline"
+                                  className="w-full"
+                                >
+                                  <FileText className="h-4 w-4 mr-2" />
+                                  Generate Insurance Claim
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
                         <div className="flex space-x-2 pt-4">
-                          <Button className="flex-1">
+                          <Button 
+                            className="flex-1"
+                            onClick={completeConsultation}
+                          >
                             Complete Consultation
                           </Button>
                           <Button variant="outline">
@@ -507,6 +602,23 @@ export default function ModernDoctorDashboard() {
             )}
           </div>
         </div>
+
+        {/* Biometric Verification Modal */}
+        <BiometricVerificationModal
+          isOpen={showBiometricModal}
+          onClose={() => setShowBiometricModal(false)}
+          onVerificationComplete={handleBiometricVerification}
+          patientId={selectedPatient?.patient.patientId}
+        />
+
+        {/* Claim Form Generator */}
+        {verifiedPatient && (
+          <ClaimFormGenerator
+            isOpen={showClaimGenerator}
+            onClose={() => setShowClaimGenerator(false)}
+            patientData={verifiedPatient}
+          />
+        )}
       </div>
     </SharedLayout>
   );
