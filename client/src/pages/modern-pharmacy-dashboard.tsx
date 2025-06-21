@@ -17,7 +17,7 @@ import {
   Pill, AlertTriangle, ShieldCheck, CreditCard, User, Clock, 
   Package, CheckCircle, XCircle, Search, Calculator, FileText,
   Zap, Activity, TrendingUp, AlertCircle, Fingerprint, Shield,
-  FileCheck, ShieldLock, Info, Database, Brain
+  FileCheck, Lock, Info, Database, Brain
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
@@ -344,7 +344,7 @@ export default function ModernPharmacyDashboard() {
                       variant="outline"
                       className="h-20 w-full flex flex-col items-center justify-center space-y-2 border-2 rounded-2xl bg-orange-50 hover:bg-orange-100 text-orange-600 transition-all duration-200 hover:scale-105 relative"
                     >
-                      <ShieldLock className="h-6 w-6" />
+                      <Lock className="h-6 w-6" />
                       <span className="text-sm font-medium">Secure Claim Log</span>
                       <Info className="h-3 w-3 absolute top-2 right-2 opacity-50" />
                     </Button>
@@ -388,7 +388,7 @@ export default function ModernPharmacyDashboard() {
               
               <div className="flex items-center justify-between p-3 border rounded-xl">
                 <div className="flex items-center space-x-2">
-                  <ShieldLock className="h-5 w-5 text-teal-600" />
+                  <Lock className="h-5 w-5 text-teal-600" />
                   <span className="text-sm text-gray-600">Smart Contract Ledger</span>
                 </div>
                 <Badge variant="secondary" className="text-green-600 bg-green-50 rounded-full px-3 py-1">
