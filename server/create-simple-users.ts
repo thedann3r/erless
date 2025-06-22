@@ -47,6 +47,13 @@ export async function createSimpleUsers() {
         role: "front-office"
       },
       {
+        username: "debtors1",
+        email: "debtors@test.med",
+        password: testPasswordHash,
+        name: "Mary Njoroge",
+        role: "debtors"
+      },
+      {
         username: "caremanager1",
         email: "caremanager@test.med",
         password: testPasswordHash,
@@ -78,6 +85,7 @@ export async function createSimpleUsers() {
     console.log("Username: testuser (Admin) | Password: test123");
     console.log("Username: doctor1 (Doctor) | Password: test123");
     console.log("Username: pharmacist1 (Pharmacist) | Password: test123");
+    console.log("Username: debtors1 (Debtors Officer) | Password: test123");
     console.log("Username: frontoffice1 (Front Office) | Password: test123");
     console.log("Username: caremanager1 (Care Manager) | Password: test123");
     console.log("Username: insurer1 (Insurer) | Password: test123");
