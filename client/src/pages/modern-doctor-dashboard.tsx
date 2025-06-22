@@ -13,6 +13,8 @@ import { Progress } from "@/components/ui/progress";
 import { SharedLayout } from "@/components/layout/shared-layout";
 import { BiometricVerificationModal } from "@/components/biometric-verification-modal";
 import { ClaimFormGenerator } from "@/components/claim-form-generator";
+import { ChainOfThoughtDisplay } from "@/components/chain-of-thought-display";
+import { TreatmentPlanDisplay } from "@/components/treatment-plan-display";
 import { 
   Stethoscope, Users, FileText, Pill, TestTube, Clock, User, 
   AlertTriangle, Heart, Thermometer, Activity, Search, Plus,
@@ -71,6 +73,10 @@ export default function ModernDoctorDashboard() {
   const [showBiometricModal, setShowBiometricModal] = useState(false);
   const [showClaimGenerator, setShowClaimGenerator] = useState(false);
   const [verifiedPatient, setVerifiedPatient] = useState<any>(null);
+  const [showTreatmentPlan, setShowTreatmentPlan] = useState(false);
+  const [generatedTreatmentPlan, setGeneratedTreatmentPlan] = useState<any>(null);
+  const [showDifferentialDiagnosis, setShowDifferentialDiagnosis] = useState(false);
+  const [differentialAnalysis, setDifferentialAnalysis] = useState<any>(null);
   const [consultationCompleted, setConsultationCompleted] = useState(false);
 
   // Mock data - replace with actual API calls
