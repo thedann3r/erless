@@ -143,6 +143,8 @@ export function setupAuth(app: Express) {
           return res.status(500).json({ message: "Login failed" });
         }
         
+        console.log("Session after login:", req.session.passport);
+        
         // Update last login time (optional)
         // storage.updateLastLogin(user.id).catch(console.error);
         
@@ -166,7 +168,14 @@ export function setupAuth(app: Express) {
   });
 
   app.get("/api/user", (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
+    console.log("User request - Session:", req.session.passport);
+    console.log("User request - isAuthenticated:", req.isAuthenticated());
+    console.log("User request - user:", req.user?.username);
+    
+    if (!req.isAuthenticated()) {
+      console.log("User not authenticated");
+      return res.sendStatus(401);
+    }
     res.json(req.user);
   });
 }
