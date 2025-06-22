@@ -33,13 +33,14 @@ export function setupAuth(app: Express) {
   
   const sessionSettings: session.SessionOptions = {
     secret: sessionSecret,
-    resave: false,
-    saveUninitialized: false,
+    resave: true,
+    saveUninitialized: true,
     store: storage.sessionStore,
     cookie: {
       secure: false, // Set to true in production with HTTPS
       httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      sameSite: 'lax'
     },
   };
 
@@ -144,6 +145,15 @@ export function setupAuth(app: Express) {
         }
         
         console.log("Session after login:", req.session.passport);
+        
+        // Force session save
+        req.session.save((saveErr) => {
+          if (saveErr) {
+            console.error("Session save error:", saveErr);
+          } else {
+            console.log("Session saved successfully");
+          }
+        });
         
         // Update last login time (optional)
         // storage.updateLastLogin(user.id).catch(console.error);

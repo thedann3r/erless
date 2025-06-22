@@ -63,12 +63,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       // Redirect based on user role
       const roleDashboards: Record<string, string> = {
-        doctor: "/doctor",
-        pharmacist: "/pharmacy-dashboard", 
-        "care-manager": "/care-manager-dashboard",
-        insurer: "/insurer",
-        patient: "/patient",
-        admin: "/admin"
+        doctor: "/modern-doctor",
+        pharmacy: "/modern-pharmacy", 
+        pharmacist: "/modern-pharmacy",
+        "care-manager": "/modern-care-manager",
+        insurer: "/modern-insurer",
+        patient: "/modern-patient",
+        admin: "/modern-admin"
       };
       
       const targetDashboard = roleDashboards[userData.role] || "/";

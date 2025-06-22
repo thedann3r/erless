@@ -87,6 +87,9 @@ function Router() {
       <ProtectedRoute path="/modern-patient" component={ModernPatientDashboard} />
       <ProtectedRoute path="/modern-admin" component={ModernAdminDashboard} />
       <ProtectedRoute path="/modern-front-office" component={ModernFrontOfficeDashboard} />
+      
+      {/* Legacy redirects */}
+      <ProtectedRoute path="/pharmacy-dashboard" component={ModernPharmacyDashboard} />
       <Route component={NotFound} />
     </Switch>
   );
