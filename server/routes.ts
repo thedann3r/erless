@@ -1458,6 +1458,176 @@ app.post('/api/debtors/submit-batch', requireAuth, async (req, res) => {
   }
 });
 
+app.get('/api/debtors/verification-audit', requireAuth, async (req, res) => {
+  try {
+    // Check if user has premium access
+    const userRole = req.user.role;
+    if (userRole !== 'debtors') {
+      return res.status(403).json({ error: 'Access denied. Debtors role required.' });
+    }
+
+    const { department, status, dateFrom, dateTo, search } = req.query;
+    
+    // Mock audit data with realistic Kenyan names and healthcare scenarios
+    const auditData = [
+      {
+        id: "AUD-001",
+        patientName: "John Wanjiku",
+        service: "Consultation & Lab Tests",
+        billedBy: "Dr. Sarah Mwangi",
+        billedAt: "2025-01-22 10:30:00",
+        verifiedBy: "John Wanjiku",
+        fingerprintStatus: "verified",
+        timestamp: "2025-01-22 10:28:00",
+        department: "Outpatient",
+        amount: 3500,
+        serviceCode: "CONS-LAB-001",
+        verificationHash: "fp_hash_abc123",
+        timeDifference: -2
+      },
+      {
+        id: "AUD-002",
+        patientName: "Mary Njeri",
+        service: "Medication Dispensing",
+        billedBy: "Pharmacist Jane Kiprotich",
+        billedAt: "2025-01-22 11:15:00",
+        verifiedBy: "Mary Njeri",
+        fingerprintStatus: "time_mismatch",
+        timestamp: "2025-01-22 11:45:00",
+        department: "Pharmacy",
+        amount: 1200,
+        serviceCode: "PHARM-DISP-002",
+        verificationHash: "fp_hash_def456",
+        timeDifference: 30
+      },
+      {
+        id: "AUD-003",
+        patientName: "David Ochieng",
+        service: "Physiotherapy Session",
+        billedBy: "Dr. Anne Mutiso",
+        billedAt: "2025-01-22 09:45:00",
+        verifiedBy: "",
+        fingerprintStatus: "missing",
+        timestamp: "",
+        department: "Physiotherapy",
+        amount: 2500,
+        serviceCode: "PHYSIO-001",
+        timeDifference: 0
+      },
+      {
+        id: "AUD-004",
+        patientName: "Grace Waweru",
+        service: "Laboratory Tests",
+        billedBy: "Lab Tech Samuel Kiptoo",
+        billedAt: "2025-01-22 12:00:00",
+        verifiedBy: "",
+        fingerprintStatus: "pending",
+        timestamp: "",
+        department: "Laboratory",
+        amount: 1800,
+        serviceCode: "LAB-TESTS-003",
+        timeDifference: 0
+      },
+      {
+        id: "AUD-005",
+        patientName: "Peter Kamau",
+        service: "X-Ray Imaging",
+        billedBy: "Radiologist Dr. Elizabeth Mutua",
+        billedAt: "2025-01-22 14:20:00",
+        verifiedBy: "Peter Kamau",
+        fingerprintStatus: "verified",
+        timestamp: "2025-01-22 14:18:00",
+        department: "Radiology",
+        amount: 4200,
+        serviceCode: "RAD-XRAY-001",
+        verificationHash: "fp_hash_ghi789",
+        timeDifference: -2
+      },
+      {
+        id: "AUD-006",
+        patientName: "Agnes Wanjiru",
+        service: "Dental Checkup",
+        billedBy: "Dr. Michael Otieno",
+        billedAt: "2025-01-22 16:00:00",
+        verifiedBy: "",
+        fingerprintStatus: "missing",
+        timestamp: "",
+        department: "Dental",
+        amount: 2800,
+        serviceCode: "DENT-CHECK-001",
+        timeDifference: 0
+      }
+    ];
+
+    // Apply filters
+    let filteredData = auditData;
+    
+    if (department && department !== 'all') {
+      filteredData = filteredData.filter(entry => entry.department === department);
+    }
+    
+    if (status && status !== 'all') {
+      filteredData = filteredData.filter(entry => entry.fingerprintStatus === status);
+    }
+    
+    if (search) {
+      const searchLower = search.toString().toLowerCase();
+      filteredData = filteredData.filter(entry => 
+        entry.patientName.toLowerCase().includes(searchLower) ||
+        entry.service.toLowerCase().includes(searchLower) ||
+        entry.billedBy.toLowerCase().includes(searchLower)
+      );
+    }
+    
+    if (dateFrom) {
+      filteredData = filteredData.filter(entry => 
+        new Date(entry.billedAt) >= new Date(dateFrom.toString())
+      );
+    }
+    
+    if (dateTo) {
+      filteredData = filteredData.filter(entry => 
+        new Date(entry.billedAt) <= new Date(dateTo.toString())
+      );
+    }
+
+    res.json({
+      data: filteredData,
+      summary: {
+        total: auditData.length,
+        verified: auditData.filter(e => e.fingerprintStatus === 'verified').length,
+        missing: auditData.filter(e => e.fingerprintStatus === 'missing').length,
+        pending: auditData.filter(e => e.fingerprintStatus === 'pending').length,
+        timeMismatches: auditData.filter(e => e.fingerprintStatus === 'time_mismatch').length
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching verification audit data:', error);
+    res.status(500).json({ error: 'Failed to fetch verification audit data' });
+  }
+});
+
+app.get('/api/debtors/user-premium-status', requireAuth, async (req, res) => {
+  try {
+    // Check user's premium status - in production this would query actual user data
+    const isPremium = req.user.role === 'debtors' && req.user.premiumAccess !== false;
+    
+    res.json({
+      isPremium,
+      role: req.user.role,
+      features: {
+        verificationAudit: isPremium,
+        voidClaimsAnalysis: isPremium,
+        advancedReporting: isPremium,
+        bulkExport: isPremium
+      }
+    });
+  } catch (error) {
+    console.error('Error checking premium status:', error);
+    res.status(500).json({ error: 'Failed to check premium status' });
+  }
+});
+
   const httpServer = createServer(app);
   return httpServer;
 }

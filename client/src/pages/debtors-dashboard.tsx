@@ -22,9 +22,11 @@ import {
   Search
 } from "lucide-react";
 import { BiometricClaimVerification } from "@/components/biometric-claim-verification";
+import { VerificationAuditLog } from "@/components/verification-audit-log";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 
 const sidebarItems = [
   { path: "/debtors-dashboard", icon: <FileText className="h-5 w-5" />, label: "Overview" },
@@ -123,6 +125,10 @@ export default function DebtorsDashboard() {
   const [selectedInsurer, setSelectedInsurer] = useState("all");
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  // Check if user has premium access (mock implementation)
+  const isPremiumUser = user?.role === 'debtors' && user?.premiumAccess !== false;
 
   // Fetch claims batches data
   const { data: claimsBatches = mockClaimBatches } = useQuery({
@@ -289,11 +295,12 @@ export default function DebtorsDashboard() {
 
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="batches">Claim Batches</TabsTrigger>
             <TabsTrigger value="diagnosis">Pending Diagnosis</TabsTrigger>
             <TabsTrigger value="void">Void Claims</TabsTrigger>
+            <TabsTrigger value="audit">Verification Audit</TabsTrigger>
             <TabsTrigger value="export">Export & Submit</TabsTrigger>
           </TabsList>
 
@@ -507,6 +514,10 @@ export default function DebtorsDashboard() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="audit" className="space-y-6">
+            <VerificationAuditLog isPremiumUser={isPremiumUser} />
           </TabsContent>
 
           <TabsContent value="export" className="space-y-6">
