@@ -164,33 +164,55 @@ export function DashboardToggle({ currentPath, showRecentDashboards = true }: Da
   };
 
   const handleDashboardSwitch = (path: string) => {
-    addToRecent(path);
+    addToHistory(path);
     navigate(path);
   };
 
   const getRecentDashboards = () => {
-    return dashboardOptions.filter(d => 
-      recentDashboards.includes(d.path) && d.path !== (currentPath || location)
-    ).sort((a, b) => 
-      recentDashboards.indexOf(a.path) - recentDashboards.indexOf(b.path)
-    );
+    return dashboardHistory
+      .filter(h => h.path !== (currentPath || location))
+      .map(h => dashboardOptions.find(d => d.path === h.path))
+      .filter(Boolean)
+      .slice(0, 3);
+  };
+
+  const getMostVisited = () => {
+    return dashboardHistory
+      .filter(h => h.path !== (currentPath || location))
+      .sort((a, b) => b.visitCount - a.visitCount)
+      .slice(0, 2)
+      .map(h => dashboardOptions.find(d => d.path === h.path))
+      .filter(Boolean);
+  };
+
+  const formatLastVisit = (timestamp: number) => {
+    const now = Date.now();
+    const diff = now - timestamp;
+    const minutes = Math.floor(diff / (1000 * 60));
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    
+    if (minutes < 1) return 'Just now';
+    if (minutes < 60) return `${minutes}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    return `${days}d ago`;
   };
 
   return (
     <div className="flex items-center space-x-2">
       {/* Quick Back Button */}
-      {recentDashboards.length > 0 && (
+      {getRecentDashboards().length > 0 && (
         <Button
           variant="outline"
           size="sm"
           onClick={() => {
-            const lastDashboard = recentDashboards[0];
-            if (lastDashboard && lastDashboard !== (currentPath || location)) {
-              handleDashboardSwitch(lastDashboard);
+            const lastDashboard = getRecentDashboards()[0];
+            if (lastDashboard && lastDashboard.path !== (currentPath || location)) {
+              handleDashboardSwitch(lastDashboard.path);
             }
           }}
           className="h-8 px-2"
-          title="Go back to previous dashboard"
+          title={`Go back to ${getRecentDashboards()[0]?.label || 'previous dashboard'}`}
         >
           <ArrowLeft className="h-3 w-3" />
         </Button>
@@ -199,28 +221,33 @@ export function DashboardToggle({ currentPath, showRecentDashboards = true }: Da
       {/* Dashboard Selector */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="h-8 gap-2 min-w-[200px] justify-between">
-            <div className="flex items-center space-x-2">
+          <Button variant="outline" className="h-8 gap-2 min-w-[180px] sm:min-w-[200px] justify-between">
+            <div className="flex items-center space-x-2 min-w-0">
               {currentDashboard ? (
                 <>
-                  <currentDashboard.icon className="h-4 w-4" />
-                  <span className="font-medium">{currentDashboard.label}</span>
+                  <currentDashboard.icon className="h-4 w-4 flex-shrink-0" />
+                  <span className="font-medium truncate">{currentDashboard.label}</span>
                 </>
               ) : (
                 <>
-                  <Grid3X3 className="h-4 w-4" />
-                  <span>Switch Dashboard</span>
+                  <Grid3X3 className="h-4 w-4 flex-shrink-0" />
+                  <span className="truncate">Switch Dashboard</span>
                 </>
               )}
             </div>
-            <ChevronDown className="h-3 w-3" />
+            <ChevronDown className="h-3 w-3 flex-shrink-0" />
           </Button>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent className="w-80" align="start">
-          <DropdownMenuLabel className="flex items-center space-x-2">
-            <Grid3X3 className="h-4 w-4" />
-            <span>Erlessed Dashboards</span>
+        <DropdownMenuContent className="w-80 sm:w-96" align="start">
+          <DropdownMenuLabel className="flex items-center justify-between px-3 py-2">
+            <div className="flex items-center space-x-2">
+              <Grid3X3 className="h-4 w-4" />
+              <span>Erlessed Dashboards</span>
+            </div>
+            <Badge variant="outline" className="text-xs">
+              {dashboardHistory.length} visited
+            </Badge>
           </DropdownMenuLabel>
           
           {/* Recent Dashboards */}
@@ -231,24 +258,75 @@ export function DashboardToggle({ currentPath, showRecentDashboards = true }: Da
                 <Clock className="h-3 w-3" />
                 <span>Recent</span>
               </DropdownMenuLabel>
-              {getRecentDashboards().map((dashboard) => (
-                <DropdownMenuItem
-                  key={dashboard.path}
-                  onClick={() => handleDashboardSwitch(dashboard.path)}
-                  className="cursor-pointer"
-                >
-                  <div className="flex items-center space-x-3 w-full">
-                    <dashboard.icon className="h-4 w-4 text-muted-foreground" />
-                    <div className="flex-1">
-                      <div className="font-medium">{dashboard.label}</div>
-                      <div className="text-xs text-muted-foreground">{dashboard.description}</div>
+              {getRecentDashboards().map((dashboard) => {
+                const historyItem = dashboardHistory.find(h => h.path === dashboard.path);
+                return (
+                  <DropdownMenuItem
+                    key={dashboard.path}
+                    onClick={() => handleDashboardSwitch(dashboard.path)}
+                    className="cursor-pointer py-3"
+                  >
+                    <div className="flex items-center space-x-3 w-full">
+                      <dashboard.icon className="h-4 w-4 text-muted-foreground" />
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium truncate">{dashboard.label}</div>
+                        <div className="text-xs text-muted-foreground flex items-center space-x-2">
+                          <span className="truncate">{dashboard.description}</span>
+                          {historyItem && (
+                            <span className="text-xs bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded">
+                              {formatLastVisit(historyItem.timestamp)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end space-y-1">
+                        <Badge variant="outline" className="text-xs">
+                          {dashboard.role}
+                        </Badge>
+                        {historyItem && historyItem.visitCount > 1 && (
+                          <span className="text-xs text-muted-foreground">
+                            {historyItem.visitCount} visits
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <Badge variant="outline" className="text-xs">
-                      {dashboard.role}
-                    </Badge>
-                  </div>
-                </DropdownMenuItem>
-              ))}
+                  </DropdownMenuItem>
+                );
+              })}
+            </>
+          )}
+
+          {/* Most Visited Dashboards */}
+          {getMostVisited().length > 0 && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel className="flex items-center space-x-2 text-xs text-muted-foreground">
+                <User className="h-3 w-3" />
+                <span>Most Visited</span>
+              </DropdownMenuLabel>
+              {getMostVisited().map((dashboard) => {
+                const historyItem = dashboardHistory.find(h => h.path === dashboard.path);
+                return (
+                  <DropdownMenuItem
+                    key={`most-visited-${dashboard.path}`}
+                    onClick={() => handleDashboardSwitch(dashboard.path)}
+                    className="cursor-pointer py-2"
+                  >
+                    <div className="flex items-center space-x-3 w-full">
+                      <dashboard.icon className="h-4 w-4 text-green-600" />
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium truncate">{dashboard.label}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {historyItem && `${historyItem.visitCount} visits`}
+                        </div>
+                      </div>
+                      <Badge variant="secondary" className="text-xs bg-green-50 text-green-700">
+                        Popular
+                      </Badge>
+                    </div>
+                  </DropdownMenuItem>
+                );
+              })}
             </>
           )}
 
