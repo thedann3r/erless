@@ -21,6 +21,10 @@ import {
   Filter,
   Search
 } from "lucide-react";
+import { BiometricClaimVerification } from "@/components/biometric-claim-verification";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 const sidebarItems = [
   { path: "/debtors-dashboard", icon: <FileText className="h-5 w-5" />, label: "Overview" },
@@ -117,6 +121,65 @@ export default function DebtorsDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedInsurer, setSelectedInsurer] = useState("all");
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Fetch claims batches data
+  const { data: claimsBatches = mockClaimBatches } = useQuery({
+    queryKey: ['/api/debtors/claims-batches'],
+    queryFn: () => apiRequest('/api/debtors/claims-batches')
+  });
+
+  // Fetch pending diagnosis data
+  const { data: pendingDiagnosis = mockPendingDiagnosis } = useQuery({
+    queryKey: ['/api/debtors/pending-diagnosis'],
+    queryFn: () => apiRequest('/api/debtors/pending-diagnosis')
+  });
+
+  // Send reminder mutation
+  const sendReminderMutation = useMutation({
+    mutationFn: (doctorData: any) => apiRequest('/api/debtors/send-reminder', {
+      method: 'POST',
+      body: JSON.stringify(doctorData),
+      headers: { 'Content-Type': 'application/json' }
+    }),
+    onSuccess: (data, variables) => {
+      toast({
+        title: "Reminder Sent",
+        description: `Notification sent to ${variables.doctorName}`,
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to send reminder",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Submit batch mutation
+  const submitBatchMutation = useMutation({
+    mutationFn: (batchData: any) => apiRequest('/api/debtors/submit-batch', {
+      method: 'POST',
+      body: JSON.stringify(batchData),
+      headers: { 'Content-Type': 'application/json' }
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/debtors/claims-batches'] });
+      toast({
+        title: "Batch Submitted",
+        description: "Claims batch has been successfully submitted to insurer",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Submission Failed",
+        description: "Failed to submit claims batch",
+        variant: "destructive"
+      });
+    }
+  });
 
   const getStatusBadge = (status: string, diagnosisStatus: string) => {
     if (diagnosisStatus === "missing") {
@@ -131,16 +194,36 @@ export default function DebtorsDashboard() {
     return <Badge variant="outline">Pending</Badge>;
   };
 
-  const totalClaims = mockClaimBatches.reduce((sum, batch) => sum + batch.claims.length, 0);
-  const readyClaims = mockClaimBatches.reduce((sum, batch) => 
+  const totalClaims = claimsBatches.reduce((sum, batch) => sum + batch.claims.length, 0);
+  const readyClaims = claimsBatches.reduce((sum, batch) => 
     sum + batch.claims.filter(c => c.status === "ready" && c.diagnosisStatus === "complete").length, 0
   );
-  const pendingDiagnosisClaims = mockClaimBatches.reduce((sum, batch) => 
+  const pendingDiagnosisClaims = claimsBatches.reduce((sum, batch) => 
     sum + batch.claims.filter(c => c.diagnosisStatus === "missing").length, 0
   );
-  const totalAmount = mockClaimBatches.reduce((sum, batch) => 
+  const totalAmount = claimsBatches.reduce((sum, batch) => 
     sum + batch.claims.reduce((claimSum, claim) => claimSum + claim.amount, 0), 0
   );
+
+  const handleSendReminder = (doctor: any) => {
+    sendReminderMutation.mutate({
+      doctorEmail: doctor.email,
+      doctorName: doctor.doctorName,
+      pendingCount: doctor.pendingCount
+    });
+  };
+
+  const handleBatchSubmission = (batchId: string, verificationMethod: string) => {
+    const batch = claimsBatches.find(b => b.id === batchId);
+    if (!batch) return;
+
+    submitBatchMutation.mutate({
+      batchId,
+      verificationMethod,
+      totalAmount: batch.claims.reduce((sum, claim) => sum + claim.amount, 0),
+      claimCount: batch.claims.length
+    });
+  };
 
   return (
     <SharedLayout sidebarItems={sidebarItems} title="Debtors Dashboard">
@@ -293,7 +376,7 @@ export default function DebtorsDashboard() {
             </div>
 
             <div className="space-y-4">
-              {mockClaimBatches.map((batch) => (
+              {claimsBatches.map((batch) => (
                 <Card key={batch.id}>
                   <CardHeader>
                     <div className="flex items-center justify-between">
@@ -358,7 +441,7 @@ export default function DebtorsDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockPendingDiagnosis.map((doctor, index) => (
+                  {pendingDiagnosis.map((doctor, index) => (
                     <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="flex items-center space-x-3">
                         <Users className="h-8 w-8 text-blue-600" />
@@ -372,9 +455,14 @@ export default function DebtorsDashboard() {
                       </div>
                       <div className="flex items-center space-x-2">
                         <Badge variant="destructive">{doctor.pendingCount} pending</Badge>
-                        <Button size="sm" variant="outline">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleSendReminder(doctor)}
+                          disabled={sendReminderMutation.isPending}
+                        >
                           <Mail className="mr-2 h-4 w-4" />
-                          Send Reminder
+                          {sendReminderMutation.isPending ? 'Sending...' : 'Send Reminder'}
                         </Button>
                       </div>
                     </div>
@@ -440,10 +528,18 @@ export default function DebtorsDashboard() {
                       <Download className="mr-2 h-4 w-4" />
                       Download Batch (Excel)
                     </Button>
-                    <Button className="w-full justify-start" variant="outline">
-                      <Send className="mr-2 h-4 w-4" />
-                      Mark as Sent
-                    </Button>
+                    {claimsBatches.length > 0 && (
+                      <BiometricClaimVerification
+                        batchId={claimsBatches[0].id}
+                        totalAmount={claimsBatches[0].claims.reduce((sum, claim) => sum + claim.amount, 0)}
+                        claimCount={claimsBatches[0].claims.length}
+                        onVerificationComplete={(verified) => {
+                          if (verified) {
+                            handleBatchSubmission(claimsBatches[0].id, 'biometric');
+                          }
+                        }}
+                      />
+                    )}
                   </div>
                 </CardContent>
               </Card>
