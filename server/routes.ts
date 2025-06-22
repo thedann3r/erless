@@ -1140,6 +1140,29 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // General chain of thought endpoint for any healthcare decision
+  app.post("/api/ai/chain-of-thought", async (req, res) => {
+    try {
+      const { prompt, context, temperature, maxTokens } = req.body;
+      
+      if (!prompt) {
+        return res.status(400).json({ message: "Prompt is required" });
+      }
+      
+      const chainOfThought = await deepSeekService.generateChainOfThought({
+        prompt,
+        context,
+        temperature,
+        maxTokens
+      });
+      
+      res.json(chainOfThought);
+    } catch (error) {
+      console.error('Chain of thought error:', error);
+      res.status(500).json({ message: "Chain of thought analysis failed" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
