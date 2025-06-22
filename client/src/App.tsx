@@ -42,6 +42,7 @@ import MobileFieldWorker from "@/pages/mobile-field-worker";
 import MobilePatientPortal from "@/pages/mobile-patient-portal";
 import EnhancedSignup from "@/pages/enhanced-signup";
 import DebtorsDashboard from "@/pages/debtors-dashboard";
+import DirectDebtorsLogin from "@/pages/direct-debtors-login";
 
 function Router() {
   return (
@@ -79,6 +80,7 @@ function Router() {
       <Route path="/modern-auth" component={ModernAuthPage} />
       <Route path="/signup" component={EnhancedSignup} />
       <Route path="/secure-auth" component={EnhancedAuthPage} />
+      <Route path="/direct-debtors-login" component={DirectDebtorsLogin} />
       
       {/* Modern Dashboard Routes */}
       <ProtectedRoute path="/modern-doctor" component={ModernDoctorDashboard} />
