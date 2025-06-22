@@ -18,7 +18,7 @@ import { TreatmentPlanDisplay } from "@/components/treatment-plan-display";
 import { 
   Stethoscope, Users, FileText, Pill, TestTube, Clock, User, 
   AlertTriangle, Heart, Thermometer, Activity, Search, Plus,
-  CheckCircle, Calendar, MapPin, Phone, Fingerprint
+  CheckCircle, Calendar, MapPin, Phone, Fingerprint, Brain, Target
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
@@ -78,6 +78,73 @@ export default function ModernDoctorDashboard() {
   const [showDifferentialDiagnosis, setShowDifferentialDiagnosis] = useState(false);
   const [differentialAnalysis, setDifferentialAnalysis] = useState<any>(null);
   const [consultationCompleted, setConsultationCompleted] = useState(false);
+
+  const handleBiometricVerification = (patient: any) => {
+    setVerifiedPatient(patient);
+    setShowBiometricModal(false);
+    toast({
+      title: "Patient Verified",
+      description: `${patient.firstName} ${patient.lastName} verified successfully`,
+    });
+  };
+
+  const generateTreatmentPlan = async (patientData: any, diagnosis: string) => {
+    try {
+      const response = await apiRequest('POST', '/api/ai/treatment-plan', {
+        diagnosis,
+        patientAge: calculateAge(patientData?.patient?.dateOfBirth) || 35,
+        patientWeight: 70,
+        patientGender: patientData?.patient?.gender?.toLowerCase() || 'female',
+        symptoms: ['fatigue', 'headache'],
+        allergies: [],
+        currentMedications: [],
+        medicalHistory: [],
+        severity: 'moderate'
+      });
+      
+      setGeneratedTreatmentPlan(response);
+      setShowTreatmentPlan(true);
+    } catch (error) {
+      toast({
+        title: "Treatment Plan Error",
+        description: "Failed to generate treatment plan",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const analyzeDifferentialDiagnosis = async (symptoms: string[], patientAge: number, patientGender: string) => {
+    try {
+      const response = await apiRequest('POST', '/api/ai/differential-diagnosis', {
+        symptoms,
+        patientAge,
+        patientGender: patientGender.toLowerCase(),
+        duration: '3 days',
+        additionalInfo: 'Patient reports gradual onset'
+      });
+      
+      setDifferentialAnalysis(response);
+      setShowDifferentialDiagnosis(true);
+    } catch (error) {
+      toast({
+        title: "Analysis Error",
+        description: "Failed to analyze differential diagnosis",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const calculateAge = (dateOfBirth: string): number => {
+    if (!dateOfBirth) return 35;
+    const today = new Date();
+    const birth = new Date(dateOfBirth);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
+  };
 
   // Mock data - replace with actual API calls
   const queuePatients: QueuePatient[] = [
@@ -579,15 +646,35 @@ export default function ModernDoctorDashboard() {
                           </div>
                         </div>
 
-                        <div className="flex space-x-2 pt-4">
+                        <div className="grid grid-cols-2 gap-2 pt-4">
                           <Button 
-                            className="flex-1"
-                            onClick={completeConsultation}
+                            onClick={() => setShowBiometricModal(true)}
+                            variant="outline" 
+                            className="h-10"
+                          >
+                            <Fingerprint className="h-4 w-4 mr-2" />
+                            Verify Patient
+                          </Button>
+                          <Button 
+                            onClick={() => generateTreatmentPlan(selectedPatient, 'Hypertension')}
+                            className="bg-purple-600 hover:bg-purple-700 text-white h-10"
+                            disabled={!selectedPatient}
+                          >
+                            <Brain className="h-4 w-4 mr-2" />
+                            Treatment Plan
+                          </Button>
+                          <Button 
+                            onClick={() => analyzeDifferentialDiagnosis(['headache', 'fatigue', 'dizziness'], calculateAge(selectedPatient?.patient?.dateOfBirth) || 35, selectedPatient?.patient?.gender || 'female')}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white h-10"
+                            disabled={!selectedPatient}
+                          >
+                            <Activity className="h-4 w-4 mr-2" />
+                            Differential
+                          </Button>
+                          <Button 
+                            className="h-10"
                           >
                             Complete Consultation
-                          </Button>
-                          <Button variant="outline">
-                            Save Draft
                           </Button>
                         </div>
                       </div>
@@ -624,6 +711,132 @@ export default function ModernDoctorDashboard() {
             onClose={() => setShowClaimGenerator(false)}
             patientData={verifiedPatient}
           />
+        )}
+
+        {/* Treatment Plan Modal */}
+        {showTreatmentPlan && generatedTreatmentPlan && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900">Treatment Plan</h2>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowTreatmentPlan(false)}
+                    className="rounded-xl"
+                  >
+                    Close
+                  </Button>
+                </div>
+                <TreatmentPlanDisplay
+                  treatmentPlan={generatedTreatmentPlan}
+                  patientName={selectedPatient ? `${selectedPatient.patient.firstName} ${selectedPatient.patient.lastName}` : "Patient"}
+                  diagnosis="Hypertension"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Differential Diagnosis Modal */}
+        {showDifferentialDiagnosis && differentialAnalysis && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900">Differential Diagnosis Analysis</h2>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowDifferentialDiagnosis(false)}
+                    className="rounded-xl"
+                  >
+                    Close
+                  </Button>
+                </div>
+                <div className="space-y-6">
+                  {/* Primary Diagnosis */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center space-x-2">
+                        <Target className="h-5 w-5 text-green-600" />
+                        <span>Primary Diagnosis</span>
+                        <Badge className="bg-green-100 text-green-800">
+                          {differentialAnalysis.primaryDiagnosis?.probability || 0}% probability
+                        </Badge>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <h3 className="font-semibold text-lg mb-2">
+                        {differentialAnalysis.primaryDiagnosis?.condition || 'Analysis pending'}
+                      </h3>
+                      <p className="text-gray-700 mb-4">
+                        {differentialAnalysis.primaryDiagnosis?.reasoning || 'Clinical assessment needed'}
+                      </p>
+                      {differentialAnalysis.primaryDiagnosis?.supportingSymptoms?.length > 0 && (
+                        <div>
+                          <h4 className="font-medium mb-2">Supporting Symptoms:</h4>
+                          <ul className="list-disc list-inside space-y-1">
+                            {differentialAnalysis.primaryDiagnosis.supportingSymptoms.map((symptom: string, index: number) => (
+                              <li key={index} className="text-sm text-gray-600">{symptom}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Recommended Tests */}
+                  {differentialAnalysis.recommendedTests?.length > 0 && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center space-x-2">
+                          <FileText className="h-5 w-5 text-blue-600" />
+                          <span>Recommended Tests</span>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          {differentialAnalysis.recommendedTests.map((test: any, index: number) => (
+                            <div key={index} className="p-3 border rounded-lg">
+                              <div className="flex justify-between items-start">
+                                <span className="font-medium">{test.test}</span>
+                                <Badge variant={test.urgency === 'emergent' ? 'destructive' : test.urgency === 'urgent' ? 'default' : 'secondary'}>
+                                  {test.urgency}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-gray-600 mt-1">{test.reason}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Red Flags */}
+                  {differentialAnalysis.redFlags?.length > 0 && (
+                    <Card className="border-red-200 bg-red-50">
+                      <CardHeader>
+                        <CardTitle className="flex items-center space-x-2 text-red-800">
+                          <AlertTriangle className="h-5 w-5" />
+                          <span>Red Flag Symptoms</span>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="space-y-2">
+                          {differentialAnalysis.redFlags.map((flag: string, index: number) => (
+                            <li key={index} className="flex items-start space-x-2">
+                              <AlertTriangle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
+                              <span className="text-sm text-red-700">{flag}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </SharedLayout>
