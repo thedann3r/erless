@@ -79,14 +79,7 @@ export default function ModernDoctorDashboard() {
   const [differentialAnalysis, setDifferentialAnalysis] = useState<any>(null);
   const [consultationCompleted, setConsultationCompleted] = useState(false);
 
-  const handleBiometricVerification = (patient: any) => {
-    setVerifiedPatient(patient);
-    setShowBiometricModal(false);
-    toast({
-      title: "Patient Verified",
-      description: `${patient.firstName} ${patient.lastName} verified successfully`,
-    });
-  };
+  // Remove duplicate - using the one below
 
   const generateTreatmentPlan = async (patientData: any, diagnosis: string) => {
     try {
@@ -568,6 +561,20 @@ export default function ModernDoctorDashboard() {
                     </TabsContent>
 
                     <TabsContent value="treatment" className="space-y-4 mt-6">
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label>Treatment Plan</Label>
+                            <Textarea placeholder="Document treatment recommendations..." rows={3} />
+                          </div>
+                          <div>
+                            <Label>Prescriptions</Label>
+                            <Textarea placeholder="Medications prescribed..." rows={3} />
+                          </div>
+                        </div>
+                      </div>
+                    </TabsContent>
+                    </TabsContent>
                       <div className="space-y-4">
                         <div>
                           <Label>Treatment Plan</Label>
