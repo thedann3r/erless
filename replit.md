@@ -298,6 +298,17 @@ Preferred communication style: Simple, everyday language.
 - Enhanced SharedLayout header to include dashboard navigation controls with role-based color coding
 - Added dashboard descriptions and role badges for better user orientation and context switching
 
+**June 22, 2025 - Comprehensive Debtors Dashboard Implementation:**
+- Created dedicated Debtors Dashboard for hospital accounts department to manage medical insurance claims
+- Implemented claim batch tracking with insurer-specific grouping (SHA, CIC, AAR) and submission status monitoring
+- Added pending diagnosis reminders panel with doctor notification system for incomplete claims
+- Integrated biometric verification system for secure claim batch submissions with fingerprint and SMS OTP options
+- Built void claims analysis (premium feature) with categorization by error type and reconciliation tracking
+- Added comprehensive KPI tracking: total claims, clean claims percentage, pending diagnosis count, expected reimbursements
+- Implemented role-based access controls for debtor users with care provider auto-mapping via email domain
+- Created export and submission functionality with PDF/Excel report generation and insurer feedback reconciliation
+- Added comprehensive API endpoints for claims batches, pending diagnosis tracking, reminder notifications, and secure batch submissions
+
 ## Changelog
 
 - June 18, 2025. Initial setup

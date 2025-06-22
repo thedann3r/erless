@@ -15,6 +15,14 @@ export function registerRoutes(app: Express): Server {
   // Setup authentication routes
   setupAuth(app);
 
+  // Authentication middleware
+  const requireAuth = (req: any, res: any, next: any) => {
+    if (!req.isAuthenticated()) {
+      return res.sendStatus(401);
+    }
+    next();
+  };
+
   // Logout route
   app.post("/api/logout", (req, res) => {
     req.logout((err) => {
@@ -1319,6 +1327,136 @@ export function registerRoutes(app: Express): Server {
       res.status(500).json({ message: "Failed to generate patient education" });
     }
   });
+
+// Debtors dashboard routes
+app.get('/api/debtors/claims-batches', requireAuth, async (req, res) => {
+  try {
+    const batchesData = [
+      {
+        id: "SHA-001",
+        insurer: "SHA (Social Health Authority)",
+        scheme: "Universal Health Coverage",
+        submissionDate: null,
+        status: "pending",
+        claims: [
+          {
+            id: "CLM-001",
+            patientName: "John Wanjiku",
+            services: "Consultation, Lab Tests",
+            date: "2025-01-15",
+            amount: 3500,
+            diagnosisStatus: "missing",
+            doctorName: "Dr. Sarah Mwangi",
+            status: "pending"
+          },
+          {
+            id: "CLM-002", 
+            patientName: "Mary Njeri",
+            services: "Surgery, Medication",
+            date: "2025-01-14",
+            amount: 85000,
+            diagnosisStatus: "complete",
+            doctorName: "Dr. Peter Kimani",
+            status: "ready"
+          }
+        ]
+      },
+      {
+        id: "CIC-001",
+        insurer: "CIC Insurance",
+        scheme: "Individual Medical Cover",
+        submissionDate: null,
+        status: "pending",
+        claims: [
+          {
+            id: "CLM-003",
+            patientName: "David Ochieng",
+            services: "Physiotherapy",
+            date: "2025-01-13",
+            amount: 4500,
+            diagnosisStatus: "complete",
+            doctorName: "Dr. Anne Mutiso",
+            status: "preauth_missing"
+          }
+        ]
+      }
+    ];
+    
+    res.json(batchesData);
+  } catch (error) {
+    console.error('Error fetching claims batches:', error);
+    res.status(500).json({ error: 'Failed to fetch claims batches' });
+  }
+});
+
+app.get('/api/debtors/pending-diagnosis', requireAuth, async (req, res) => {
+  try {
+    const pendingData = [
+      {
+        doctorName: "Dr. Sarah Mwangi",
+        pendingCount: 3,
+        email: "sarah.mwangi@knh.go.ke",
+        oldestClaim: "2025-01-10",
+        department: "Internal Medicine"
+      },
+      {
+        doctorName: "Dr. James Kiprotich",
+        pendingCount: 1,
+        email: "james.k@aku.edu",
+        oldestClaim: "2025-01-12",
+        department: "Cardiology"
+      }
+    ];
+    
+    res.json(pendingData);
+  } catch (error) {
+    console.error('Error fetching pending diagnosis:', error);
+    res.status(500).json({ error: 'Failed to fetch pending diagnosis data' });
+  }
+});
+
+app.post('/api/debtors/send-reminder', requireAuth, async (req, res) => {
+  try {
+    const { doctorEmail, doctorName, pendingCount } = req.body;
+    
+    console.log(`Debtors Officer ${req.user.username} sending reminder to ${doctorName} (${doctorEmail}) for ${pendingCount} pending claims`);
+    
+    res.json({ 
+      success: true, 
+      message: `Reminder sent to ${doctorName}`,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error sending reminder:', error);
+    res.status(500).json({ error: 'Failed to send reminder' });
+  }
+});
+
+app.post('/api/debtors/submit-batch', requireAuth, async (req, res) => {
+  try {
+    const { batchId, verificationMethod, verificationData } = req.body;
+    
+    console.log(`Debtors Officer ${req.user.username} submitting batch ${batchId} with ${verificationMethod} verification`);
+    
+    const submissionRecord = {
+      batchId,
+      userId: req.user.id,
+      timestamp: new Date().toISOString(),
+      verificationMethod,
+      status: 'submitted'
+    };
+    
+    res.json({ 
+      success: true, 
+      submissionId: `SUB-${Date.now()}`,
+      message: 'Batch submitted successfully',
+      submissionRecord
+    });
+  } catch (error) {
+    console.error('Error submitting batch:', error);
+    res.status(500).json({ error: 'Failed to submit batch' });
+  }
+});
 
   const httpServer = createServer(app);
   return httpServer;
