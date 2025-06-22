@@ -33,9 +33,11 @@ export function setupAuth(app: Express) {
   
   const sessionSettings: session.SessionOptions = {
     secret: sessionSecret,
-    resave: false,
+    resave: true,
     saveUninitialized: false,
     store: storage.sessionStore,
+    name: 'erlessed.sid',
+    rolling: true,
     cookie: {
       secure: false, // Set to true in production with HTTPS
       httpOnly: true,
@@ -94,6 +96,11 @@ export function setupAuth(app: Express) {
       console.log('Deserializing user ID:', id, typeof id);
       const userId = typeof id === 'string' ? parseInt(id, 10) : id;
       console.log('Parsed user ID:', userId);
+      
+      if (!userId || isNaN(userId)) {
+        console.log('Invalid user ID during deserialization:', id);
+        return done(null, false);
+      }
       
       const user = await storage.getUser(userId);
       if (!user) {
@@ -178,9 +185,11 @@ export function setupAuth(app: Express) {
   });
 
   app.get("/api/user", (req, res) => {
-    console.log("User request - Session:", req.session.passport);
+    console.log("User request - Session ID:", req.sessionID);
+    console.log("User request - Session passport:", req.session?.passport);
     console.log("User request - isAuthenticated:", req.isAuthenticated());
     console.log("User request - user:", req.user?.username);
+    console.log("User request - Session store:", !!req.session);
     
     if (!req.isAuthenticated() || !req.user) {
       console.log("User not authenticated");
