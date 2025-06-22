@@ -233,7 +233,7 @@ export default function ConsultationForm() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Consultation Form</h1>
-          <p className="text-gray-600 mt-1">Complete clinical documentation with AI-powered diagnosis support</p>
+          <p className="text-gray-600 mt-1">Complete clinical documentation diagnosis support</p>
         </div>
         <div className="flex items-center space-x-3">
           <Badge variant="outline" className="text-sm">
@@ -246,7 +246,6 @@ export default function ConsultationForm() {
           </Button>
         </div>
       </div>
-
       {/* Patient Header */}
       <Card className="border-blue-200 bg-blue-50">
         <CardContent className="p-4">
@@ -259,7 +258,6 @@ export default function ConsultationForm() {
           </div>
         </CardContent>
       </Card>
-
       <Tabs defaultValue="history" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="history">History & Complaint</TabsTrigger>
