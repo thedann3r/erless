@@ -574,7 +574,8 @@ export default function ModernDoctorDashboard() {
                         </div>
                       </div>
                     </TabsContent>
-                    </TabsContent>
+
+                    <TabsContent value="treatment" className="space-y-4 mt-6">
                       <div className="space-y-4">
                         <div>
                           <Label>Treatment Plan</Label>
