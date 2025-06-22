@@ -8,6 +8,7 @@ import { z } from "zod";
 import { insertClaimSchema, insertPreauthorizationSchema, insertPrescriptionSchema } from "@shared/schema";
 import { analyzePreauthorization, analyzeFraudPatterns, validatePrescription, suggestClaimCodes } from "./openai";
 import { deepSeekService } from "./deepseek";
+import { mistralHealthcareService } from "./mistral";
 import { registrationService } from "./registration-service";
 
 export function registerRoutes(app: Express): Server {
@@ -1206,6 +1207,116 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error('Chain of thought error:', error);
       res.status(500).json({ message: "Chain of thought analysis failed" });
+    }
+  });
+
+  // Mistral healthcare treatment endpoints
+  app.post("/api/ai/treatment-plan", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const treatmentRequest = req.body;
+      
+      if (!treatmentRequest.diagnosis || !treatmentRequest.patientAge) {
+        return res.status(400).json({ message: "Diagnosis and patient age are required" });
+      }
+      
+      const treatmentPlan = await mistralHealthcareService.generateTreatmentPlan(treatmentRequest);
+      
+      res.json({
+        ...treatmentPlan,
+        generatedBy: 'mistral-7b',
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Treatment plan generation error:', error);
+      res.status(500).json({ message: "Failed to generate treatment plan" });
+    }
+  });
+
+  app.post("/api/ai/differential-diagnosis", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const { symptoms, patientAge, patientGender, duration, additionalInfo } = req.body;
+      
+      if (!symptoms || !Array.isArray(symptoms) || symptoms.length === 0) {
+        return res.status(400).json({ message: "Symptoms array is required" });
+      }
+      
+      const diagnosis = await mistralHealthcareService.analyzeDifferentialDiagnosis(
+        symptoms,
+        patientAge,
+        patientGender,
+        duration,
+        additionalInfo
+      );
+      
+      res.json({
+        ...diagnosis,
+        generatedBy: 'mistral-7b',
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Differential diagnosis error:', error);
+      res.status(500).json({ message: "Failed to analyze differential diagnosis" });
+    }
+  });
+
+  app.post("/api/ai/drug-interactions", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const { medications, patientConditions, patientAge, kidneyFunction, liverFunction } = req.body;
+      
+      if (!medications || !Array.isArray(medications)) {
+        return res.status(400).json({ message: "Medications array is required" });
+      }
+      
+      const analysis = await mistralHealthcareService.analyzeComplexDrugInteractions(
+        medications,
+        patientConditions || [],
+        patientAge,
+        kidneyFunction,
+        liverFunction
+      );
+      
+      res.json({
+        ...analysis,
+        generatedBy: 'mistral-7b',
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Drug interaction analysis error:', error);
+      res.status(500).json({ message: "Failed to analyze drug interactions" });
+    }
+  });
+
+  app.post("/api/ai/patient-education", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const { diagnosis, treatmentPlan, patientAge, educationLevel = 'basic' } = req.body;
+      
+      if (!diagnosis) {
+        return res.status(400).json({ message: "Diagnosis is required" });
+      }
+      
+      const education = await mistralHealthcareService.generatePatientEducation(
+        diagnosis,
+        treatmentPlan || 'Standard care',
+        patientAge,
+        educationLevel
+      );
+      
+      res.json({
+        ...education,
+        generatedBy: 'mistral-7b',
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Patient education generation error:', error);
+      res.status(500).json({ message: "Failed to generate patient education" });
     }
   });
 
