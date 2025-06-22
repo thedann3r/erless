@@ -290,6 +290,14 @@ Preferred communication style: Simple, everyday language.
 - Created TreatmentPlanDisplay component for comprehensive treatment visualization with clinical reasoning, alternative treatments, and patient education
 - All AI-powered decisions now include transparency indicators and confidence scoring for clinical decision support
 
+**June 22, 2025 - Dashboard Navigation Enhancement:**
+- Implemented comprehensive DashboardToggle component for seamless navigation between role-based dashboards
+- Added recent dashboard tracking with localStorage persistence for quick access to previously used dashboards
+- Created responsive design with full dashboard selector for desktop and compact version for mobile
+- Integrated quick back button functionality to return to previous dashboard with one click
+- Enhanced SharedLayout header to include dashboard navigation controls with role-based color coding
+- Added dashboard descriptions and role badges for better user orientation and context switching
+
 ## Changelog
 
 - June 18, 2025. Initial setup
