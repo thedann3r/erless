@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Link, useLocation } from "wouter";
 import { LogOut, Clock, User, Settings } from "lucide-react";
+import { DashboardToggle } from "@/components/dashboard-toggle";
 
 interface SharedLayoutProps {
   children: React.ReactNode;
@@ -76,6 +77,8 @@ export function SharedLayout({ children, sidebarItems, title }: SharedLayoutProp
           </div>
 
           <div className="flex items-center space-x-4">
+            {/* Dashboard Toggle Menu */}
+            <DashboardToggle currentPath={location} />
             {/* Session Timer */}
             <div className="flex items-center space-x-2 text-sm text-muted-foreground">
               <Clock className="h-4 w-4" />
@@ -151,8 +154,8 @@ export function SharedLayout({ children, sidebarItems, title }: SharedLayoutProp
 
                 return (
                   <Link key={item.path} href={item.path}>
-                    <a
-                      className={`flex items-center space-x-3 rounded-2xl px-4 py-3 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground ${
+                    <div
+                      className={`flex items-center space-x-3 rounded-2xl px-4 py-3 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer ${
                         isActive(item.path)
                           ? 'bg-primary text-primary-foreground'
                           : 'text-muted-foreground hover:text-foreground'
@@ -165,7 +168,7 @@ export function SharedLayout({ children, sidebarItems, title }: SharedLayoutProp
                           {item.badge}
                         </Badge>
                       )}
-                    </a>
+                    </div>
                   </Link>
                 );
               })}

@@ -20,7 +20,10 @@ import {
   Settings,
   Clock,
   ArrowLeft,
-  Grid3X3
+  Grid3X3,
+  Calendar,
+  MapPin,
+  Smartphone
 } from "lucide-react";
 import { useLocation } from "wouter";
 
@@ -38,7 +41,7 @@ const dashboardOptions: DashboardOption[] = [
     path: "/modern-doctor",
     label: "Doctor Dashboard",
     icon: Stethoscope,
-    description: "Patient queue, consultations, AI diagnosis",
+    description: "Patient queue, consultations, diagnosis support",
     role: "Clinical",
     color: "bg-blue-100 text-blue-700 border-blue-200"
   },
@@ -78,11 +81,49 @@ const dashboardOptions: DashboardOption[] = [
     path: "/modern-admin",
     label: "Admin Dashboard",
     icon: Settings,
-    description: "System management, user control, AI configuration",
+    description: "System management, user control, configuration",
     role: "System",
     color: "bg-red-100 text-red-700 border-red-200"
+  },
+  {
+    path: "/modern-front-office",
+    label: "Front Office",
+    icon: Calendar,
+    description: "Patient registration, appointments, walk-ins",
+    role: "Reception",
+    color: "bg-indigo-100 text-indigo-700 border-indigo-200"
+  },
+  {
+    path: "/patient-queue",
+    label: "Patient Queue",
+    icon: Clock,
+    description: "Triage queue, wait times, priority management",
+    role: "Operations",
+    color: "bg-yellow-100 text-yellow-700 border-yellow-200"
+  },
+  {
+    path: "/mobile-field-worker",
+    label: "Field Worker",
+    icon: MapPin,
+    description: "Mobile visits, GPS navigation, field support",
+    role: "Mobile",
+    color: "bg-cyan-100 text-cyan-700 border-cyan-200"
+  },
+  {
+    path: "/mobile-patient-portal",
+    label: "Mobile Patient",
+    icon: Smartphone,
+    description: "Mobile self-service, health tracking",
+    role: "Mobile",
+    color: "bg-pink-100 text-pink-700 border-pink-200"
   }
 ];
+
+interface DashboardHistory {
+  path: string;
+  timestamp: number;
+  visitCount: number;
+}
 
 interface DashboardToggleProps {
   currentPath?: string;
@@ -91,17 +132,35 @@ interface DashboardToggleProps {
 
 export function DashboardToggle({ currentPath, showRecentDashboards = true }: DashboardToggleProps) {
   const [location, navigate] = useLocation();
-  const [recentDashboards, setRecentDashboards] = useState<string[]>(() => {
-    const saved = localStorage.getItem('erlessed-recent-dashboards');
+  const [dashboardHistory, setDashboardHistory] = useState<DashboardHistory[]>(() => {
+    const saved = localStorage.getItem('erlessed-dashboard-history');
     return saved ? JSON.parse(saved) : [];
   });
 
   const currentDashboard = dashboardOptions.find(d => d.path === (currentPath || location));
   
-  const addToRecent = (path: string) => {
-    const updated = [path, ...recentDashboards.filter(p => p !== path)].slice(0, 3);
-    setRecentDashboards(updated);
-    localStorage.setItem('erlessed-recent-dashboards', JSON.stringify(updated));
+  const addToHistory = (path: string) => {
+    const now = Date.now();
+    const existing = dashboardHistory.find(h => h.path === path);
+    
+    let updated: DashboardHistory[];
+    if (existing) {
+      updated = dashboardHistory.map(h => 
+        h.path === path 
+          ? { ...h, timestamp: now, visitCount: h.visitCount + 1 }
+          : h
+      );
+    } else {
+      updated = [...dashboardHistory, { path, timestamp: now, visitCount: 1 }];
+    }
+    
+    // Keep only last 5 unique dashboards, sorted by most recent
+    updated = updated
+      .sort((a, b) => b.timestamp - a.timestamp)
+      .slice(0, 5);
+    
+    setDashboardHistory(updated);
+    localStorage.setItem('erlessed-dashboard-history', JSON.stringify(updated));
   };
 
   const handleDashboardSwitch = (path: string) => {
