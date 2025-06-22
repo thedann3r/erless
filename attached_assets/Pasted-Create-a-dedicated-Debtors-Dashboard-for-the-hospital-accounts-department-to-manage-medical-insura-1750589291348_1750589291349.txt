@@ -1,0 +1,61 @@
+Create a dedicated "Debtors Dashboard" for the hospital accounts department to manage medical insurance claims. This dashboard should help clean, track, and prepare claims for submission to insurers.
+
+🧭 Layout Overview:
+- Header: "Debtors Dashboard" title, Erlessed logo, user avatar with logout.
+- Sidebar:
+  - Claim Batches
+  - Pending Diagnosis
+  - Void Claims
+  - Insurer Status Tracker
+  - Export & Submission
+  - Settings
+
+🎯 Main Functional Components:
+
+1. **Claim Batch Tracker**
+   - Display claims grouped by insurer, scheme, and submission status.
+   - Each claim should show: Patient name, services, date, amount, diagnosis status, doctor name.
+   - Columns with status chips: [Diagnosis Missing], [Preauth Missing], [Ready for Submission].
+
+2. **Diagnosis Reminders Panel**
+   - Show list of doctors who failed to enter diagnosis.
+   - Auto-generate reminder messages via in-app alerts or email (basic version lacks this).
+   - Button: “Send Reminder to Clinician”
+
+3. **Void Claims Viewer**
+   - (Premium Only): Auto-categorize and highlight voided/expired/unclaimed entries.
+   - Filters by cause: [Patient ID mismatch], [Incomplete notes], [Duplicate billing].
+
+4. **Submission Readiness Panel**
+   - Checkboxes and filters to build submission batches.
+   - Option to auto-generate summary reports (PDF/Excel).
+   - Buttons: “Generate Summary”, “Download Batch”, “Mark as Sent”
+
+5. **Insurer Claim Feedback Tracker**
+   - Upload or sync insurer response files (CSV/PDF).
+   - Reconciliation table showing: Submitted vs. Paid vs. Denied.
+   - Highlight discrepancies or flagged codes.
+
+📊 KPIs Section (Top Cards):
+- Total Claims (Current Month)
+- % Clean Claims Ready
+- # Claims Pending Diagnosis
+- % Void Claims (if premium)
+- Total Expected Reimbursements (KES)
+
+🔐 Access Controls:
+- Only users assigned role “debtor” can access.
+- If user is in basic plan:
+  - Disable filters
+  - Collapse premium widgets (show “Upgrade to unlock advanced view” message)
+
+🎨 Styling:
+- Use teal/white healthcare theme
+- Visual badges for statuses
+- Collapse claims into accordions to reduce clutter
+
+🧠 Notes:
+- All data pulled based on care provider auto-mapping (via email domain)
+- Claims linked to insurer-specific forms based on benefit type
+- Fingerprint or OTP used to confirm claim submissions
+

@@ -23,7 +23,8 @@ import {
   Grid3X3,
   Calendar,
   MapPin,
-  Smartphone
+  Smartphone,
+  FileText
 } from "lucide-react";
 import { useLocation } from "wouter";
 
@@ -116,6 +117,14 @@ const dashboardOptions: DashboardOption[] = [
     description: "Mobile self-service, health tracking",
     role: "Mobile",
     color: "bg-pink-100 text-pink-700 border-pink-200"
+  },
+  {
+    path: "/debtors-dashboard",
+    label: "Debtors Dashboard",
+    icon: FileText,
+    description: "Claims management, batch tracking, submissions",
+    role: "Finance",
+    color: "bg-amber-100 text-amber-700 border-amber-200"
   }
 ];
 
