@@ -57,29 +57,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return response.json();
     },
     onSuccess: (userData) => {
+      // Invalidate and refetch user data
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       queryClient.setQueryData(["/api/user"], userData);
       updateActivity();
       
-      // Redirect based on user role
-      const roleDashboards: Record<string, string> = {
-        doctor: "/modern-doctor",
-        pharmacy: "/modern-pharmacy", 
-        pharmacist: "/modern-pharmacy",
-        "care-manager": "/modern-care-manager",
-        insurer: "/modern-insurer",
-        patient: "/modern-patient",
-        admin: "/modern-admin",
-        debtors: "/debtors-dashboard"
-      };
-      
-      const targetDashboard = roleDashboards[userData.role] || "/";
-      setLocation(targetDashboard);
-      
-      toast({
-        title: "Login Successful",
-        description: `Welcome to your ${userData.role} dashboard!`,
-      });
+      // Small delay to ensure session is properly established
+      setTimeout(() => {
+        // Redirect based on user role
+        const roleDashboards: Record<string, string> = {
+          doctor: "/modern-doctor",
+          pharmacy: "/modern-pharmacy", 
+          pharmacist: "/modern-pharmacy",
+          "care-manager": "/modern-care-manager",
+          insurer: "/modern-insurer",
+          patient: "/modern-patient",
+          admin: "/modern-admin",
+          debtors: "/debtors-dashboard"
+        };
+        
+        const targetDashboard = roleDashboards[userData.role] || "/";
+        
+        // Force page reload for debtors to ensure proper authentication state
+        if (userData.role === 'debtors') {
+          window.location.href = targetDashboard;
+        } else {
+          setLocation(targetDashboard);
+        }
+        
+        toast({
+          title: "Login Successful",
+          description: `Welcome to your ${userData.role} dashboard!`,
+        });
+      }, 100);
     },
     onError: (error: Error) => {
       toast({

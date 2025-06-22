@@ -27,6 +27,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
+import { AuthChecker } from "@/components/auth-checker";
 
 const sidebarItems = [
   { path: "/debtors-dashboard", icon: <FileText className="h-5 w-5" />, label: "Overview" },
@@ -129,6 +130,24 @@ export default function DebtorsDashboard() {
 
   // Check if user has premium access (mock implementation)
   const isPremiumUser = user?.role === 'debtors' && user?.premiumAccess !== false;
+
+  // Show loading state while authentication is being verified
+  if (!user && queryClient.getQueryState(["/api/user"])?.status === "loading") {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Redirect to login if not authenticated
+  if (!user) {
+    window.location.href = "/direct-debtors-login";
+    return null;
+  }
 
   // Fetch claims batches data
   const { data: claimsBatches = mockClaimBatches } = useQuery({
@@ -595,7 +614,8 @@ export default function DebtorsDashboard() {
             </div>
           </TabsContent>
         </Tabs>
-      </div>
-    </SharedLayout>
+        </div>
+      </SharedLayout>
+    </AuthChecker>
   );
 }

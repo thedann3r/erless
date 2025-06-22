@@ -38,8 +38,8 @@ export default function DirectDebtorsLogin() {
         description: `Welcome to your ${userData.role} dashboard!`,
       });
 
-      // Direct redirect to debtors dashboard
-      setLocation("/debtors-dashboard");
+      // Force page reload to ensure authentication state is properly loaded
+      window.location.href = "/debtors-dashboard";
       
     } catch (error) {
       toast({
