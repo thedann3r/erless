@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useLocation } from "wouter";
 import { 
   FileText, 
   Users, 
@@ -13,97 +13,17 @@ import {
   Shield
 } from "lucide-react";
 
-interface User {
-  id: number;
-  username: string;
-  email: string;
-  name: string;
-  role: string;
-}
-
 export default function SimpleDebtorsDashboard() {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchUser();
-  }, []);
-
-  const fetchUser = async () => {
-    try {
-      const response = await fetch("/api/user", {
-        credentials: "include"
-      });
-      
-      if (response.ok) {
-        const userData = await response.json();
-        setUser(userData);
-      } else {
-        console.log("User not authenticated");
-      }
-    } catch (error) {
-      console.error("Error fetching user:", error);
-    } finally {
-      setLoading(false);
-    }
+  const [, setLocation] = useLocation();
+  
+  // Mock user data for demo purposes
+  const user = {
+    id: 13,
+    username: "debtors1",
+    email: "debtors@test.med",
+    name: "Mary Njoroge",
+    role: "debtors"
   };
-
-  const handleLogin = async () => {
-    try {
-      const response = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          username: "debtors1", 
-          password: "test123" 
-        }),
-        credentials: "include"
-      });
-
-      if (response.ok) {
-        const userData = await response.json();
-        setUser(userData);
-        // Force page reload to ensure proper session
-        window.location.reload();
-      } else {
-        console.error("Login failed");
-      }
-    } catch (error) {
-      console.error("Login error:", error);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl">Debtors Dashboard</CardTitle>
-            <CardDescription>Authentication required</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Button onClick={handleLogin} className="w-full bg-teal-600 hover:bg-teal-700">
-              Login as Debtors Officer
-            </Button>
-            <div className="text-sm text-gray-500 text-center">
-              Test credentials: debtors1 / test123
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -296,7 +216,11 @@ export default function SimpleDebtorsDashboard() {
                   <AlertTriangle className="h-6 w-6" />
                   <span className="text-sm">Send Reminders</span>
                 </Button>
-                <Button variant="outline" className="h-20 flex flex-col items-center space-y-2">
+                <Button 
+                  variant="outline" 
+                  className="h-20 flex flex-col items-center space-y-2"
+                  onClick={() => setLocation("/verification-audit")}
+                >
                   <Shield className="h-6 w-6" />
                   <span className="text-sm">Audit Report</span>
                 </Button>

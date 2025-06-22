@@ -321,6 +321,14 @@ Preferred communication style: Simple, everyday language.
 - Added CSV/PDF export functionality for audit reporting and compliance documentation
 - API endpoints for verification audit data with filtering, search, and premium status checking
 
+**June 22, 2025 - Authentication-Free Debtors Dashboard:**
+- Removed authentication requirements for debtors dashboard access
+- Created simplified dashboard accessible at /debtors-dashboard without login
+- Implemented standalone verification audit page at /verification-audit
+- Mock user data for demo purposes without session dependencies
+- Full functionality available: claim batches, KPI tracking, verification audit, quick actions
+- Navigation between dashboard and audit pages without authentication barriers
+
 ## Changelog
 
 - June 18, 2025. Initial setup

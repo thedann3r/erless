@@ -44,6 +44,7 @@ import EnhancedSignup from "@/pages/enhanced-signup";
 import DebtorsDashboard from "@/pages/debtors-dashboard";
 import DirectDebtorsLogin from "@/pages/direct-debtors-login";
 import SimpleDebtorsDashboard from "@/pages/simple-debtors-dashboard";
+import DebtorsVerificationAudit from "@/pages/debtors-verification-audit";
 
 function Router() {
   return (
@@ -91,8 +92,9 @@ function Router() {
       <ProtectedRoute path="/modern-patient" component={ModernPatientDashboard} />
       <ProtectedRoute path="/modern-admin" component={ModernAdminDashboard} />
       <ProtectedRoute path="/modern-front-office" component={ModernFrontOfficeDashboard} />
-      <ProtectedRoute path="/debtors-dashboard" component={DebtorsDashboard} />
+      <Route path="/debtors-dashboard" component={SimpleDebtorsDashboard} />
       <Route path="/simple-debtors-dashboard" component={SimpleDebtorsDashboard} />
+      <Route path="/verification-audit" component={DebtorsVerificationAudit} />
       
       {/* Legacy redirects */}
       <ProtectedRoute path="/pharmacy-dashboard" component={ModernPharmacyDashboard} />
