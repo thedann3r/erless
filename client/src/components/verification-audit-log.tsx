@@ -21,6 +21,8 @@ import {
   Calendar,
   Lock
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 interface VerificationAuditEntry {
   id: string;
@@ -41,9 +43,6 @@ interface VerificationAuditEntry {
 interface VerificationAuditLogProps {
   isPremiumUser: boolean;
 }
-
-import { useQuery } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
 
 export function VerificationAuditLog({ isPremiumUser }: VerificationAuditLogProps) {
   const [searchTerm, setSearchTerm] = useState("");
