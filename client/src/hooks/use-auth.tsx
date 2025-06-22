@@ -69,7 +69,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         "care-manager": "/modern-care-manager",
         insurer: "/modern-insurer",
         patient: "/modern-patient",
-        admin: "/modern-admin"
+        admin: "/modern-admin",
+        debtors: "/debtors-dashboard"
       };
       
       const targetDashboard = roleDashboards[userData.role] || "/";

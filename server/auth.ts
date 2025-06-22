@@ -182,10 +182,22 @@ export function setupAuth(app: Express) {
     console.log("User request - isAuthenticated:", req.isAuthenticated());
     console.log("User request - user:", req.user?.username);
     
-    if (!req.isAuthenticated()) {
+    if (!req.isAuthenticated() || !req.user) {
       console.log("User not authenticated");
       return res.sendStatus(401);
     }
-    res.json(req.user);
+    
+    // Ensure user object has all required fields for debtors
+    const user = {
+      id: req.user.id,
+      username: req.user.username,
+      email: req.user.email,
+      name: req.user.name,
+      role: req.user.role,
+      department: req.user.department,
+      premiumAccess: req.user.role === 'debtors' ? true : req.user.premiumAccess
+    };
+    
+    res.json(user);
   });
 }
