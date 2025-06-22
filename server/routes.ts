@@ -7,6 +7,7 @@ import { authService } from "./auth-service";
 import { z } from "zod";
 import { insertClaimSchema, insertPreauthorizationSchema, insertPrescriptionSchema } from "@shared/schema";
 import { analyzePreauthorization, analyzeFraudPatterns, validatePrescription, suggestClaimCodes } from "./openai";
+import { deepSeekService } from "./deepseek";
 import { registrationService } from "./registration-service";
 
 export function registerRoutes(app: Express): Server {
@@ -245,16 +246,39 @@ export function registerRoutes(app: Express): Server {
       const patientHistory = await storage.getPatientClaimHistory(requestData.patientId);
       const benefits = await storage.getPatientBenefits(requestData.patientId);
       
-      // AI Analysis
-      const aiResponse = await analyzePreauthorization({
-        patientId: requestData.patientId,
-        serviceType: requestData.serviceType,
-        clinicalJustification: requestData.clinicalJustification,
-        estimatedCost: parseFloat(requestData.estimatedCost.toString()),
-        urgency: requestData.urgency,
-        patientHistory,
-        policyData: benefits
-      });
+      // DeepSeek Chain of Thought Analysis
+      let aiResponse;
+      try {
+        const deepSeekAnalysis = await deepSeekService.analyzePreauthorization({
+          patientId: requestData.patientId.toString(),
+          diagnosis: requestData.serviceType,
+          treatmentPlan: requestData.clinicalJustification,
+          medicalHistory: patientHistory ? JSON.stringify(patientHistory) : undefined,
+          insuranceScheme: benefits?.length > 0 ? benefits[0].schemeName : 'Standard Coverage',
+          cost: parseFloat(requestData.estimatedCost.toString())
+        });
+        
+        aiResponse = {
+          decision: deepSeekAnalysis.decision,
+          confidence: deepSeekAnalysis.confidence,
+          reasoning: deepSeekAnalysis.reasoning,
+          conditions: deepSeekAnalysis.conditions,
+          chainOfThought: true
+        };
+      } catch (error) {
+        console.error('DeepSeek analysis failed, using fallback:', error);
+        // Fallback to existing OpenAI analysis
+        aiResponse = await analyzePreauthorization({
+          patientId: requestData.patientId,
+          serviceType: requestData.serviceType,
+          clinicalJustification: requestData.clinicalJustification,
+          estimatedCost: parseFloat(requestData.estimatedCost.toString()),
+          urgency: requestData.urgency,
+          patientHistory,
+          policyData: benefits
+        });
+        aiResponse.chainOfThought = false;
+      }
       
       const preauth = await storage.createPreauthorization({
         ...requestData,
@@ -301,16 +325,38 @@ export function registerRoutes(app: Express): Server {
       // Get current medications
       const currentMeds = await storage.getPatientMedications(patientId);
       
-      const validationResult = await validatePrescription({
-        medicationName: prescriptionData.medicationName,
-        dosage: prescriptionData.dosage,
-        frequency: prescriptionData.frequency,
-        patientAge: age,
-        patientWeight: prescriptionData.patientWeight,
-        patientGender: patient.gender,
-        indication: prescriptionData.indication,
-        currentMedications: currentMeds.map(med => med.medicationName)
-      });
+      // DeepSeek Chain of Thought Prescription Validation
+      let validationResult;
+      try {
+        const safetyAnalysis = await deepSeekService.analyzePrescriptionSafety(
+          patientId,
+          [prescriptionData.medicationName],
+          age,
+          prescriptionData.patientWeight || 70, // Default weight if not provided
+          patient.allergies ? JSON.parse(patient.allergies) : [],
+          patient.conditions ? JSON.parse(patient.conditions) : []
+        );
+        
+        validationResult = {
+          ...safetyAnalysis,
+          isApproved: safetyAnalysis.safetyScore >= 70,
+          chainOfThought: true
+        };
+      } catch (error) {
+        console.error('DeepSeek prescription validation failed, using fallback:', error);
+        // Fallback to existing validation
+        validationResult = await validatePrescription({
+          medicationName: prescriptionData.medicationName,
+          dosage: prescriptionData.dosage,
+          frequency: prescriptionData.frequency,
+          patientAge: age,
+          patientWeight: prescriptionData.patientWeight,
+          patientGender: patient.gender,
+          indication: prescriptionData.indication,
+          currentMedications: currentMeds.map(med => med.medicationName)
+        });
+        validationResult.chainOfThought = false;
+      }
       
       res.json(validationResult);
     } catch (error) {

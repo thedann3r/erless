@@ -13,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { SharedLayout } from "@/components/layout/shared-layout";
 import { BiometricVerificationModal } from "@/components/biometric-verification-modal";
 import { ClaimFormGenerator } from "@/components/claim-form-generator";
+import { ChainOfThoughtDisplay, InlineChainOfThought } from "@/components/chain-of-thought-display";
 import { 
   Pill, AlertTriangle, ShieldCheck, CreditCard, User, Clock, 
   Package, CheckCircle, XCircle, Search, Calculator, FileText,
