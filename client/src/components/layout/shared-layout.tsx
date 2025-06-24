@@ -11,7 +11,7 @@ import { DashboardToggle } from "@/components/dashboard-toggle";
 
 interface SharedLayoutProps {
   children: React.ReactNode;
-  sidebarItems: Array<{
+  sidebarItems?: Array<{
     path: string;
     icon: React.ReactNode;
     label: string;
@@ -19,10 +19,13 @@ interface SharedLayoutProps {
     badge?: string;
   }>;
   title?: string;
+  user?: any;
+  className?: string;
 }
 
-export function SharedLayout({ children, sidebarItems, title }: SharedLayoutProps) {
-  const { user, logout } = useAuth();
+export function SharedLayout({ children, sidebarItems = [], title, user: propUser, className }: SharedLayoutProps) {
+  const { user: authUser, logout } = useAuth();
+  const user = propUser || authUser;
   const [location] = useLocation();
   const [sessionTime, setSessionTime] = useState(23 * 60 + 45); // 23:45 remaining
 
@@ -62,7 +65,7 @@ export function SharedLayout({ children, sidebarItems, title }: SharedLayoutProp
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className={className || "min-h-screen bg-background"}>
       {/* Header */}
       <header className="sticky top-0 z-50 w-full border-b bg-card shadow-sm">
         <div className="container flex h-16 items-center justify-between px-4">
@@ -143,11 +146,12 @@ export function SharedLayout({ children, sidebarItems, title }: SharedLayoutProp
       </header>
 
       <div className="flex">
-        {/* Sidebar */}
-        <aside className="fixed left-0 top-16 z-40 h-[calc(100vh-4rem)] w-64 overflow-y-auto border-r bg-card">
-          <div className="flex h-full flex-col">
-            <nav className="flex-1 space-y-2 p-4">
-              {sidebarItems.map((item) => {
+        {/* Sidebar - only show if sidebarItems exist */}
+        {sidebarItems.length > 0 && (
+          <aside className="fixed left-0 top-16 z-40 h-[calc(100vh-4rem)] w-64 overflow-y-auto border-r bg-card">
+            <div className="flex h-full flex-col">
+              <nav className="flex-1 space-y-2 p-4">
+                {sidebarItems.map((item) => {
                 if (item.roles && !item.roles.includes(user?.role || '')) {
                   return null;
                 }
@@ -182,9 +186,10 @@ export function SharedLayout({ children, sidebarItems, title }: SharedLayoutProp
             </div>
           </div>
         </aside>
+        )}
 
         {/* Main Content */}
-        <main className="flex-1 ml-64">
+        <main className={`flex-1 ${sidebarItems.length > 0 ? 'ml-64' : 'ml-0'}`}>
           <div className="container mx-auto p-6">
             <div className="fade-in">
               {children}
