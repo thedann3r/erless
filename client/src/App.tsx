@@ -87,7 +87,7 @@ function Router() {
       {/* Modern Dashboard Routes */}
       <ProtectedRoute path="/modern-doctor" component={ModernDoctorDashboard} />
       <ProtectedRoute path="/modern-pharmacy" component={ModernPharmacyDashboard} />
-      <Route path="/modern-care-manager" component={ModernCareManagerDashboard} />
+      <ProtectedRoute path="/modern-care-manager" component={ModernCareManagerDashboard} />
       <ProtectedRoute path="/modern-insurer" component={ModernInsurerDashboard} />
       <ProtectedRoute path="/modern-patient" component={ModernPatientDashboard} />
       <ProtectedRoute path="/modern-admin" component={ModernAdminDashboard} />
