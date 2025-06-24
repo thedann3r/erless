@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -130,7 +129,15 @@ const mockAuditData: VerificationAuditEntry[] = [
 
 export default function DebtorsVerificationAudit() {
   const [, setLocation] = useLocation();
-  const { user, loading } = useAuth();
+  
+  // Mock user data for demo purposes
+  const user = {
+    id: 13,
+    username: "debtors1",
+    email: "debtors@test.med",
+    name: "Mary Njoroge",
+    role: "debtors"
+  };
   const [searchTerm, setSearchTerm] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
@@ -211,30 +218,7 @@ export default function DebtorsVerificationAudit() {
     timeMismatches: mockAuditData.filter(e => e.fingerprintStatus === 'time_mismatch').length
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
 
-  if (!user || user.role !== 'debtors') {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
-          <p className="text-gray-600 mb-4">This page requires debtors role access.</p>
-          <Button onClick={() => setLocation("/login")} className="bg-teal-600 hover:bg-teal-700">
-            Login
-          </Button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -257,11 +241,13 @@ export default function DebtorsVerificationAudit() {
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <div className="text-right">
-                <p className="text-sm font-medium text-gray-900">{user.name}</p>
-                <p className="text-xs text-gray-500">{user.role}</p>
+              <div className="flex items-center space-x-2">
+                <div className="text-right">
+                  <p className="text-sm font-medium text-gray-900">{user.name}</p>
+                  <p className="text-xs text-gray-500">{user.role}</p>
+                </div>
+                <Badge className="bg-teal-100 text-teal-800">Premium Access</Badge>
               </div>
-              <Badge className="bg-teal-100 text-teal-800">Premium Access</Badge>
             </div>
           </div>
         </div>

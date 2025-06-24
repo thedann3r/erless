@@ -92,9 +92,9 @@ function Router() {
       <ProtectedRoute path="/modern-patient" component={ModernPatientDashboard} />
       <ProtectedRoute path="/modern-admin" component={ModernAdminDashboard} />
       <ProtectedRoute path="/modern-front-office" component={ModernFrontOfficeDashboard} />
-      <ProtectedRoute path="/debtors-dashboard" component={DebtorsDashboard} />
+      <Route path="/debtors-dashboard" component={DebtorsDashboard} />
       <Route path="/simple-debtors-dashboard" component={SimpleDebtorsDashboard} />
-      <ProtectedRoute path="/verification-audit" component={DebtorsVerificationAudit} />
+      <Route path="/verification-audit" component={DebtorsVerificationAudit} />
       
       {/* Legacy redirects */}
       <ProtectedRoute path="/pharmacy-dashboard" component={ModernPharmacyDashboard} />
