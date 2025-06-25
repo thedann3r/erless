@@ -7,8 +7,10 @@ import { authService } from "./auth-service";
 import { z } from "zod";
 import { insertClaimSchema, insertPreauthorizationSchema, insertPrescriptionSchema } from "@shared/schema";
 import { analyzePreauthorization, analyzeFraudPatterns, validatePrescription, suggestClaimCodes } from "./openai";
-import { deepSeekService } from "./deepseek";
+import { DeepSeekService } from "./deepseek";
 import { mistralHealthcareService } from "./mistral";
+
+const deepSeekService = new DeepSeekService();
 import { registrationService } from "./registration-service";
 
 export function registerRoutes(app: Express): Server {
@@ -255,9 +257,23 @@ export function registerRoutes(app: Express): Server {
       const patientHistory = await storage.getPatientClaimHistory(requestData.patientId);
       const benefits = await storage.getPatientBenefits(requestData.patientId);
       
-      // DeepSeek Chain of Thought Analysis
+      // Enhanced Claims Validation with DeepSeek
       let aiResponse;
       try {
+        // Use structured claims validation for comprehensive analysis
+        const claimsValidation = await deepSeekService.validateInsuranceClaim({
+          fullName: patient.name,
+          age: new Date().getFullYear() - new Date(patient.dateOfBirth).getFullYear(),
+          sex: patient.gender,
+          diagnosis: requestData.serviceType,
+          icdCode: requestData.icdCode || 'Not specified',
+          serviceName: requestData.clinicalJustification,
+          procedureCode: requestData.cptCode || 'Not specified',
+          planName: benefits?.length > 0 ? benefits[0].planType : 'Standard Plan',
+          insurerName: benefits?.length > 0 ? benefits[0].schemeName : 'Standard Coverage'
+        });
+        
+        // Also run traditional preauthorization analysis for additional context
         const deepSeekAnalysis = await deepSeekService.analyzePreauthorization({
           patientId: requestData.patientId.toString(),
           diagnosis: requestData.serviceType,
@@ -268,11 +284,16 @@ export function registerRoutes(app: Express): Server {
         });
         
         aiResponse = {
-          decision: deepSeekAnalysis.decision,
-          confidence: deepSeekAnalysis.confidence,
-          reasoning: deepSeekAnalysis.reasoning,
+          decision: claimsValidation.decision.toLowerCase(),
+          confidence: claimsValidation.confidence,
+          reasoning: [...claimsValidation.reasoning, ...deepSeekAnalysis.reasoning],
           conditions: deepSeekAnalysis.conditions,
-          chainOfThought: true
+          chainOfThought: true,
+          claimsValidation: {
+            decision: claimsValidation.decision,
+            reason: claimsValidation.reason,
+            confidence: claimsValidation.confidence
+          }
         };
       } catch (error) {
         console.error('DeepSeek analysis failed, using fallback:', error);
@@ -1192,6 +1213,69 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Policy seeding error:", error);
       res.status(500).json({ message: "Failed to seed policies" });
+    }
+  });
+
+  // Dedicated claims validation endpoint
+  app.post("/api/claims/validate", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const {
+        fullName,
+        age,
+        sex,
+        diagnosis,
+        icdCode,
+        serviceName,
+        procedureCode,
+        planName,
+        insurerName
+      } = req.body;
+      
+      if (!fullName || !diagnosis || !serviceName) {
+        return res.status(400).json({ 
+          message: "Patient name, diagnosis, and service name are required" 
+        });
+      }
+      
+      const validation = await deepSeekService.validateInsuranceClaim({
+        fullName,
+        age: age || 30,
+        sex: sex || 'Unknown',
+        diagnosis,
+        icdCode: icdCode || 'Not specified',
+        serviceName,
+        procedureCode: procedureCode || 'Not specified',
+        planName: planName || 'Standard Plan',
+        insurerName: insurerName || 'Standard Coverage'
+      });
+      
+      // Log the validation for audit
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: "claims_validation",
+        resourceType: "claim",
+        resourceId: null,
+        details: { 
+          patient: fullName, 
+          diagnosis, 
+          service: serviceName,
+          decision: validation.decision,
+          confidence: validation.confidence
+        },
+        ipAddress: req.ip || null,
+        userAgent: req.get('User-Agent') || null
+      });
+      
+      res.json({
+        ...validation,
+        timestamp: new Date().toISOString(),
+        validatedBy: 'deepseek-claims-validator'
+      });
+    } catch (error) {
+      console.error("Claims validation error:", error);
+      res.status(500).json({ message: "Failed to validate claim" });
     }
   });
 
