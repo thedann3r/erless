@@ -191,9 +191,7 @@ export default function AuthPage() {
             <p className="text-xs text-gray-500">
               Secure healthcare data management platform
             </p>
-            <p className="text-xs text-gray-400 mt-1">
-              Powered by Aboolean Systems
-            </p>
+            <p className="text-xs text-gray-400 mt-1">Powered by Aboolean.</p>
           </div>
         </div>
       </div>
