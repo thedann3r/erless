@@ -216,6 +216,23 @@ export const auditLogs = pgTable("audit_logs", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Decision logs for tracking AI decisions and outcomes
+export const decisionLogs = pgTable("decision_logs", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  patientId: integer("patient_id").references(() => patients.id),
+  decisionType: text("decision_type").notNull(), // preauth, pharmacy_validation, claims_validation, fraud_detection
+  originalDecision: text("original_decision").notNull(), // approved, denied, review
+  aiConfidence: decimal("ai_confidence", { precision: 5, scale: 2 }).notNull(),
+  reasoning: jsonb("reasoning"), // AI reasoning chain
+  finalOutcome: text("final_outcome"), // actual outcome after human review
+  appealOutcome: text("appeal_outcome"), // outcome if appealed
+  careManagerNotes: text("care_manager_notes"), // reviewer notes
+  metadata: jsonb("metadata"), // additional context (claim amount, service type, etc.)
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Lab Orders for Doctor/Clinician Dashboard
 export const labOrders = pgTable("lab_orders", {
   id: serial("id").primaryKey(),

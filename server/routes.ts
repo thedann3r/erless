@@ -296,6 +296,22 @@ export function registerRoutes(app: Express): Server {
             confidence: claimsValidation.confidence
           }
         };
+
+        // Log the AI decision for tracking and feedback
+        await storage.createDecisionLog({
+          userId: req.user!.id,
+          patientId: requestData.patientId,
+          decisionType: 'preauth',
+          originalDecision: aiResponse.decision,
+          aiConfidence: aiResponse.confidence.toString(),
+          reasoning: aiResponse.reasoning,
+          metadata: {
+            serviceType: requestData.serviceType,
+            estimatedCost: requestData.estimatedCost,
+            insuranceScheme: benefits?.length > 0 ? benefits[0].benefitType : 'Unknown',
+            claimsValidationUsed: true
+          }
+        });
       } catch (error) {
         console.error('DeepSeek analysis failed, using fallback:', error);
         // Fallback to existing OpenAI analysis
@@ -309,6 +325,21 @@ export function registerRoutes(app: Express): Server {
           policyData: benefits
         });
         aiResponse.chainOfThought = false;
+
+        // Log the fallback AI decision
+        await storage.createDecisionLog({
+          userId: req.user!.id,
+          patientId: requestData.patientId,
+          decisionType: 'preauth',
+          originalDecision: aiResponse.decision,
+          aiConfidence: aiResponse.confidence.toString(),
+          reasoning: aiResponse.reasoning || [],
+          metadata: {
+            serviceType: requestData.serviceType,
+            estimatedCost: requestData.estimatedCost,
+            fallbackUsed: true
+          }
+        });
       }
       
       const preauth = await storage.createPreauthorization({
@@ -1375,6 +1406,101 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Claim form generation error:", error);
       res.status(500).json({ message: "Failed to generate claim form" });
+    }
+  });
+
+  // Feedback endpoint for decision logs
+  app.post("/api/feedback", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const { logId, finalOutcome, appealOutcome, reviewerNotes } = req.body;
+
+      if (!logId || !finalOutcome) {
+        return res.status(400).json({ 
+          error: "Log ID and final outcome are required" 
+        });
+      }
+
+      // Check if log exists
+      const log = await storage.getDecisionLog(parseInt(logId));
+      if (!log) {
+        return res.status(404).json({ error: "Log not found" });
+      }
+
+      // Update the decision log with feedback
+      const updatedLog = await storage.updateDecisionLogFeedback(
+        parseInt(logId),
+        finalOutcome,
+        appealOutcome,
+        reviewerNotes
+      );
+
+      // Create audit trail for the feedback
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: "decision_feedback_updated",
+        resourceType: "decision_log",
+        resourceId: logId.toString(),
+        details: { 
+          originalDecision: log.originalDecision,
+          finalOutcome,
+          appealOutcome,
+          confidenceScore: log.aiConfidence,
+          hasNotes: !!reviewerNotes
+        },
+        ipAddress: req.ip || null,
+        userAgent: req.get('User-Agent') || null
+      });
+
+      res.status(200).json({ 
+        success: true, 
+        updatedLog,
+        message: "Decision feedback updated successfully"
+      });
+    } catch (error) {
+      console.error("Feedback update error:", error);
+      res.status(500).json({ error: "Failed to update feedback" });
+    }
+  });
+
+  // Get decision logs endpoint
+  app.get("/api/decision-logs", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const { type, limit = 50, offset = 0 } = req.query;
+      
+      let logs;
+      if (type) {
+        logs = await storage.getDecisionLogsByType(type as string, parseInt(limit as string));
+      } else {
+        logs = await storage.getDecisionLogs(parseInt(limit as string), parseInt(offset as string));
+      }
+
+      res.json(logs);
+    } catch (error) {
+      console.error("Error fetching decision logs:", error);
+      res.status(500).json({ message: "Failed to fetch decision logs" });
+    }
+  });
+
+  // Get specific decision log endpoint
+  app.get("/api/decision-logs/:id", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const { id } = req.params;
+      const log = await storage.getDecisionLog(parseInt(id));
+      
+      if (!log) {
+        return res.status(404).json({ message: "Decision log not found" });
+      }
+
+      res.json(log);
+    } catch (error) {
+      console.error("Error fetching decision log:", error);
+      res.status(500).json({ message: "Failed to fetch decision log" });
     }
   });
 
