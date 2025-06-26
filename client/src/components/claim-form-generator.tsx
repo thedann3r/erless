@@ -1,564 +1,445 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { FileText, Download, Printer, Eye, CheckCircle } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Loader2, FileText, Download, Plus, Trash2 } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
 
-interface ClaimFormGeneratorProps {
-  isOpen: boolean;
-  onClose: () => void;
-  patientData: PatientSession;
+interface Service {
+  serviceName: string;
+  serviceCode: string;
+  quantity: number;
+  unitCost: number;
+  totalCost: number;
 }
 
-interface PatientSession {
-  id: string;
-  firstName: string;
-  lastName: string;
-  memberId: string;
-  insurerId: string;
-  insurerName: string;
-  dateOfBirth: string;
-  gender: string;
-  phoneNumber: string;
-  emergencyContact: string;
-  currentEncounter?: {
-    id: string;
-    diagnosis: string;
-    services: Array<{
-      code: string;
-      description: string;
-      cost: number;
-    }>;
-    providerId: string;
-    providerName: string;
-    doctorName: string;
-    date: string;
-  };
+interface Patient {
+  fullName: string;
+  policyNumber: string;
+  age?: number;
+  gender?: string;
 }
 
-interface InsurerTemplate {
-  id: string;
-  name: string;
-  logo?: string;
-  colors: {
-    primary: string;
-    secondary: string;
-  };
-  formFields: string[];
-  requiresPreauth: boolean;
-}
-
-export function ClaimFormGenerator({ isOpen, onClose, patientData }: ClaimFormGeneratorProps) {
-  const [selectedTemplate, setSelectedTemplate] = useState<string>("");
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedClaim, setGeneratedClaim] = useState<any>(null);
-  const { toast } = useToast();
-
-  // Insurer templates - this would come from a database in production
-  const insurerTemplates: Record<string, InsurerTemplate> = {
-    CIC: {
-      id: "CIC",
-      name: "CIC Insurance",
-      colors: { primary: "#0066CC", secondary: "#F0F8FF" },
-      formFields: ["claimNumber", "memberDetails", "serviceDetails", "providerInfo", "diagnosis"],
-      requiresPreauth: false
+export function ClaimFormGenerator() {
+  const [patient, setPatient] = useState<Patient>({
+    fullName: 'Mary Wanjiku Kamau',
+    policyNumber: 'SHA-2024-789456',
+    age: 42,
+    gender: 'Female'
+  });
+  
+  const [claimData, setClaimData] = useState({
+    insurerName: 'SHA - Social Health Authority',
+    schemeName: 'Safaricom Ltd',
+    planName: 'Comprehensive Health Plan',
+    diagnosis: 'Hypertension with complications',
+    icdCode: 'I10.9',
+    providerName: 'Aga Khan University Hospital',
+    providerCode: 'AKU001',
+    dateOfService: new Date().toISOString().split('T')[0]
+  });
+  
+  const [services, setServices] = useState<Service[]>([
+    {
+      serviceName: 'Consultation - Internal Medicine',
+      serviceCode: '99213',
+      quantity: 1,
+      unitCost: 3500,
+      totalCost: 3500
     },
-    AAR: {
-      id: "AAR",
-      name: "AAR Insurance",
-      colors: { primary: "#FF6600", secondary: "#FFF8F0" },
-      formFields: ["claimReference", "patientInfo", "treatmentDetails", "costBreakdown"],
-      requiresPreauth: true
-    },
-    SHA: {
-      id: "SHA",
-      name: "Social Health Authority",
-      colors: { primary: "#006600", secondary: "#F0FFF0" },
-      formFields: ["shaNumber", "facilityCode", "serviceCategory", "icd10Code"],
-      requiresPreauth: false
-    },
-    NHIF: {
-      id: "SHA",
-      name: "Social Health Authority",
-      colors: { primary: "#006600", secondary: "#F0FFF0" },
-      formFields: ["shaNumber", "facilityCode", "serviceCategory", "icd10Code"],
-      requiresPreauth: false
+    {
+      serviceName: 'ECG - 12 Lead',
+      serviceCode: '93000',
+      quantity: 1,
+      unitCost: 2000,
+      totalCost: 2000
     }
+  ]);
+  
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const updatePatient = (field: keyof Patient, value: string | number) => {
+    setPatient(prev => ({ ...prev, [field]: value }));
   };
 
-  const currentTemplate = insurerTemplates[patientData.insurerId] || insurerTemplates.CIC;
-
-  const generateClaimNumber = () => {
-    const prefix = currentTemplate.id;
-    const timestamp = Date.now().toString().slice(-6);
-    const random = Math.random().toString(36).substring(2, 5).toUpperCase();
-    return `${prefix}-${timestamp}-${random}`;
+  const updateClaimData = (field: string, value: string) => {
+    setClaimData(prev => ({ ...prev, [field]: value }));
   };
 
-  const generateCICClaimForm = () => {
-    const claimNumber = generateClaimNumber();
-    const totalCost = patientData.currentEncounter?.services.reduce((sum, service) => sum + service.cost, 0) || 0;
-    
-    const docDefinition = {
-      pageSize: 'A4',
-      pageMargins: [40, 40, 40, 40],
-      content: [
-        // Header
-        {
-          columns: [
-            {
-              image: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', // Placeholder
-              width: 60,
-              height: 60
-            },
-            {
-              text: [
-                { text: 'CIC INSURANCE GROUP LTD\n', fontSize: 16, bold: true, color: '#0066CC' },
-                { text: 'MEDICAL CLAIM FORM\n', fontSize: 14, bold: true },
-                { text: 'OUTPATIENT SERVICES', fontSize: 12 }
-              ],
-              alignment: 'center',
-              margin: [0, 10, 0, 0]
-            },
-            {
-              text: [
-                { text: 'CLAIM NO.\n', fontSize: 10, bold: true },
-                { text: claimNumber, fontSize: 12, bold: true, color: '#0066CC' }
-              ],
-              alignment: 'right'
-            }
-          ],
-          columnGap: 20
-        },
-        
-        { text: '', margin: [0, 20, 0, 0] },
-        
-        // Patient Information Section
-        {
-          text: 'PATIENT INFORMATION',
-          style: 'sectionHeader'
-        },
-        {
-          table: {
-            widths: ['25%', '25%', '25%', '25%'],
-            body: [
-              [
-                { text: 'Member ID:', bold: true },
-                { text: patientData.memberId },
-                { text: 'Date of Birth:', bold: true },
-                { text: new Date(patientData.dateOfBirth).toLocaleDateString() }
-              ],
-              [
-                { text: 'Patient Name:', bold: true },
-                { text: `${patientData.firstName} ${patientData.lastName}` },
-                { text: 'Gender:', bold: true },
-                { text: patientData.gender }
-              ],
-              [
-                { text: 'Phone Number:', bold: true },
-                { text: patientData.phoneNumber },
-                { text: 'Emergency Contact:', bold: true },
-                { text: patientData.emergencyContact }
-              ]
-            ]
-          },
-          layout: 'lightHorizontalLines',
-          margin: [0, 5, 0, 15]
-        },
+  const addService = () => {
+    setServices(prev => [...prev, {
+      serviceName: '',
+      serviceCode: '',
+      quantity: 1,
+      unitCost: 0,
+      totalCost: 0
+    }]);
+  };
 
-        // Provider Information
-        {
-          text: 'PROVIDER INFORMATION',
-          style: 'sectionHeader'
-        },
-        {
-          table: {
-            widths: ['25%', '25%', '25%', '25%'],
-            body: [
-              [
-                { text: 'Provider Name:', bold: true },
-                { text: patientData.currentEncounter?.providerName || 'N/A' },
-                { text: 'Provider ID:', bold: true },
-                { text: patientData.currentEncounter?.providerId || 'N/A' }
-              ],
-              [
-                { text: 'Attending Doctor:', bold: true },
-                { text: patientData.currentEncounter?.doctorName || 'N/A' },
-                { text: 'Date of Service:', bold: true },
-                { text: patientData.currentEncounter?.date ? new Date(patientData.currentEncounter.date).toLocaleDateString() : 'N/A' }
-              ]
-            ]
-          },
-          layout: 'lightHorizontalLines',
-          margin: [0, 5, 0, 15]
-        },
-
-        // Clinical Information
-        {
-          text: 'CLINICAL INFORMATION',
-          style: 'sectionHeader'
-        },
-        {
-          table: {
-            widths: ['20%', '80%'],
-            body: [
-              [
-                { text: 'Primary Diagnosis:', bold: true },
-                { text: patientData.currentEncounter?.diagnosis || 'N/A' }
-              ]
-            ]
-          },
-          layout: 'lightHorizontalLines',
-          margin: [0, 5, 0, 15]
-        },
-
-        // Services and Costs
-        {
-          text: 'SERVICES PROVIDED',
-          style: 'sectionHeader'
-        },
-        {
-          table: {
-            widths: ['15%', '45%', '20%', '20%'],
-            headerRows: 1,
-            body: [
-              [
-                { text: 'Code', bold: true, fillColor: '#f0f8ff' },
-                { text: 'Service Description', bold: true, fillColor: '#f0f8ff' },
-                { text: 'Units', bold: true, fillColor: '#f0f8ff' },
-                { text: 'Amount (KES)', bold: true, fillColor: '#f0f8ff' }
-              ],
-              ...(patientData.currentEncounter?.services.map(service => [
-                service.code,
-                service.description,
-                '1',
-                service.cost.toLocaleString()
-              ]) || [])
-            ]
-          },
-          layout: 'lightHorizontalLines',
-          margin: [0, 5, 0, 15]
-        },
-
-        // Total Cost
-        {
-          table: {
-            widths: ['60%', '20%', '20%'],
-            body: [
-              [
-                { text: '', border: [false, false, false, false] },
-                { text: 'TOTAL AMOUNT:', bold: true, alignment: 'right' },
-                { text: `KES ${totalCost.toLocaleString()}`, bold: true, alignment: 'right', color: '#0066CC' }
-              ]
-            ]
-          },
-          margin: [0, 0, 0, 20]
-        },
-
-        // Signatures
-        {
-          columns: [
-            {
-              text: [
-                { text: 'PATIENT SIGNATURE\n\n', fontSize: 10, bold: true },
-                { text: '________________________\n', fontSize: 10 },
-                { text: 'Date: ________________', fontSize: 10 }
-              ],
-              width: '33%'
-            },
-            {
-              text: [
-                { text: 'DOCTOR SIGNATURE\n\n', fontSize: 10, bold: true },
-                { text: '________________________\n', fontSize: 10 },
-                { text: 'Date: ________________', fontSize: 10 }
-              ],
-              width: '33%'
-            },
-            {
-              text: [
-                { text: 'PROVIDER STAMP\n\n', fontSize: 10, bold: true },
-                { text: '________________________\n', fontSize: 10 },
-                { text: 'Date: ________________', fontSize: 10 }
-              ],
-              width: '33%'
-            }
-          ],
-          columnGap: 20,
-          margin: [0, 30, 0, 0]
-        },
-
-        // Footer
-        {
-          text: [
-            { text: '\nFor office use only:\n', fontSize: 10, bold: true },
-            { text: 'Claim processed by: ________________  Date: ________________  Reference: ________________', fontSize: 9 }
-          ],
-          margin: [0, 30, 0, 0],
-          border: [true, true, true, true]
+  const updateService = (index: number, field: keyof Service, value: string | number) => {
+    setServices(prev => prev.map((service, i) => {
+      if (i === index) {
+        const updated = { ...service, [field]: value };
+        if (field === 'quantity' || field === 'unitCost') {
+          updated.totalCost = updated.quantity * updated.unitCost;
         }
-      ],
-      styles: {
-        sectionHeader: {
-          fontSize: 12,
-          bold: true,
-          color: '#0066CC',
-          margin: [0, 10, 0, 5]
-        }
+        return updated;
       }
-    };
-
-    return { docDefinition, claimNumber, totalCost };
+      return service;
+    }));
   };
 
-  const generateClaimForm = async () => {
+  const removeService = (index: number) => {
+    setServices(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const totalClaimAmount = services.reduce((sum, service) => sum + service.totalCost, 0);
+
+  const handleSubmitClaim = async () => {
     setIsGenerating(true);
-    
+    setError(null);
+
     try {
-      const claimNumber = generateClaimNumber();
-      const totalCost = patientData.currentEncounter?.services.reduce((sum, service) => sum + service.cost, 0) || 0;
-      
-      const claimData = {
-        claimNumber,
-        totalCost,
-        patientData,
-        insurerTemplate: currentTemplate,
-        generatedAt: new Date().toISOString()
+      const requestBody = {
+        patient,
+        insurerName: claimData.insurerName,
+        schemeName: claimData.schemeName,
+        planName: claimData.planName,
+        diagnosis: claimData.diagnosis,
+        icdCode: claimData.icdCode,
+        requestedServices: services.filter(s => s.serviceName.trim() !== ''),
+        providerName: claimData.providerName,
+        providerCode: claimData.providerCode,
+        dateOfService: claimData.dateOfService
       };
-      
-      setGeneratedClaim(claimData);
-      
-      // Log the claim generation
-      await logClaimGeneration(claimNumber);
-      
-      toast({
-        title: "Claim Form Generated",
-        description: `${currentTemplate.name} claim form created successfully`,
+
+      const response = await fetch('/api/submit-claim', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
       });
-      
-    } catch (error) {
-      toast({
-        title: "Generation Failed",
-        description: "Unable to generate claim form. Please try again.",
-        variant: "destructive"
-      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to generate claim form');
+      }
+
+      // Handle file download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `claim-form-${patient.fullName.replace(/\s+/g, '-')}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to generate claim form');
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const logClaimGeneration = async (claimNumber: string) => {
-    // In production, this would log to the database
-    console.log(`Claim generated: ${claimNumber} for patient ${patientData.id}`);
-  };
-
-  const downloadPDF = async () => {
-    if (!generatedClaim) return;
-    
-    try {
-      // Dynamic import to avoid build issues
-      const pdfMake = await import("pdfmake/build/pdfmake");
-      const pdfFonts = await import("pdfmake/build/vfs_fonts");
-      
-      // Configure pdfMake
-      pdfMake.default.vfs = pdfFonts.default.pdfMake.vfs;
-      
-      pdfMake.default.createPdf(generatedClaim.docDefinition).download(`claim-${generatedClaim.claimNumber}.pdf`);
-      
-      toast({
-        title: "Download Started",
-        description: "Claim form PDF is being downloaded",
-      });
-    } catch (error) {
-      toast({
-        title: "Download Failed",
-        description: "Unable to generate PDF. Please try again.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const printPDF = async () => {
-    if (!generatedClaim) return;
-    
-    try {
-      const pdfMake = await import("pdfmake/build/pdfmake");
-      const pdfFonts = await import("pdfmake/build/vfs_fonts");
-      
-      pdfMake.default.vfs = pdfFonts.default.pdfMake.vfs;
-      pdfMake.default.createPdf(generatedClaim.docDefinition).print();
-    } catch (error) {
-      toast({
-        title: "Print Failed",
-        description: "Unable to print PDF. Please try again.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const previewPDF = async () => {
-    if (!generatedClaim) return;
-    
-    try {
-      const pdfMake = await import("pdfmake/build/pdfmake");
-      const pdfFonts = await import("pdfmake/build/vfs_fonts");
-      
-      pdfMake.default.vfs = pdfFonts.default.pdfMake.vfs;
-      pdfMake.default.createPdf(generatedClaim.docDefinition).open();
-    } catch (error) {
-      toast({
-        title: "Preview Failed",
-        description: "Unable to preview PDF. Please try again.",
-        variant: "destructive"
-      });
-    }
-  };
-
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Generate Insurance Claim Form</DialogTitle>
-          <DialogDescription>
-            Auto-populated claim form for {currentTemplate.name}
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-6">
-          {/* Patient and Insurer Info */}
-          <div className="grid grid-cols-2 gap-4">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm">Patient Information</CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Name:</span>
-                  <span className="font-medium">{patientData.firstName} {patientData.lastName}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Member ID:</span>
-                  <span className="font-medium">{patientData.memberId}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">DOB:</span>
-                  <span className="font-medium">{new Date(patientData.dateOfBirth).toLocaleDateString()}</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm">Insurance Details</CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Insurer:</span>
-                  <Badge style={{ backgroundColor: currentTemplate.colors.primary, color: 'white' }}>
-                    {currentTemplate.name}
-                  </Badge>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Preauth Required:</span>
-                  <span className="font-medium">{currentTemplate.requiresPreauth ? 'Yes' : 'No'}</span>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Services Summary */}
-          {patientData.currentEncounter && (
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm">Current Encounter</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="text-sm">
-                  <div className="flex justify-between mb-2">
-                    <span className="text-muted-foreground">Diagnosis:</span>
-                    <span className="font-medium">{patientData.currentEncounter.diagnosis}</span>
-                  </div>
-                  <div className="flex justify-between mb-2">
-                    <span className="text-muted-foreground">Provider:</span>
-                    <span className="font-medium">{patientData.currentEncounter.providerName}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Doctor:</span>
-                    <span className="font-medium">{patientData.currentEncounter.doctorName}</span>
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-2">
-                  <h4 className="text-sm font-medium">Services Provided:</h4>
-                  {patientData.currentEncounter.services.map((service, index) => (
-                    <div key={index} className="flex justify-between text-sm">
-                      <span>{service.description}</span>
-                      <span className="font-medium">KES {service.cost.toLocaleString()}</span>
-                    </div>
-                  ))}
-                  <Separator />
-                  <div className="flex justify-between text-sm font-medium">
-                    <span>Total Amount:</span>
-                    <span className="text-primary">
-                      KES {patientData.currentEncounter.services.reduce((sum, service) => sum + service.cost, 0).toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Actions */}
-          <div className="flex space-x-3">
-            {!generatedClaim ? (
-              <Button 
-                onClick={generateClaimForm} 
-                disabled={isGenerating}
-                className="flex-1"
-              >
-                {isGenerating ? (
-                  <>
-                    <FileText className="h-4 w-4 mr-2 animate-pulse" />
-                    Generating Form...
-                  </>
-                ) : (
-                  <>
-                    <FileText className="h-4 w-4 mr-2" />
-                    Generate Claim Form
-                  </>
-                )}
-              </Button>
-            ) : (
-              <>
-                <Button onClick={() => setShowPreview(true)} variant="outline" className="flex-1">
-                  <Eye className="h-4 w-4 mr-2" />
-                  Preview & Download
-                </Button>
-              </>
-            )}
-          </div>
-
-          {generatedClaim && (
-            <div className="flex items-center space-x-2 text-sm text-green-600 bg-green-50 p-3 rounded-xl">
-              <CheckCircle className="h-4 w-4" />
-              <span>Claim form generated successfully with reference: <strong>{generatedClaim.claimNumber}</strong></span>
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Patient Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5 text-blue-600" />
+              Patient Information
+            </CardTitle>
+            <CardDescription>
+              Enter patient demographics and policy details
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="fullName">Full Name</Label>
+              <Input
+                id="fullName"
+                value={patient.fullName}
+                onChange={(e) => updatePatient('fullName', e.target.value)}
+                placeholder="Enter patient full name"
+              />
             </div>
-          )}
-        </div>
+            <div>
+              <Label htmlFor="policyNumber">Policy Number</Label>
+              <Input
+                id="policyNumber"
+                value={patient.policyNumber}
+                onChange={(e) => updatePatient('policyNumber', e.target.value)}
+                placeholder="Enter policy number"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="age">Age</Label>
+                <Input
+                  id="age"
+                  type="number"
+                  value={patient.age || ''}
+                  onChange={(e) => updatePatient('age', parseInt(e.target.value) || 0)}
+                  placeholder="Age"
+                />
+              </div>
+              <div>
+                <Label htmlFor="gender">Gender</Label>
+                <Select value={patient.gender} onValueChange={(value) => updatePatient('gender', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select gender" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Male">Male</SelectItem>
+                    <SelectItem value="Female">Female</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* Claim Preview Modal */}
-        {generatedClaim && (
-          <ClaimPreviewModal
-            isOpen={showPreview}
-            onClose={() => setShowPreview(false)}
-            claimData={generatedClaim}
-          />
-        )}
-      </DialogContent>
-    </Dialog>
+        {/* Insurance & Medical Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5 text-green-600" />
+              Insurance & Medical Details
+            </CardTitle>
+            <CardDescription>
+              Insurance scheme and diagnosis information
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="insurerName">Insurance Provider</Label>
+              <Select value={claimData.insurerName} onValueChange={(value) => updateClaimData('insurerName', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select insurer" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="SHA - Social Health Authority">SHA - Social Health Authority</SelectItem>
+                  <SelectItem value="CIC Insurance">CIC Insurance</SelectItem>
+                  <SelectItem value="AAR Insurance">AAR Insurance</SelectItem>
+                  <SelectItem value="Jubilee Insurance">Jubilee Insurance</SelectItem>
+                  <SelectItem value="AON Minet">AON Minet</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="schemeName">Scheme Name</Label>
+                <Input
+                  id="schemeName"
+                  value={claimData.schemeName}
+                  onChange={(e) => updateClaimData('schemeName', e.target.value)}
+                  placeholder="e.g. Safaricom Ltd"
+                />
+              </div>
+              <div>
+                <Label htmlFor="planName">Plan Name</Label>
+                <Input
+                  id="planName"
+                  value={claimData.planName}
+                  onChange={(e) => updateClaimData('planName', e.target.value)}
+                  placeholder="e.g. Silver Cover"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="diagnosis">Diagnosis</Label>
+                <Input
+                  id="diagnosis"
+                  value={claimData.diagnosis}
+                  onChange={(e) => updateClaimData('diagnosis', e.target.value)}
+                  placeholder="Primary diagnosis"
+                />
+              </div>
+              <div>
+                <Label htmlFor="icdCode">ICD-10 Code</Label>
+                <Input
+                  id="icdCode"
+                  value={claimData.icdCode}
+                  onChange={(e) => updateClaimData('icdCode', e.target.value)}
+                  placeholder="ICD-10 code"
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="dateOfService">Date of Service</Label>
+              <Input
+                id="dateOfService"
+                type="date"
+                value={claimData.dateOfService}
+                onChange={(e) => updateClaimData('dateOfService', e.target.value)}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Services */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <FileText className="w-5 h-5 text-purple-600" />
+              Services Provided
+            </div>
+            <Button onClick={addService} size="sm" className="bg-purple-600 hover:bg-purple-700">
+              <Plus className="w-4 h-4 mr-1" />
+              Add Service
+            </Button>
+          </CardTitle>
+          <CardDescription>
+            List all services and procedures provided to the patient
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {services.map((service, index) => (
+              <div key={index} className="grid grid-cols-12 gap-2 items-end p-3 bg-gray-50 rounded-lg">
+                <div className="col-span-4">
+                  <Label className="text-xs">Service Name</Label>
+                  <Input
+                    value={service.serviceName}
+                    onChange={(e) => updateService(index, 'serviceName', e.target.value)}
+                    placeholder="Service name"
+                    className="text-sm"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <Label className="text-xs">Code</Label>
+                  <Input
+                    value={service.serviceCode}
+                    onChange={(e) => updateService(index, 'serviceCode', e.target.value)}
+                    placeholder="CPT/Code"
+                    className="text-sm"
+                  />
+                </div>
+                <div className="col-span-1">
+                  <Label className="text-xs">Qty</Label>
+                  <Input
+                    type="number"
+                    value={service.quantity}
+                    onChange={(e) => updateService(index, 'quantity', parseInt(e.target.value) || 1)}
+                    className="text-sm"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <Label className="text-xs">Unit Cost</Label>
+                  <Input
+                    type="number"
+                    value={service.unitCost}
+                    onChange={(e) => updateService(index, 'unitCost', parseInt(e.target.value) || 0)}
+                    placeholder="KES"
+                    className="text-sm"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <Label className="text-xs">Total</Label>
+                  <div className="text-sm font-medium p-2 bg-white rounded border">
+                    KES {service.totalCost.toLocaleString()}
+                  </div>
+                </div>
+                <div className="col-span-1">
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => removeService(index)}
+                    disabled={services.length === 1}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+            
+            <div className="flex justify-end pt-4 border-t">
+              <div className="text-right">
+                <div className="text-sm text-gray-600">Total Claim Amount</div>
+                <div className="text-2xl font-bold text-green-600">
+                  KES {totalClaimAmount.toLocaleString()}
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Provider Information */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="w-5 h-5 text-orange-600" />
+            Provider Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="providerName">Provider Name</Label>
+              <Input
+                id="providerName"
+                value={claimData.providerName}
+                onChange={(e) => updateClaimData('providerName', e.target.value)}
+                placeholder="Healthcare facility name"
+              />
+            </div>
+            <div>
+              <Label htmlFor="providerCode">Provider Code</Label>
+              <Input
+                id="providerCode"
+                value={claimData.providerCode}
+                onChange={(e) => updateClaimData('providerCode', e.target.value)}
+                placeholder="Provider registration code"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Error Display */}
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div className="text-red-700 font-medium">Error generating claim form</div>
+          <div className="text-red-600 text-sm mt-1">{error}</div>
+        </div>
+      )}
+
+      {/* Submit Button */}
+      <div className="flex justify-center">
+        <Button 
+          onClick={handleSubmitClaim}
+          disabled={isGenerating || !patient.fullName || !claimData.diagnosis}
+          className="px-8 py-3 bg-teal-600 hover:bg-teal-700 text-white font-medium"
+          size="lg"
+        >
+          {isGenerating ? (
+            <>
+              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+              Generating Form...
+            </>
+          ) : (
+            <>
+              <Download className="w-5 h-5 mr-2" />
+              Generate & Download Claim Form
+            </>
+          )}
+        </Button>
+      </div>
+    </div>
   );
 }

@@ -9,6 +9,7 @@ import { insertClaimSchema, insertPreauthorizationSchema, insertPrescriptionSche
 import { analyzePreauthorization, analyzeFraudPatterns, validatePrescription, suggestClaimCodes } from "./openai";
 import { DeepSeekService } from "./deepseek";
 import { mistralHealthcareService } from "./mistral";
+import path from 'path';
 
 const deepSeekService = new DeepSeekService();
 import { registrationService } from "./registration-service";
@@ -1276,6 +1277,104 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Claims validation error:", error);
       res.status(500).json({ message: "Failed to validate claim" });
+    }
+  });
+
+  // Claim form submission and generation endpoint
+  app.post("/api/submit-claim", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const {
+        patient,
+        insurerName,       // e.g. "AON Minet"
+        schemeName,        // e.g. "Safaricom Ltd"
+        planName,          // e.g. "Silver Cover"
+        diagnosis,
+        icdCode,
+        requestedServices,
+        providerName,
+        providerCode,
+        dateOfService
+      } = req.body;
+
+      if (!patient?.fullName || !insurerName || !diagnosis) {
+        return res.status(400).json({ 
+          message: "Patient name, insurer name, and diagnosis are required" 
+        });
+      }
+
+      const { selectFormTemplate, fillClaimForm, validateClaimData } = await import('./claim-forms');
+      
+      const formTemplate = selectFormTemplate(insurerName);
+      const formData = {
+        fullName: patient.fullName,
+        policyNumber: patient.policyNumber || 'Not provided',
+        insurerName,
+        schemeName: schemeName || 'Standard Scheme',
+        planName: planName || 'Basic Plan',
+        diagnosis,
+        icdCode: icdCode || 'Not specified',
+        requestedServices,
+        patientAge: patient.age,
+        patientGender: patient.gender,
+        dateOfService: dateOfService || new Date().toISOString().split('T')[0],
+        providerName: providerName || 'Erlessed Healthcare Network',
+        providerCode: providerCode || 'ERL001',
+        claimAmount: requestedServices?.reduce((sum: number, service: any) => sum + service.totalCost, 0)
+      };
+
+      // Validate required fields
+      const validationErrors = validateClaimData(formTemplate, formData);
+      if (validationErrors.length > 0) {
+        return res.status(400).json({ 
+          message: "Validation failed", 
+          errors: validationErrors 
+        });
+      }
+
+      const filledFormPath = await fillClaimForm(formTemplate, formData);
+      
+      // Log the claim form generation for audit
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: "claim_form_generated",
+        resourceType: "claim_form",
+        resourceId: path.basename(filledFormPath),
+        details: { 
+          patient: patient.fullName,
+          insurer: insurerName,
+          diagnosis,
+          formTemplate: formTemplate.name,
+          claimAmount: formData.claimAmount
+        },
+        ipAddress: req.ip || null,
+        userAgent: req.get('User-Agent') || null
+      });
+
+      // Set headers for file download
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="claim-form-${patient.fullName.replace(/\s+/g, '-')}.pdf"`);
+      
+      res.download(filledFormPath, `claim-form-${patient.fullName.replace(/\s+/g, '-')}.pdf`, (err) => {
+        if (err) {
+          console.error('Error downloading file:', err);
+          if (!res.headersSent) {
+            res.status(500).json({ message: "Failed to download claim form" });
+          }
+        }
+        
+        // Clean up temp file after download
+        import('fs').then(fs => {
+          fs.unlink(filledFormPath, (unlinkErr) => {
+            if (unlinkErr) console.error('Error deleting temp file:', unlinkErr);
+          });
+        });
+      });
+      
+    } catch (error) {
+      console.error("Claim form generation error:", error);
+      res.status(500).json({ message: "Failed to generate claim form" });
     }
   });
 

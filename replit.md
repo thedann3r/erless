@@ -365,6 +365,18 @@ Preferred communication style: Simple, everyday language.
 - Claims validator supports multiple insurance schemes (SHA, CIC, AAR, Jubilee) and policy plan types
 - Real-time validation results display with confidence scoring, reasoning steps, and metadata tracking
 
+**June 26, 2025 - Claim Form Submission and Generation System:**
+- Implemented comprehensive claim form submission endpoint (/api/submit-claim) with insurer-specific template selection
+- Created claim-forms.ts module with PDFMake integration for generating professional PDF claim forms
+- Built form templates for multiple insurers: SHA, CIC, AAR, Jubilee, AON Minet with unique branding and layouts
+- Developed ClaimFormGenerator component with patient demographics, insurance details, services table, and provider information
+- Added automatic template selection based on insurer name with fallback to SHA template
+- Implemented comprehensive form validation with required field checking per insurer template
+- Created services management with quantity, unit cost, and total cost calculations
+- Added PDF generation with professional formatting including headers, patient info, medical details, services table, and signature sections
+- Integrated audit logging for all claim form generation activities with complete metadata tracking
+- Added file download functionality with automatic cleanup of temporary PDF files
+
 ## Changelog
 
 - June 18, 2025. Initial setup
