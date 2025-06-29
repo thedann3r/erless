@@ -40,9 +40,13 @@ function FeedbackForm({ log, onSuccess }: FeedbackFormProps) {
 
   const updateFeedback = useMutation({
     mutationFn: async (data: { logId: number; finalOutcome: string; appealOutcome?: string; reviewerNotes?: string }) => {
-      const response = await apiRequest('/api/feedback', {
+      const response = await fetch('/api/feedback', {
         method: 'POST',
-        body: JSON.stringify(data)
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+        credentials: 'include'
       });
       if (!response.ok) throw new Error('Failed to update feedback');
       return response.json();
@@ -137,7 +141,7 @@ export function DecisionFeedbackPanel() {
     queryKey: ['/api/decision-logs', filterType],
     queryFn: async () => {
       const url = filterType ? `/api/decision-logs?type=${filterType}` : '/api/decision-logs';
-      const response = await apiRequest(url);
+      const response = await fetch(url, { credentials: 'include' });
       if (!response.ok) throw new Error('Failed to fetch decision logs');
       return response.json() as Promise<DecisionLog[]>;
     }

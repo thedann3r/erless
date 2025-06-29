@@ -1,4 +1,5 @@
 import { useState } from "react";
+import * as React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,7 +25,19 @@ interface Patient {
   gender?: string;
 }
 
-export function ClaimFormGenerator() {
+interface ClaimFormGeneratorProps {
+  preSelectedInsurer?: string;
+  patientId?: string;
+  serviceType?: string;
+  estimatedCost?: number;
+}
+
+export function ClaimFormGenerator({ 
+  preSelectedInsurer, 
+  patientId: propPatientId, 
+  serviceType: propServiceType, 
+  estimatedCost: propEstimatedCost 
+}: ClaimFormGeneratorProps = {}) {
   const [patient, setPatient] = useState<Patient>({
     fullName: 'Mary Wanjiku Kamau',
     policyNumber: 'SHA-2024-789456',
