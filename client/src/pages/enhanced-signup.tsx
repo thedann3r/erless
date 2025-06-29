@@ -446,13 +446,10 @@ export default function EnhancedSignup() {
             <p className="text-xs text-gray-500">
               By signing up, you agree to our Terms of Service and Privacy Policy
             </p>
-            <p className="text-xs text-gray-400 mt-1">
-              Powered by Aboolean Systems
-            </p>
+            <p className="text-xs text-gray-400 mt-1">Powered by Aboolean.</p>
           </div>
         </div>
       </div>
-
       {/* Right Panel - Features */}
       <div className="hidden lg:flex lg:flex-1 bg-gradient-to-br from-teal-600 to-blue-700 text-white p-12 items-center justify-center">
         <div className="max-w-lg">
