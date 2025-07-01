@@ -473,6 +473,76 @@ export class DatabaseStorage implements IStorage {
       await db.insert(insurancePolicies).values(policy);
     }
   }
+
+  // Consultation and Services methods
+  async createConsultation(consultation: any): Promise<any> {
+    const result = await db.insert(consultations).values({
+      patientId: consultation.patientId,
+      doctorId: consultation.doctorId || 1, // Default doctor ID
+      chiefComplaint: consultation.chiefComplaint,
+      history: consultation.history,
+      examination: consultation.examination,
+      diagnosis: consultation.diagnosis,
+      icdCode: consultation.icdCode,
+      treatmentPlan: consultation.treatmentPlan,
+      followUpDate: consultation.followUpDate ? new Date(consultation.followUpDate) : null,
+      signedOff: consultation.signedOff || false,
+      signedOffAt: consultation.signedOffAt ? new Date(consultation.signedOffAt) : null,
+      vitals: consultation.vitals,
+      status: consultation.status || 'in-progress'
+    }).returning();
+    return result[0];
+  }
+
+  async getConsultationByPatient(patientId: string): Promise<any> {
+    const result = await db.select()
+      .from(consultations)
+      .where(eq(consultations.patientId, patientId))
+      .orderBy(desc(consultations.createdAt))
+      .limit(1);
+    return result[0];
+  }
+
+  async createService(service: any): Promise<any> {
+    const expiresAt = service.expiresAt ? new Date(service.expiresAt) : null;
+    
+    const result = await db.insert(services).values({
+      patientId: service.patientId,
+      prescribedBy: service.prescribedBy || 1, // Default doctor ID
+      type: service.type,
+      serviceCode: service.serviceCode,
+      serviceName: service.serviceName,
+      dosage: service.dosage,
+      frequency: service.frequency,
+      duration: service.duration,
+      instructions: service.instructions,
+      status: service.status || 'active',
+      durationDays: service.durationDays || (service.type === 'lab' ? 180 : null),
+      expiresAt: expiresAt,
+      notes: service.notes
+    }).returning();
+    return result[0];
+  }
+
+  async getServicesByPatient(patientId: string): Promise<any[]> {
+    const result = await db.select()
+      .from(services)
+      .where(eq(services.patientId, patientId))
+      .orderBy(desc(services.createdAt));
+    return result;
+  }
+
+  async getActiveServicesByType(patientId: string, type: 'lab' | 'pharmacy'): Promise<any[]> {
+    const result = await db.select()
+      .from(services)
+      .where(and(
+        eq(services.patientId, patientId),
+        eq(services.type, type),
+        eq(services.status, 'active')
+      ))
+      .orderBy(desc(services.createdAt));
+    return result;
+  }
 }
 
 export const storage = new DatabaseStorage();
