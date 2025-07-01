@@ -71,7 +71,7 @@ interface Patient {
 }
 
 export default function FrontDeskPage() {
-  const [step, setStep] = useState<'input' | 'verification' | 'selection' | 'session' | 'complete'>('input');
+  const [step, setStep] = useState<'input' | 'verification' | 'selection' | 'session' | 'service' | 'preauth' | 'complete'>('input');
   const [patientId, setPatientId] = useState('');
   const [otpCode, setOtpCode] = useState('');
   const [verificationMethod, setVerificationMethod] = useState<'fingerprint' | 'otp'>('fingerprint');
@@ -94,6 +94,12 @@ export default function FrontDeskPage() {
   // SMS OTP states
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
+  
+  // Service selection and preauthorization states
+  const [selectedService, setSelectedService] = useState<string>('');
+  const [benefitBuckets, setBenefitBuckets] = useState<any[]>([]);
+  const [preauthResult, setPreauthResult] = useState<any>(null);
+  const [preauthLoading, setPreauthLoading] = useState(false);
 
   const handlePatientLookup = async () => {
     if (!patientId.trim()) return;
@@ -283,6 +289,107 @@ export default function FrontDeskPage() {
     }
   };
 
+  const handleStartNewClaim = async () => {
+    if (!verifiedPatient || !selectedInsurer) return;
+    
+    // Mock benefit buckets for the patient's insurance
+    const mockBenefits = [
+      {
+        serviceType: 'consultation',
+        name: 'Medical Consultation',
+        description: 'General consultation with doctor',
+        totalAllowed: 12,
+        usedCount: 3,
+        remainingAmount: 'KES 45,000',
+        icon: '🩺'
+      },
+      {
+        serviceType: 'laboratory',
+        name: 'Laboratory Tests',
+        description: 'Blood tests, X-rays, and diagnostics',
+        totalAllowed: 20,
+        usedCount: 5,
+        remainingAmount: 'KES 25,000',
+        icon: '🧪'
+      },
+      {
+        serviceType: 'pharmacy',
+        name: 'Pharmacy Benefits',
+        description: 'Prescription medications',
+        totalAllowed: 24,
+        usedCount: 8,
+        remainingAmount: 'KES 18,000',
+        icon: '💊'
+      },
+      {
+        serviceType: 'specialist',
+        name: 'Specialist Consultation',
+        description: 'Cardiologist, Dermatologist, etc.',
+        totalAllowed: 6,
+        usedCount: 1,
+        remainingAmount: 'KES 30,000',
+        icon: '👨‍⚕️'
+      }
+    ];
+    
+    setBenefitBuckets(mockBenefits);
+    setStep('service');
+  };
+
+  const handleServiceSelection = async (serviceType: string) => {
+    setSelectedService(serviceType);
+    setStep('preauth');
+    setPreauthLoading(true);
+    
+    try {
+      const response = await fetch('/api/preauth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          patientId: verifiedPatient?.id,
+          insurer: selectedInsurer?.insurerName,
+          serviceType: serviceType,
+          clinicalJustification: `${serviceType} service requested for patient ${verifiedPatient?.patientId}`,
+          estimatedCost: getEstimatedCost(serviceType),
+          urgency: 'routine'
+        })
+      });
+      
+      const result = await response.json();
+      setPreauthResult(result);
+      
+      if (result.decision === 'approved') {
+        // Success - allow billing
+        setStep('complete');
+      } else {
+        // Show denial reason
+        // Stay on preauth step to show the denial
+      }
+    } catch (error) {
+      console.error('Preauthorization error:', error);
+      setPreauthResult({
+        decision: 'denied',
+        reason: 'System error during preauthorization. Please try again.',
+        confidence: 0
+      });
+    } finally {
+      setPreauthLoading(false);
+    }
+  };
+
+  const getEstimatedCost = (serviceType: string): string => {
+    const costs = {
+      consultation: '2500',
+      laboratory: '4500',
+      pharmacy: '3200',
+      specialist: '5000'
+    };
+    return costs[serviceType as keyof typeof costs] || '2000';
+  };
+
   const generatePatientClaimForm = async () => {
     if (!verifiedPatient || !selectedInsurer) return;
     
@@ -336,6 +443,10 @@ export default function FrontDeskPage() {
     setActiveSessions([]);
     setScanProgress(0);
     setOtpSent(false);
+    setSelectedService('');
+    setBenefitBuckets([]);
+    setPreauthResult(null);
+    setPreauthLoading(false);
   };
 
   return (
@@ -618,7 +729,185 @@ export default function FrontDeskPage() {
           </Card>
         )}
 
-        {/* Step 4: Complete */}
+        {/* Step 4: Service Selection */}
+        {step === 'service' && verifiedPatient && selectedInsurer && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="w-5 h-5 text-teal-600" />
+                Select Service Type
+              </CardTitle>
+              <CardDescription>
+                Choose the type of service for {verifiedPatient.firstName} {verifiedPatient.lastName}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {benefitBuckets.map((bucket) => {
+                  const usagePercent = (bucket.usedCount / bucket.totalAllowed) * 100;
+                  const isLowUsage = usagePercent < 50;
+                  const isMediumUsage = usagePercent >= 50 && usagePercent < 80;
+                  const isHighUsage = usagePercent >= 80;
+                  
+                  return (
+                    <Card 
+                      key={bucket.serviceType}
+                      className="cursor-pointer hover:shadow-md transition-all border-l-4 border-l-teal-500 hover:border-l-teal-600"
+                      onClick={() => handleServiceSelection(bucket.serviceType)}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <span className="text-2xl">{bucket.icon}</span>
+                            <div>
+                              <h3 className="font-semibold text-lg">{bucket.name}</h3>
+                              <p className="text-sm text-gray-600">{bucket.description}</p>
+                            </div>
+                          </div>
+                          <Badge 
+                            className={`${
+                              isLowUsage ? 'bg-green-100 text-green-800' :
+                              isMediumUsage ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-red-100 text-red-800'
+                            }`}
+                          >
+                            {bucket.usedCount}/{bucket.totalAllowed}
+                          </Badge>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span>Usage</span>
+                            <span>{Math.round(usagePercent)}%</span>
+                          </div>
+                          <Progress 
+                            value={usagePercent} 
+                            className={`h-2 ${
+                              isLowUsage ? '[&>div]:bg-green-500' :
+                              isMediumUsage ? '[&>div]:bg-yellow-500' :
+                              '[&>div]:bg-red-500'
+                            }`}
+                          />
+                          <p className="text-sm font-medium text-teal-700">
+                            Remaining: {bucket.remainingAmount}
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+              
+              <div className="mt-6 pt-4 border-t">
+                <Button 
+                  onClick={() => setStep('complete')} 
+                  variant="outline" 
+                  className="w-full"
+                >
+                  Back to Patient Summary
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Step 5: Preauthorization */}
+        {step === 'preauth' && verifiedPatient && selectedService && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="w-5 h-5 text-blue-600" />
+                Preauthorization Request
+              </CardTitle>
+              <CardDescription>
+                Processing preauthorization for {selectedService} service
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {preauthLoading ? (
+                <div className="text-center space-y-4">
+                  <Loader2 className="w-16 h-16 mx-auto animate-spin text-blue-600" />
+                  <div>
+                    <p className="text-lg font-medium">Processing Authorization...</p>
+                    <p className="text-sm text-gray-600">Analyzing patient eligibility and coverage</p>
+                  </div>
+                </div>
+              ) : preauthResult ? (
+                <div className="space-y-4">
+                  {preauthResult.decision === 'approved' ? (
+                    <Alert className="border-green-200 bg-green-50">
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                      <AlertDescription className="text-green-800">
+                        <strong>Preauthorization Approved</strong>
+                        <br />
+                        {preauthResult.reason || 'Service authorized for billing.'}
+                        <br />
+                        <span className="text-sm">Confidence: {Math.round((preauthResult.confidence || 0.95) * 100)}%</span>
+                      </AlertDescription>
+                    </Alert>
+                  ) : (
+                    <Alert className="border-red-200 bg-red-50">
+                      <AlertTriangle className="w-4 h-4 text-red-600" />
+                      <AlertDescription className="text-red-800">
+                        <strong>Preauthorization Denied</strong>
+                        <br />
+                        {preauthResult.reason || 'Service not authorized at this time.'}
+                        <br />
+                        <span className="text-sm">Confidence: {Math.round((preauthResult.confidence || 0.85) * 100)}%</span>
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                  
+                  {preauthResult.chainOfThought && (
+                    <Card className="mt-4">
+                      <CardHeader>
+                        <CardTitle className="text-sm">Decision Process</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2 text-sm">
+                          {preauthResult.chainOfThought.map((step: any, index: number) => (
+                            <div key={index} className="flex items-start gap-2">
+                              <span className="text-blue-600 font-mono text-xs mt-1">{index + 1}.</span>
+                              <span className="text-gray-700">{step}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                  
+                  <div className="flex gap-4 pt-4">
+                    <Button 
+                      onClick={() => setStep('service')} 
+                      variant="outline" 
+                      className="flex-1"
+                    >
+                      Select Different Service
+                    </Button>
+                    {preauthResult.decision === 'approved' ? (
+                      <Button 
+                        onClick={() => setStep('complete')} 
+                        className="flex-1 bg-green-600 hover:bg-green-700"
+                      >
+                        Proceed to Billing
+                      </Button>
+                    ) : (
+                      <Button 
+                        onClick={() => setStep('complete')} 
+                        variant="outline" 
+                        className="flex-1"
+                      >
+                        Return to Summary
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ) : null}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Step 6: Complete */}
         {step === 'complete' && verifiedPatient && (
           <div className="space-y-6">
             {/* Patient Summary */}
@@ -671,7 +960,10 @@ export default function FrontDeskPage() {
                   Generate Claim Form
                 </Button>
               )}
-              <Button className="bg-teal-600 hover:bg-teal-700">
+              <Button 
+                onClick={handleStartNewClaim}
+                className="bg-teal-600 hover:bg-teal-700"
+              >
                 <FileText className="w-4 h-4 mr-2" />
                 Start New Claim
               </Button>
