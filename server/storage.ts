@@ -561,6 +561,21 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return result[0];
   }
+
+  async createReviewConsultation(data: any): Promise<any> {
+    const result = await db.insert(consultations)
+      .values({
+        patientId: data.patientId,
+        doctorId: data.doctorId,
+        chiefComplaint: `Review consultation for cancelled lab order: ${data.originalService}`,
+        diagnosis: 'Review consultation pending',
+        treatmentPlan: `Patient review following cancelled lab order (ID: ${data.cancelledLabId}). Reason: ${data.reason}`,
+        status: 'in-progress',
+        signedOff: false
+      })
+      .returning();
+    return result[0];
+  }
 }
 
 export const storage = new DatabaseStorage();

@@ -12,6 +12,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { 
   TestTube, 
@@ -44,6 +54,8 @@ export default function ActiveLabOrders({ patientId, doctorId }: ActiveLabOrders
   const queryClient = useQueryClient();
   const [cancelDialog, setCancelDialog] = useState<{ open: boolean; labId?: number }>({ open: false });
   const [cancelReason, setCancelReason] = useState("");
+  const [reviewConsultationDialog, setReviewConsultationDialog] = useState(false);
+  const [cancelledOrderDetails, setCancelledOrderDetails] = useState<any>(null);
 
   // Fetch active lab orders
   const { data: labOrders = [], isLoading } = useQuery<LabOrder[]>({
@@ -60,7 +72,7 @@ export default function ActiveLabOrders({ patientId, doctorId }: ActiveLabOrders
         reason
       });
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({
         title: "Lab Order Cancelled",
         description: "The lab order has been successfully cancelled.",
@@ -68,10 +80,45 @@ export default function ActiveLabOrders({ patientId, doctorId }: ActiveLabOrders
       queryClient.invalidateQueries({ queryKey: [`/api/services/patient/${patientId}/lab`] });
       setCancelDialog({ open: false });
       setCancelReason("");
+      
+      // Store cancelled order details and show review consultation prompt
+      setCancelledOrderDetails(data.order);
+      setReviewConsultationDialog(true);
     },
     onError: (error) => {
       toast({
         title: "Cancellation Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Create review consultation mutation
+  const reviewConsultationMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest('/api/consultations/review', 'POST', {
+        patientId,
+        doctorId,
+        reason: "Review consultation for cancelled lab order",
+        cancelledLabId: cancelledOrderDetails?.id,
+        originalService: cancelledOrderDetails?.serviceName
+      });
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Review Consultation Created",
+        description: "A new review consultation has been initiated for this patient.",
+      });
+      setReviewConsultationDialog(false);
+      setCancelledOrderDetails(null);
+      
+      // Navigate to the new consultation
+      window.location.href = `/doctor-consultation?patientId=${patientId}&consultationId=${data.id}`;
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to Create Review Consultation",
         description: error.message,
         variant: "destructive",
       });
@@ -275,6 +322,48 @@ export default function ActiveLabOrders({ patientId, doctorId }: ActiveLabOrders
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Review Consultation Prompt */}
+      <AlertDialog open={reviewConsultationDialog} onOpenChange={setReviewConsultationDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center space-x-2">
+              <TestTube className="h-5 w-5 text-blue-500" />
+              <span>Initiate Review Consultation?</span>
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Lab order "{cancelledOrderDetails?.serviceName}" has been cancelled. 
+              Would you like to create a new review consultation for this patient? 
+              This will link to the same patient and insurer, approving prior billed consultation.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel 
+              onClick={() => {
+                setReviewConsultationDialog(false);
+                setCancelledOrderDetails(null);
+              }}
+              disabled={reviewConsultationMutation.isPending}
+            >
+              No, Skip Review
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => reviewConsultationMutation.mutate()}
+              disabled={reviewConsultationMutation.isPending}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {reviewConsultationMutation.isPending ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                  Creating...
+                </>
+              ) : (
+                "Yes, Create Review Consultation"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

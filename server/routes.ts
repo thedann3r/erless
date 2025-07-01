@@ -2371,6 +2371,35 @@ app.get('/api/debtors/user-premium-status', requireAuth, async (req, res) => {
     }
   });
 
+  // Create review consultation
+  app.post('/api/consultations/review', async (req, res) => {
+    try {
+      const { patientId, doctorId, reason, cancelledLabId, originalService } = req.body;
+      
+      if (!patientId || !doctorId) {
+        return res.status(400).json({ message: 'Missing required fields: patientId and doctorId' });
+      }
+
+      const result = await storage.createReviewConsultation({
+        patientId,
+        doctorId,
+        reason,
+        cancelledLabId,
+        originalService
+      });
+      
+      res.json({ 
+        success: true, 
+        message: 'Review consultation created successfully',
+        id: result.id,
+        consultation: result
+      });
+    } catch (error) {
+      console.error('Error creating review consultation:', error);
+      res.status(500).json({ message: 'Failed to create review consultation' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
