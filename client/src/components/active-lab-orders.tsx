@@ -46,7 +46,7 @@ export default function ActiveLabOrders({ patientId, doctorId }: ActiveLabOrders
   const [cancelReason, setCancelReason] = useState("");
 
   // Fetch active lab orders
-  const { data: labOrders = [], isLoading } = useQuery({
+  const { data: labOrders = [], isLoading } = useQuery<LabOrder[]>({
     queryKey: [`/api/services/patient/${patientId}/lab`],
     enabled: !!patientId
   });
@@ -149,7 +149,7 @@ export default function ActiveLabOrders({ patientId, doctorId }: ActiveLabOrders
             <p className="text-gray-500 text-center py-8">No active lab orders</p>
           ) : (
             <div className="space-y-4">
-              {labOrders.map((order: LabOrder) => {
+              {labOrders.map((order) => {
                 const daysRemaining = getDaysRemaining(order.expiresAt);
                 const isExpiringSoon = daysRemaining <= 30;
                 const isExpired = daysRemaining <= 0;
