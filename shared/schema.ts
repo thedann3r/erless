@@ -66,16 +66,19 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   email: text("email").notNull().unique(),
   role: text("role").notNull(), // doctor, clinician, pharmacist, admin, debtor-officer
-  name: text("name").notNull(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
   careProviderId: integer("care_provider_id").references(() => careProviders.id),
   department: text("department"),
   cadre: text("cadre"), // specialist, consultant, registrar, etc.
   registrationNumber: text("registration_number"), // professional license number
   registrationBody: text("registration_body"), // national medical/pharmacy board
-  isVerified: boolean("is_verified").default(false).notNull(),
-  verificationDate: timestamp("verification_date"),
+  isActive: boolean("is_active").default(true).notNull(),
+  licenseNumber: text("license_number"),
+  licenseVerified: boolean("license_verified").default(false).notNull(),
   lastLogin: timestamp("last_login"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export const patients = pgTable("patients", {
