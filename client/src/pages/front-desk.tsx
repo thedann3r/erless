@@ -299,7 +299,7 @@ export default function FrontDeskPage() {
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Front Desk Patient Verification</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Front Office Patient Verification</h1>
           <p className="text-gray-600">Secure patient identity verification and claim session management</p>
         </div>
 
