@@ -2346,6 +2346,31 @@ app.get('/api/debtors/user-premium-status', requireAuth, async (req, res) => {
     }
   });
 
+  // Lab order cancellation endpoint
+  app.post('/api/lab-orders/cancel', async (req, res) => {
+    try {
+      const { labId, doctorId, reason } = req.body;
+      
+      if (!labId || !doctorId || !reason) {
+        return res.status(400).json({ message: 'Missing required fields: labId, doctorId, and reason' });
+      }
+
+      const cancelledOrder = await storage.cancelLabOrder(labId, doctorId, reason);
+      
+      if (!cancelledOrder) {
+        return res.status(404).json({ message: 'Lab order not found or could not be cancelled' });
+      }
+
+      res.json({
+        message: 'Lab order cancelled successfully',
+        order: cancelledOrder
+      });
+    } catch (error) {
+      console.error('Error cancelling lab order:', error);
+      res.status(500).json({ message: 'Failed to cancel lab order' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

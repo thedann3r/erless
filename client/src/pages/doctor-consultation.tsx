@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import ActiveLabOrders from "@/components/active-lab-orders";
 
 interface Patient {
   id: number;
@@ -317,9 +318,9 @@ export default function DoctorConsultation() {
           </Card>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Consultation Form */}
-          <div className="space-y-6">
+          <div className="lg:col-span-2 space-y-6">
             {/* Vitals */}
             <Card>
               <CardHeader>
@@ -461,8 +462,10 @@ export default function DoctorConsultation() {
             </Card>
           </div>
 
-          {/* Prescriptions and Lab Orders */}
+          {/* Prescriptions, Lab Orders and Active Lab Orders */}
           <div className="space-y-6">
+            {/* Active Lab Orders */}
+            <ActiveLabOrders patientId={patientId} doctorId={1} />
             {/* Prescriptions */}
             <Card>
               <CardHeader>

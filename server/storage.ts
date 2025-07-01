@@ -544,6 +544,23 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(services.createdAt));
     return result;
   }
+
+  async cancelLabOrder(labId: number, doctorId: number, reason: string): Promise<any> {
+    const result = await db.update(services)
+      .set({
+        status: 'cancelled',
+        notes: reason,
+        dispensedBy: doctorId,
+        dispensedAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(and(
+        eq(services.id, labId),
+        eq(services.type, 'lab')
+      ))
+      .returning();
+    return result[0];
+  }
 }
 
 export const storage = new DatabaseStorage();
