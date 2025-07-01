@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Fingerprint, Shield, CheckCircle, AlertTriangle, Loader2, Building2 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useMutation } from "@tanstack/react-query";
+import { biometricService } from "@/utils/fingerprint";
 
 interface InsurancePolicy {
   id: number;
@@ -130,61 +131,86 @@ export function BiometricVerification({ patientId, onVerificationSuccess, onVeri
   const [activePolicies, setActivePolicies] = useState<InsurancePolicy[]>([]);
   const [verifiedPatient, setVerifiedPatient] = useState<any>(null);
 
-  // Simulate fingerprint scanning with realistic progress
+  // Enhanced fingerprint scanning with real biometric simulation
   const simulateFingerprint = async () => {
     setIsScanning(true);
     setVerificationStatus('scanning');
     setScanProgress(0);
 
-    // Simulate progressive scanning
-    const progressInterval = setInterval(() => {
-      setScanProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(progressInterval);
-          return 100;
-        }
-        return prev + Math.random() * 15;
-      });
-    }, 200);
-
-    // Simulate scan completion after 3 seconds
-    setTimeout(async () => {
-      clearInterval(progressInterval);
-      setScanProgress(100);
+    try {
+      // Generate realistic biometric scan
+      const biometricData = await biometricService.simulateFingerprintScan(patientId);
       
-      try {
-        // Verify patient and get active policies
-        const response = await apiRequest(`/api/verify-patient/${patientId}`);
-        const data = await response.json();
-
-        if (data.verified && data.activePolicies) {
-          setVerifiedPatient(data.patient);
-          setActivePolicies(data.activePolicies);
-          setVerificationStatus('success');
-          
-          // If multiple policies, show selection modal
-          if (data.activePolicies.length > 1) {
-            setShowInsurerModal(true);
-          } else if (data.activePolicies.length === 1) {
-            // Single policy - proceed directly
-            onVerificationSuccess(data.activePolicies[0]);
-          } else {
-            // No active policies
-            setVerificationStatus('failed');
-            onVerificationFailed();
+      // Simulate progressive scanning with realistic steps
+      const progressInterval = setInterval(() => {
+        setScanProgress(prev => {
+          if (prev >= 100) {
+            clearInterval(progressInterval);
+            return 100;
           }
+          return prev + Math.random() * 12 + 3; // More controlled progress
+        });
+      }, 180);
+
+      // Wait for biometric scanning to complete
+      await new Promise(resolve => {
+        const checkProgress = () => {
+          if (scanProgress >= 100) {
+            clearInterval(progressInterval);
+            resolve(true);
+          } else {
+            setTimeout(checkProgress, 100);
+          }
+        };
+        checkProgress();
+      });
+
+      // Store biometric data for this session
+      await biometricService.storeBiometricData(patientId, biometricData);
+      
+      // Verify patient and get active policies
+      const response = await fetch(`/api/verify-patient/${patientId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          fingerprintHash: biometricData.fingerprintHash,
+          deviceFingerprint: biometricData.deviceFingerprint,
+          sessionId: biometricData.sessionId
+        })
+      });
+      
+      const data = await response.json();
+
+      if (data.verified && data.activePolicies) {
+        setVerifiedPatient(data.patient);
+        setActivePolicies(data.activePolicies);
+        setVerificationStatus('success');
+        
+        // If multiple policies, show selection modal
+        if (data.activePolicies.length > 1) {
+          setShowInsurerModal(true);
+        } else if (data.activePolicies.length === 1) {
+          // Single policy - proceed directly
+          onVerificationSuccess(data.activePolicies[0]);
         } else {
+          // No active policies
           setVerificationStatus('failed');
           onVerificationFailed();
         }
-      } catch (error) {
-        console.error('Verification error:', error);
+      } else {
         setVerificationStatus('failed');
         onVerificationFailed();
-      } finally {
-        setIsScanning(false);
       }
-    }, 3000);
+    } catch (error) {
+      console.error('Verification error:', error);
+      setVerificationStatus('failed');
+      onVerificationFailed();
+    } finally {
+      setIsScanning(false);
+    }
   };
 
   const handleInsurerSelection = (selectedInsurer: InsurancePolicy) => {

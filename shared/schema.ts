@@ -216,6 +216,25 @@ export const auditLogs = pgTable("audit_logs", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Service tracking table for detailed claim services
+export const claimServices = pgTable("claim_services", {
+  id: serial("id").primaryKey(),
+  claimId: integer("claim_id").references(() => claims.id).notNull(),
+  serviceName: text("service_name").notNull(),
+  serviceType: text("service_type").notNull(), // consultation, lab, pharmacy, procedure
+  serviceCode: text("service_code"), // CPT, ICD codes
+  status: text("status").notNull().default("pending"), // pending, fulfilled, cancelled, expired
+  prescribedBy: integer("prescribed_by").references(() => users.id),
+  startDate: timestamp("start_date").defaultNow().notNull(),
+  durationDays: integer("duration_days"),
+  quantity: integer("quantity").default(1).notNull(),
+  unitCost: decimal("unit_cost", { precision: 10, scale: 2 }).notNull(),
+  totalCost: decimal("total_cost", { precision: 10, scale: 2 }).notNull(),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Decision logs for tracking AI decisions and outcomes
 export const decisionLogs = pgTable("decision_logs", {
   id: serial("id").primaryKey(),

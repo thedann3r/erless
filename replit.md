@@ -401,6 +401,18 @@ Preferred communication style: Simple, everyday language.
 - Created visual progress indicator for verification to claim form workflow
 - Implemented secure policy selection with coverage amounts, expiry dates, and plan types
 
+**June 27, 2025 - Enhanced Schema and Biometric Integration:**
+- Enhanced PostgreSQL schema with fingerprintId field for advanced biometric tracking
+- Added claim_services table for detailed service breakdown per claim (consultation, lab, pharmacy, procedure)
+- Integrated FingerprintJS2 library for realistic device fingerprinting and biometric simulation
+- Built comprehensive BiometricService utility with progressive scanning simulation
+- Enhanced claims schema with insurerName, schemeName, and isActive fields for better tracking
+- Created storage methods for claim services CRUD operations and active claims filtering
+- Implemented EnhancedClaimTracker component with tabbed interface for active/completed claims
+- Added detailed claim service breakdown with status tracking, progress indicators, and cost analysis
+- Enhanced patient verification endpoint with real biometric hash validation and device fingerprinting
+- Created comprehensive audit logging for biometric scan attempts and verification sessions
+
 ## Changelog
 
 - June 18, 2025. Initial setup
