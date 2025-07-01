@@ -19,8 +19,10 @@ import {
   Clock,
   Phone,
   MessageSquare,
-  Smartphone
+  Smartphone,
+  Download
 } from "lucide-react";
+import { generateClaimForm, downloadPDF, generateFilename, type PatientData, type ClaimService } from "@/utils/autofillClaim";
 // Temporary mock biometric service
 const mockBiometricService = {
   async simulateFingerprintScan(patientId: string) {
@@ -278,6 +280,48 @@ export default function FrontDeskPage() {
       } else {
         setStep('complete');
       }
+    }
+  };
+
+  const generatePatientClaimForm = async () => {
+    if (!verifiedPatient || !selectedInsurer) return;
+    
+    try {
+      const patientData: PatientData = {
+        name: `${verifiedPatient.firstName} ${verifiedPatient.lastName}`,
+        dateOfBirth: new Date(verifiedPatient.dateOfBirth).toLocaleDateString(),
+        gender: verifiedPatient.gender,
+        memberId: verifiedPatient.patientId,
+        phoneNumber: verifiedPatient.phoneNumber || '',
+        address: verifiedPatient.address || '',
+        diagnosis: 'General Consultation',
+        treatment: 'Medical Evaluation',
+        serviceDate: new Date().toLocaleDateString(),
+        providerName: 'Erlessed Healthcare Platform'
+      };
+
+      const sampleServices: ClaimService[] = [
+        {
+          serviceCode: 'CONS001',
+          serviceName: 'General Consultation',
+          quantity: 1,
+          unitCost: 2000,
+          totalCost: 2000,
+          serviceDate: new Date().toLocaleDateString()
+        }
+      ];
+
+      const pdfBytes = await generateClaimForm(
+        patientData, 
+        selectedInsurer.insurerName, 
+        sampleServices
+      );
+      
+      const filename = generateFilename(patientData, selectedInsurer.insurerName);
+      downloadPDF(pdfBytes, filename);
+      
+    } catch (error) {
+      console.error('Error generating claim form:', error);
     }
   };
 
@@ -614,11 +658,20 @@ export default function FrontDeskPage() {
             <EnhancedClaimTracker patientId={verifiedPatient.patientId} showAllClaims={false} />
 
             {/* Action Buttons */}
-            <div className="flex gap-4">
-              <Button onClick={resetFlow} variant="outline" className="flex-1">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Button onClick={resetFlow} variant="outline">
                 Verify New Patient
               </Button>
-              <Button className="flex-1 bg-teal-600 hover:bg-teal-700">
+              {selectedInsurer && (
+                <Button 
+                  onClick={generatePatientClaimForm}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Generate Claim Form
+                </Button>
+              )}
+              <Button className="bg-teal-600 hover:bg-teal-700">
                 <FileText className="w-4 h-4 mr-2" />
                 Start New Claim
               </Button>
