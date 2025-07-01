@@ -294,21 +294,44 @@ export const patientQueue = pgTable("patient_queue", {
 // Consultation Records
 export const consultations = pgTable("consultations", {
   id: serial("id").primaryKey(),
-  patientId: integer("patient_id").references(() => patients.id).notNull(),
+  patientId: text("patient_id").notNull(),
   doctorId: integer("doctor_id").references(() => users.id).notNull(),
-  queueId: integer("queue_id").references(() => patientQueue.id),
+  queueId: integer("queue_id"),
   chiefComplaint: text("chief_complaint"),
-  historyOfPresentingIllness: text("history_of_presenting_illness"),
-  pastMedicalHistory: text("past_medical_history"),
+  history: text("history"),
   examination: text("examination"),
   diagnosis: text("diagnosis").notNull(),
-  icd10Codes: text("icd10_codes").array(),
-  treatment: text("treatment"),
-  notes: text("notes"),
-  followUpInstructions: text("follow_up_instructions"),
-  signedAt: timestamp("signed_at"),
-  signatureMethod: text("signature_method"), // fingerprint, otp, password
+  icdCode: text("icd_code"),
+  treatmentPlan: text("treatment_plan"),
+  followUpDate: timestamp("follow_up_date"),
+  signedOff: boolean("signed_off").default(false).notNull(),
+  signedOffAt: timestamp("signed_off_at"),
+  vitals: jsonb("vitals"),
+  status: text("status").notNull().default("in-progress"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Services table for prescriptions and lab orders
+export const services = pgTable("services", {
+  id: serial("id").primaryKey(),
+  patientId: text("patient_id").notNull(),
+  prescribedBy: integer("prescribed_by").notNull().references(() => users.id),
+  type: text("type").notNull(), // "lab" | "pharmacy"
+  serviceCode: text("service_code"),
+  serviceName: text("service_name").notNull(),
+  dosage: text("dosage"),
+  frequency: text("frequency"),
+  duration: text("duration"),
+  instructions: text("instructions"),
+  status: text("status").notNull().default("active"),
+  durationDays: integer("duration_days").default(180),
+  expiresAt: timestamp("expires_at"),
+  dispensedAt: timestamp("dispensed_at"),
+  dispensedBy: integer("dispensed_by").references(() => users.id),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 // Insurance Schemes

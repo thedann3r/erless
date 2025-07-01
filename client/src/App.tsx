@@ -45,6 +45,7 @@ import DebtorsDashboard from "@/pages/debtors-dashboard";
 import DirectDebtorsLogin from "@/pages/direct-debtors-login";
 import SimpleDebtorsDashboard from "@/pages/simple-debtors-dashboard";
 import DebtorsVerificationAudit from "@/pages/debtors-verification-audit";
+import DoctorConsultation from "@/pages/doctor-consultation";
 
 function Router() {
   return (
@@ -98,6 +99,7 @@ function Router() {
       
       {/* Legacy redirects */}
       <ProtectedRoute path="/pharmacy-dashboard" component={ModernPharmacyDashboard} />
+      <ProtectedRoute path="/doctor-consultation" component={DoctorConsultation} />
       <Route component={NotFound} />
     </Switch>
   );

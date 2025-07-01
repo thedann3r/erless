@@ -2293,6 +2293,59 @@ app.get('/api/debtors/user-premium-status', requireAuth, async (req, res) => {
   }
 });
 
+  // Consultation endpoints
+  app.post('/api/consultations', async (req, res) => {
+    try {
+      const consultation = await storage.createConsultation(req.body);
+      res.json(consultation);
+    } catch (error) {
+      console.error('Error creating consultation:', error);
+      res.status(500).json({ message: 'Failed to create consultation' });
+    }
+  });
+
+  app.get('/api/consultations/patient/:patientId', async (req, res) => {
+    try {
+      const consultation = await storage.getConsultationByPatient(req.params.patientId);
+      res.json(consultation);
+    } catch (error) {
+      console.error('Error fetching consultation:', error);
+      res.status(500).json({ message: 'Failed to fetch consultation' });
+    }
+  });
+
+  // Services endpoints
+  app.post('/api/services', async (req, res) => {
+    try {
+      const service = await storage.createService(req.body);
+      res.json(service);
+    } catch (error) {
+      console.error('Error creating service:', error);
+      res.status(500).json({ message: 'Failed to create service' });
+    }
+  });
+
+  app.get('/api/services/patient/:patientId', async (req, res) => {
+    try {
+      const services = await storage.getServicesByPatient(req.params.patientId);
+      res.json(services);
+    } catch (error) {
+      console.error('Error fetching services:', error);
+      res.status(500).json({ message: 'Failed to fetch services' });
+    }
+  });
+
+  app.get('/api/services/patient/:patientId/:type', async (req, res) => {
+    try {
+      const { patientId, type } = req.params;
+      const services = await storage.getActiveServicesByType(patientId, type as 'lab' | 'pharmacy');
+      res.json(services);
+    } catch (error) {
+      console.error('Error fetching services by type:', error);
+      res.status(500).json({ message: 'Failed to fetch services' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

@@ -2,6 +2,7 @@ import {
   users, patients, claims, providers, benefits, dependents, 
   preauthorizations, prescriptions, fraudAlerts, auditLogs,
   careProviders, insurancePolicies, onboardingAudits, sampleClaimFlows,
+  consultations, services,
   type User, type InsertUser, type Patient, type InsertPatient,
   type Claim, type InsertClaim, type Provider, type Benefit,
   type Dependent, type Preauthorization, type InsertPreauthorization,
