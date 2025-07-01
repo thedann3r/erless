@@ -94,6 +94,7 @@ export const patients = pgTable("patients", {
   memberSince: timestamp("member_since").notNull(),
   isActive: boolean("is_active").default(true).notNull(),
   biometricHash: text("biometric_hash"), // Simulated fingerprint hash
+  fingerprintId: text("fingerprint_id").unique(), // Enhanced biometric tracking
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

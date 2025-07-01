@@ -390,7 +390,7 @@ function ClaimDetailsModal({
                 <div className="text-right">
                   <div className="flex items-center gap-2 mb-1">
                     {getStatusIcon(service.status)}
-                    <Badge className={getStatusColor(service.status)} size="sm">
+                    <Badge className={getStatusColor(service.status)}>
                       {service.status.toUpperCase()}
                     </Badge>
                   </div>

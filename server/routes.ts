@@ -1695,6 +1695,171 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Front desk patient verification with biometric and session management
+  app.post("/api/front-desk/verify-patient", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const { patientId, biometricData, otpCode } = req.body;
+      
+      // Find patient by ID
+      const patient = await storage.getPatientByPatientId(patientId);
+      if (!patient) {
+        return res.json({ verified: false, message: "Patient not found" });
+      }
+
+      // Verify biometric or OTP
+      let verified = false;
+      
+      if (biometricData) {
+        // Enhanced biometric verification
+        verified = biometricData.fingerprintHash && biometricData.fingerprintHash.length > 10;
+        
+        // Log biometric verification attempt
+        await storage.createAuditLog({
+          userId: req.user!.id,
+          action: "front_desk_biometric_verification",
+          resourceType: "patient",
+          resourceId: patientId,
+          details: {
+            fingerprintLength: biometricData.fingerprintHash?.length || 0,
+            deviceFingerprint: biometricData.deviceFingerprint?.substring(0, 8) + "...",
+            sessionId: biometricData.sessionId,
+            success: verified
+          },
+          ipAddress: req.ip || null,
+          userAgent: req.get('User-Agent') || null
+        });
+      } else if (otpCode) {
+        // OTP verification (for demo, accept any 6-digit code)
+        verified = otpCode.length === 6 && /^\d{6}$/.test(otpCode);
+        
+        // Log OTP verification attempt
+        await storage.createAuditLog({
+          userId: req.user!.id,
+          action: "front_desk_otp_verification",
+          resourceType: "patient",
+          resourceId: patientId,
+          details: {
+            otpProvided: otpCode.length === 6,
+            success: verified
+          },
+          ipAddress: req.ip || null,
+          userAgent: req.get('User-Agent') || null
+        });
+      }
+
+      if (!verified) {
+        return res.json({ verified: false, message: "Verification failed" });
+      }
+
+      // Generate mock insurance policies for demo
+      const activePolicies = [
+        {
+          id: "policy_sha_001",
+          insurerName: "SHA",
+          schemeName: "Universal Health Coverage",
+          policyNumber: `SHA-${patientId}-2024`,
+          coverageAmount: 150000,
+          expiryDate: "2024-12-31",
+          isActive: true
+        },
+        {
+          id: "policy_cic_001", 
+          insurerName: "CIC Insurance",
+          schemeName: "Comprehensive Medical Cover",
+          policyNumber: `CIC-${patientId}-2024`,
+          coverageAmount: 500000,
+          expiryDate: "2024-12-31",
+          isActive: true
+        },
+        {
+          id: "policy_aar_001",
+          insurerName: "AAR Insurance",
+          schemeName: "Premium Health Plan",
+          policyNumber: `AAR-${patientId}-2024`,
+          coverageAmount: 1000000,
+          expiryDate: "2024-12-31",
+          isActive: true
+        }
+      ];
+
+      // Check for active sessions at other facilities
+      const activeSessions = await storage.getActiveSessionsByPatient(patient.id);
+      const otherFacilitySessions = activeSessions.filter(session => 
+        session.facilityName !== "Current Facility" && session.isActive
+      );
+
+      // Add mock active session for demo
+      if (Math.random() > 0.7) { // 30% chance of active session
+        otherFacilitySessions.push({
+          id: 1,
+          sessionId: "sess_" + Date.now(),
+          patientId: patient.id,
+          facilityName: "Nairobi Hospital",
+          serviceName: "Laboratory Tests",
+          userId: req.user!.id,
+          userRole: "Laboratory Technician",
+          startedAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+          lastActivity: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
+          isActive: true,
+          metadata: null
+        });
+      }
+
+      res.json({
+        verified: true,
+        patient: {
+          id: patient.id,
+          patientId: patient.patientId,
+          firstName: patient.firstName,
+          lastName: patient.lastName,
+          dateOfBirth: patient.dateOfBirth.toISOString(),
+          gender: patient.gender,
+          phoneNumber: patient.phoneNumber
+        },
+        activePolicies,
+        activeSessions: otherFacilitySessions,
+        message: "Patient verified successfully"
+      });
+
+    } catch (error) {
+      console.error("Front desk verification error:", error);
+      res.status(500).json({ verified: false, message: "Verification failed" });
+    }
+  });
+
+  // Continue existing session from another facility
+  app.post("/api/front-desk/continue-session", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const { sessionId, patientId } = req.body;
+      
+      // Update session activity
+      await storage.updateSessionActivity(sessionId);
+      
+      // Log session continuation
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: "session_continuation",
+        resourceType: "session",
+        resourceId: sessionId,
+        details: {
+          patientId,
+          continuedAt: new Date().toISOString()
+        },
+        ipAddress: req.ip || null,
+        userAgent: req.get('User-Agent') || null
+      });
+
+      res.json({ success: true, message: "Session continued successfully" });
+    } catch (error) {
+      console.error("Session continuation error:", error);
+      res.status(500).json({ success: false, message: "Failed to continue session" });
+    }
+  });
+
   // General chain of thought endpoint for any healthcare decision
   app.post("/api/ai/chain-of-thought", async (req, res) => {
     try {

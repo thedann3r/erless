@@ -7,7 +7,21 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Fingerprint, Shield, CheckCircle, AlertTriangle, Loader2, Building2 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useMutation } from "@tanstack/react-query";
-import { biometricService } from "@/utils/fingerprint";
+// Temporary mock biometric service until fingerprint.ts is created
+const mockBiometricService = {
+  async simulateFingerprintScan(patientId: string) {
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    return {
+      fingerprintHash: `fp_${patientId}_${Date.now()}`,
+      deviceFingerprint: `device_${Date.now()}`,
+      timestamp: Date.now(),
+      sessionId: `session_${Date.now()}`
+    };
+  },
+  async storeBiometricData(patientId: string, data: any) {
+    localStorage.setItem(`biometric_${patientId}`, JSON.stringify(data));
+  }
+};
 
 interface InsurancePolicy {
   id: number;
@@ -139,7 +153,7 @@ export function BiometricVerification({ patientId, onVerificationSuccess, onVeri
 
     try {
       // Generate realistic biometric scan
-      const biometricData = await biometricService.simulateFingerprintScan(patientId);
+      const biometricData = await mockBiometricService.simulateFingerprintScan(patientId);
       
       // Simulate progressive scanning with realistic steps
       const progressInterval = setInterval(() => {
@@ -166,7 +180,7 @@ export function BiometricVerification({ patientId, onVerificationSuccess, onVeri
       });
 
       // Store biometric data for this session
-      await biometricService.storeBiometricData(patientId, biometricData);
+      await mockBiometricService.storeBiometricData(patientId, biometricData);
       
       // Verify patient and get active policies
       const response = await fetch(`/api/verify-patient/${patientId}`, {
