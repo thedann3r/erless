@@ -24,12 +24,12 @@
   --ring: 180 42% 35%;
   --radius: 1rem; /* Modern rounded corners */
   
-  /* Custom Erlessed colors */
-  --teal-primary: 180 42% 35%; /* #2D7A70 */
-  --teal-secondary: 180 33% 65%; /* #7DCDC4 */
-  --teal-dark: 180 52% 25%; /* #1B5E5A */
+  /* Custom Erlessed colors - matching logo */
+  --erlessed-dark-teal: 173 44% 27%; /* #265651 - dark teal from logo */
+  --erlessed-light-teal: 172 42% 62%; /* #6BBDB4 - light teal from logo */
+  --erlessed-accent: 172 35% 75%; /* #9BCCC6 - lighter accent */
   --surface: 180 30% 98%; /* #F8FAFA */
-  --medical-blue: 217 91% 60%; /* #3B82F6 */
+  --medical-cross: 0 0% 100%; /* #FFFFFF - white cross accent */
   --clinical-gray: 210 20% 98%; /* #F8FAFC */
 }
 

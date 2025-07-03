@@ -42,7 +42,7 @@ function Sidebar({ user }: { user: any }) {
   return (
     <div className="w-64 bg-[#0a0a2e] border-r border-[#1a1a5e] p-6 h-screen flex flex-col">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#14B8A6] to-[#3B82F6]">
+        <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#265651] to-[#6BBDB4]">
           Erlessed
         </h1>
         <p className="text-sm text-gray-400 mt-1">Doctor Portal</p>
@@ -51,9 +51,9 @@ function Sidebar({ user }: { user: any }) {
       <div className="mb-8 p-4 bg-[#1a1150] rounded-lg border border-[#2a1a5e]">
         <p className="text-sm text-gray-400">Logged in as</p>
         <p className="font-semibold text-white">{user.name}</p>
-        <p className="text-xs text-[#14B8A6] mt-1 capitalize">{user.role}</p>
+        <p className="text-xs text-[#6BBDB4] mt-1 capitalize">{user.role}</p>
         {user.isPremium && (
-          <span className="inline-block mt-2 px-2 py-1 text-xs bg-gradient-to-r from-[#14B8A6] to-[#3B82F6] rounded-full">
+          <span className="inline-block mt-2 px-2 py-1 text-xs bg-gradient-to-r from-[#265651] to-[#6BBDB4] rounded-full text-white">
             Premium
           </span>
         )}
@@ -70,7 +70,7 @@ function Sidebar({ user }: { user: any }) {
                 className={cn(
                   "flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 cursor-pointer",
                   isActive
-                    ? "bg-gradient-to-r from-[#14B8A6]/20 to-[#3B82F6]/20 text-white border border-[#14B8A6]/30"
+                    ? "bg-gradient-to-r from-[#265651]/20 to-[#6BBDB4]/20 text-white border border-[#6BBDB4]/30"
                     : "text-gray-400 hover:text-white hover:bg-[#1a1150]"
                 )}
               >
@@ -224,7 +224,7 @@ function RecentClaims() {
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-white">Patient Queue</CardTitle>
-          <Button variant="ghost" size="sm" className="text-[#14B8A6] hover:text-[#14B8A6]/80">
+          <Button variant="ghost" size="sm" className="text-[#6BBDB4] hover:text-[#6BBDB4]/80">
             View All
             <ChevronRight className="w-4 h-4 ml-1" />
           </Button>
@@ -320,7 +320,7 @@ function QuickActions({ user }: { user: any }) {
                       <Icon className="w-6 h-6 text-white" />
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-medium text-white group-hover:text-[#14B8A6] transition-colors">
+                      <h4 className="font-medium text-white group-hover:text-[#6BBDB4] transition-colors">
                         {action.label}
                       </h4>
                       <p className="text-sm text-gray-400 mt-1">
