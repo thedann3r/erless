@@ -71,13 +71,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setTimeout(() => {
         // Redirect based on user role
         const roleDashboards: Record<string, string> = {
-          doctor: "/doctor",
-          pharmacy: "/pharmacy-dashboard", 
-          pharmacist: "/pharmacy-dashboard",
-          "care-manager": "/care-manager-dashboard",
-          insurer: "/insurer",
-          patient: "/patient",
-          admin: "/admin",
+          doctor: "/modern-doctor",
+          pharmacy: "/modern-pharmacy", 
+          pharmacist: "/modern-pharmacy",
+          "care-manager": "/modern-care-manager",
+          insurer: "/modern-insurer",
+          patient: "/modern-patient",
+          admin: "/modern-admin",
           debtors: "/debtors-dashboard"
         };
         
