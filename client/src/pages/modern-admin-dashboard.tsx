@@ -70,9 +70,9 @@ function Sidebar({ user }: { user: any }) {
           
           return (
             <Link key={item.path} href={item.path}>
-              <a
+              <div
                 className={cn(
-                  "flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200",
+                  "flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 cursor-pointer",
                   isActive
                     ? "bg-gradient-to-r from-[#14B8A6]/20 to-[#3B82F6]/20 text-white border border-[#14B8A6]/30"
                     : "text-gray-400 hover:text-white hover:bg-[#1a1150]"
@@ -80,7 +80,7 @@ function Sidebar({ user }: { user: any }) {
               >
                 <Icon className="w-5 h-5" />
                 <span>{item.label}</span>
-              </a>
+              </div>
             </Link>
           );
         })}
@@ -319,7 +319,7 @@ function QuickActions({ user }: { user: any }) {
             
             return (
               <Link key={index} href={action.href}>
-                <a className="block p-4 rounded-lg bg-[#0a0a2e] border border-[#2a1a5e] hover:border-[#3a2a6e] transition-all group">
+                <div className="block p-4 rounded-lg bg-[#0a0a2e] border border-[#2a1a5e] hover:border-[#3a2a6e] transition-all group cursor-pointer">
                   <div className="flex items-start space-x-4">
                     <div className={`p-3 rounded-lg bg-gradient-to-r ${action.color} group-hover:scale-110 transition-transform`}>
                       <Icon className="w-6 h-6 text-white" />
@@ -333,7 +333,7 @@ function QuickActions({ user }: { user: any }) {
                       </p>
                     </div>
                   </div>
-                </a>
+                </div>
               </Link>
             );
           })}
