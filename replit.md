@@ -113,6 +113,14 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+**July 3, 2025 - Authentication & Dashboard Navigation Updates:**
+- Fixed PostgreSQL connection error by properly configuring WebSocket for Neon database in db.ts
+- Resolved session persistence issues with proper cookie configuration and serialization/deserialization
+- Reverted dashboard navigation to use initial design paths (/doctor, /pharmacy-dashboard, etc.) instead of modern versions
+- Updated auth hook and dashboard-toggle component to use original dashboard routes
+- Created test users for all roles with password "test123": testuser/admin, doctor1, pharmacist1, frontoffice1, debtors1, caremanager1, insurer1
+- Verified authentication flow works correctly with session cookies and proper role-based redirects
+
 **June 18, 2025 - Comprehensive 6-Role Dashboard System Implementation:**
 - **Doctor/Clinician Dashboard** (/doctor): Patient queue with triage vitals, consultation workflow with ICD-10 AI suggestions, smart prescription builder with safety validation, lab order forms with preauthorization status, fingerprint/OTP sign-off capability
 - **Pharmacy Dashboard** (/pharmacy-dashboard): Prescription validation with drug interaction checks, benefit tracking and depletion warnings, medication dispensing workflow, preauthorization validation, real-time copay calculation

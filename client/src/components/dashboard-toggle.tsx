@@ -39,7 +39,7 @@ interface DashboardOption {
 
 const dashboardOptions: DashboardOption[] = [
   {
-    path: "/modern-doctor",
+    path: "/doctor",
     label: "Doctor Dashboard",
     icon: Stethoscope,
     description: "Patient queue, consultations, diagnosis support",
@@ -47,7 +47,7 @@ const dashboardOptions: DashboardOption[] = [
     color: "bg-blue-100 text-blue-700 border-blue-200"
   },
   {
-    path: "/modern-pharmacy",
+    path: "/pharmacy-dashboard",
     label: "Pharmacy Dashboard", 
     icon: Pill,
     description: "Prescription validation, dispensing, safety checks",
@@ -55,7 +55,7 @@ const dashboardOptions: DashboardOption[] = [
     color: "bg-green-100 text-green-700 border-green-200"
   },
   {
-    path: "/modern-care-manager",
+    path: "/care-manager-dashboard",
     label: "Care Manager Dashboard",
     icon: Users,
     description: "Claims oversight, fraud detection, analytics",
@@ -63,7 +63,7 @@ const dashboardOptions: DashboardOption[] = [
     color: "bg-purple-100 text-purple-700 border-purple-200"
   },
   {
-    path: "/modern-insurer",
+    path: "/insurer",
     label: "Insurer Dashboard",
     icon: Shield,
     description: "Preauthorizations, claims review, risk assessment",
@@ -71,7 +71,7 @@ const dashboardOptions: DashboardOption[] = [
     color: "bg-orange-100 text-orange-700 border-orange-200"
   },
   {
-    path: "/modern-patient",
+    path: "/patient",
     label: "Patient Portal",
     icon: User,
     description: "Claims history, benefits, appointments",
@@ -79,7 +79,7 @@ const dashboardOptions: DashboardOption[] = [
     color: "bg-teal-100 text-teal-700 border-teal-200"
   },
   {
-    path: "/modern-admin",
+    path: "/admin",
     label: "Admin Dashboard",
     icon: Settings,
     description: "System management, user control, configuration",
@@ -87,7 +87,7 @@ const dashboardOptions: DashboardOption[] = [
     color: "bg-red-100 text-red-700 border-red-200"
   },
   {
-    path: "/modern-front-office",
+    path: "/front-office",
     label: "Front Office",
     icon: Calendar,
     description: "Patient registration, appointments, walk-ins",

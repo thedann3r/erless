@@ -99,6 +99,17 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Debug session endpoint
+  app.get("/api/debug-session", (req, res) => {
+    res.json({
+      sessionID: req.sessionID,
+      session: req.session,
+      cookies: req.headers.cookie,
+      isAuthenticated: req.isAuthenticated(),
+      user: req.user
+    });
+  });
+
   // Claims routes
   app.get("/api/claims", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);

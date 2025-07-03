@@ -56,23 +56,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       return response.json();
     },
-    onSuccess: (userData) => {
-      // Invalidate and refetch user data
-      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+    onSuccess: async (userData) => {
+      // Set the user data immediately
       queryClient.setQueryData(["/api/user"], userData);
       updateActivity();
+      
+      // Wait a moment then refetch to ensure session is established
+      setTimeout(async () => {
+        await queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+        await queryClient.refetchQueries({ queryKey: ["/api/user"] });
+      }, 100);
       
       // Small delay to ensure session is properly established
       setTimeout(() => {
         // Redirect based on user role
         const roleDashboards: Record<string, string> = {
-          doctor: "/modern-doctor",
-          pharmacy: "/modern-pharmacy", 
-          pharmacist: "/modern-pharmacy",
-          "care-manager": "/modern-care-manager",
-          insurer: "/modern-insurer",
-          patient: "/modern-patient",
-          admin: "/modern-admin",
+          doctor: "/doctor",
+          pharmacy: "/pharmacy-dashboard", 
+          pharmacist: "/pharmacy-dashboard",
+          "care-manager": "/care-manager-dashboard",
+          insurer: "/insurer",
+          patient: "/patient",
+          admin: "/admin",
           debtors: "/debtors-dashboard"
         };
         
