@@ -33,16 +33,17 @@ export function setupAuth(app: Express) {
   
   const sessionSettings: session.SessionOptions = {
     secret: sessionSecret,
-    resave: true,
+    resave: false,
     saveUninitialized: false,
     store: storage.sessionStore,
-    name: 'erlessed.sid',
+    name: 'connect.sid',
     rolling: true,
     cookie: {
-      secure: false, // Set to true in production with HTTPS
+      secure: process.env.NODE_ENV === 'production',
       httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      sameSite: 'lax' as const
+      sameSite: 'lax' as const,
+      path: '/'
     },
   };
 
@@ -153,25 +154,26 @@ export function setupAuth(app: Express) {
         
         console.log("Session after login:", req.session.passport);
         
-        // Force session save
+        // Force session save and then send response
         req.session.save((saveErr) => {
           if (saveErr) {
             console.error("Session save error:", saveErr);
-          } else {
-            console.log("Session saved successfully");
+            return res.status(500).json({ message: "Session save failed" });
           }
-        });
-        
-        // Update last login time (optional)
-        // storage.updateLastLogin(user.id).catch(console.error);
-        
-        res.status(200).json({
-          id: user.id,
-          username: user.username,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-          department: user.department
+          
+          console.log("Session saved successfully");
+          
+          // Update last login time (optional)
+          // storage.updateLastLogin(user.id).catch(console.error);
+          
+          res.status(200).json({
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+            department: user.department
+          });
         });
       });
     })(req, res, next);
