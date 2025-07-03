@@ -34,7 +34,7 @@ import ModernPharmacyDashboard from "@/pages/modern-pharmacy-dashboard";
 import ModernCareManagerDashboard from "@/pages/modern-care-manager";
 import ModernInsurerDashboard from "@/pages/modern-insurer-dashboard";
 import ModernPatientDashboard from "@/pages/modern-patient-dashboard";
-import ModernAdminDashboard from "@/pages/modern-admin";
+import ModernAdminDashboard from "@/pages/modern-admin-dashboard";
 import ModernFrontOfficeDashboard from "@/pages/modern-front-office-dashboard";
 import OnboardingManagement from "@/pages/onboarding-management";
 import SupportDashboard from "@/pages/support-dashboard";
@@ -91,7 +91,7 @@ function Router() {
       <ProtectedRoute path="/modern-care-manager" component={ModernCareManagerDashboard} />
       <ProtectedRoute path="/modern-insurer" component={ModernInsurerDashboard} />
       <ProtectedRoute path="/modern-patient" component={ModernPatientDashboard} />
-      <Route path="/modern-admin" component={ModernAdminDashboard} />
+      <ProtectedRoute path="/modern-admin" component={ModernAdminDashboard} />
       <ProtectedRoute path="/modern-front-office" component={ModernFrontOfficeDashboard} />
       <Route path="/debtors-dashboard" component={DebtorsDashboard} />
       <Route path="/simple-debtors-dashboard" component={SimpleDebtorsDashboard} />
