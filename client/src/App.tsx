@@ -41,7 +41,7 @@ import SupportDashboard from "@/pages/support-dashboard";
 import MobileFieldWorker from "@/pages/mobile-field-worker";
 import MobilePatientPortal from "@/pages/mobile-patient-portal";
 import EnhancedSignup from "@/pages/enhanced-signup";
-import DebtorsDashboard from "@/pages/debtors-dashboard";
+import DebtorsDashboard from "@/pages/debtors-dashboard-light";
 import DirectDebtorsLogin from "@/pages/direct-debtors-login";
 import SimpleDebtorsDashboard from "@/pages/simple-debtors-dashboard";
 import DebtorsVerificationAudit from "@/pages/debtors-verification-audit";
