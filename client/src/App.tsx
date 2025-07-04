@@ -46,6 +46,7 @@ import DirectDebtorsLogin from "@/pages/direct-debtors-login";
 import SimpleDebtorsDashboard from "@/pages/simple-debtors-dashboard";
 import DebtorsVerificationAudit from "@/pages/debtors-verification-audit";
 import DoctorConsultation from "@/pages/doctor-consultation";
+import FocusedClaims from "@/pages/focused-claims";
 
 function Router() {
   return (
@@ -100,6 +101,10 @@ function Router() {
       {/* Legacy redirects */}
       <ProtectedRoute path="/pharmacy-dashboard" component={ModernPharmacyDashboard} />
       <ProtectedRoute path="/doctor-consultation" component={DoctorConsultation} />
+      
+      {/* Focused Claims Interface */}
+      <Route path="/focused-claims" component={FocusedClaims} />
+      
       <Route component={NotFound} />
     </Switch>
   );
