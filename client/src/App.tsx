@@ -34,7 +34,7 @@ import ModernPharmacyDashboard from "@/pages/modern-pharmacy-dashboard";
 import ModernCareManagerDashboard from "@/pages/modern-care-manager";
 import ModernInsurerDashboard from "@/pages/modern-insurer-dashboard";
 import ModernPatientDashboard from "@/pages/modern-patient-dashboard";
-import ModernAdminDashboard from "@/pages/modern-admin-dashboard";
+import ModernAdminDashboard from "@/pages/modern-admin-dashboard-light";
 import ModernFrontOfficeDashboard from "@/pages/modern-front-office-dashboard";
 import OnboardingManagement from "@/pages/onboarding-management";
 import SupportDashboard from "@/pages/support-dashboard";

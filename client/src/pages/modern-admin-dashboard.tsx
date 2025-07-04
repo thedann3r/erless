@@ -354,7 +354,7 @@ export default function ModernAdminDashboard() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-[#0e0d3c] via-[#1b1150] to-[#2a1a5e] text-white">
+    <div className="flex min-h-screen bg-gradient-to-br from-[#e8f5f0] via-[#f0faf7] to-[#d1e7e0] text-gray-900">
       <Sidebar user={dashboardUser} />
       <main className="flex-1 p-6 space-y-6 overflow-y-auto">
         <WelcomeCard user={dashboardUser} />
