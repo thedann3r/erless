@@ -279,10 +279,8 @@ export default function ModernAuthPage() {
                 <div className="text-center space-y-2">
                   <p className="text-sm text-gray-600">
                     Don't have an account?{" "}
-                    <Link href="/signup">
-                      <a className="text-primary hover:underline font-medium">
-                        Sign up here
-                      </a>
+                    <Link href="/signup" className="text-primary hover:underline font-medium">
+                      Sign up here
                     </Link>
                   </p>
                   <p className="text-xs text-gray-500">
