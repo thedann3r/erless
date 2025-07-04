@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/use-auth";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import {
   Users,
   Calendar,
@@ -29,6 +29,8 @@ import { cn } from "@/lib/utils";
 // Sidebar Component with light theme
 function Sidebar({ user }: { user: any }) {
   const [activeItem, setActiveItem] = useState("dashboard");
+  const { logout } = useAuth();
+  const [, setLocation] = useLocation();
   
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: Home, href: "/modern-doctor" },
@@ -90,7 +92,14 @@ function Sidebar({ user }: { user: any }) {
 
       {/* Logout Button */}
       <div className="p-4 border-t border-gray-200">
-        <Button variant="ghost" className="w-full justify-start text-gray-700 hover:text-[#265651] hover:bg-gray-100">
+        <Button 
+          variant="ghost" 
+          className="w-full justify-start text-gray-700 hover:text-[#265651] hover:bg-gray-100"
+          onClick={async () => {
+            await logout();
+            setLocation("/modern-auth");
+          }}
+        >
           <LogOut className="w-4 h-4 mr-2" />
           Logout
         </Button>
