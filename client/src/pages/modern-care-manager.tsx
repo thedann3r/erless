@@ -197,7 +197,7 @@ export default function ModernCareManagerDashboard() {
                 <SelectItem value="1year">1 Year</SelectItem>
               </SelectContent>
             </Select>
-            <Button className="bg-teal-600 hover:bg-teal-700">
+            <Button className="bg-[#265651] hover:bg-[#265651]/90">
               <Download className="h-4 w-4 mr-2" />
               Export Report
             </Button>
@@ -267,7 +267,7 @@ export default function ModernCareManagerDashboard() {
             <TabsTrigger value="benchmarks">Provider Benchmarks</TabsTrigger>
             <TabsTrigger value="analytics">
               Premium Analytics
-              <Badge className="ml-2 bg-teal-100 text-teal-800">Premium</Badge>
+              <Badge className="ml-2 bg-[#6BBDB4]/20 text-[#265651]">Premium</Badge>
             </TabsTrigger>
           </TabsList>
 
@@ -346,7 +346,7 @@ export default function ModernCareManagerDashboard() {
                         <TableCell>
                           <div className="flex flex-wrap gap-1">
                             {claim.flags.map((flag, index) => (
-                              <Badge key={index} variant="outline" className="text-xs">
+                              <Badge key={index} variant="outline" className="text-xs border-[#6BBDB4] text-[#265651]">
                                 {flag}
                               </Badge>
                             ))}
@@ -577,7 +577,7 @@ export default function ModernCareManagerDashboard() {
                     <CardTitle className="flex items-center space-x-2">
                       <Clock className="h-5 w-5 text-teal-600" />
                       <span>Survival Rate Analytics & Outcomes</span>
-                      <Badge className="bg-teal-100 text-teal-800">Premium</Badge>
+                      <Badge className="bg-[#6BBDB4]/20 text-[#265651]">Premium</Badge>
                     </CardTitle>
                     <CardDescription>
                       Advanced outcomes tracking and predictive analytics
@@ -612,7 +612,7 @@ export default function ModernCareManagerDashboard() {
                   <p className="text-gray-600 mb-6">
                     Unlock advanced analytics including real-time cost visibility, procedure referral analysis, and survival rate tracking.
                   </p>
-                  <Button className="bg-teal-600 hover:bg-teal-700">
+                  <Button className="bg-[#265651] hover:bg-[#265651]/90">
                     Upgrade to Premium
                   </Button>
                 </CardContent>

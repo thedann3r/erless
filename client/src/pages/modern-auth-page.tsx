@@ -83,7 +83,7 @@ export default function ModernAuthPage() {
       description: "Advanced decision support tools for healthcare providers"
     },
     {
-      icon: <Shield className="h-6 w-6 text-blue-600" />,
+      icon: <Shield className="h-6 w-6 text-[#265651]" />,
       title: "Secure Claims Processing",
       description: "End-to-end encryption and compliance with healthcare standards"
     },
@@ -107,7 +107,7 @@ export default function ModernAuthPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-50 via-white to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-[#6BBDB4]/10 via-white to-[#265651]/10">
       <div className="container mx-auto flex min-h-screen">
         {/* Left Panel - Branding & Features */}
         <div className="hidden lg:flex lg:w-1/2 flex-col justify-center p-12">
