@@ -8,6 +8,7 @@ import { createClient } from "redis";
 import { RedisStore } from "rate-limit-redis";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { connectMongoDB } from "./mongodb";
 
 const app = express();
 
@@ -214,6 +215,14 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Initialize MongoDB for biometric data (non-blocking)
+  connectMongoDB().then(() => {
+    log('MongoDB connected successfully for biometric storage');
+  }).catch((error) => {
+    log('MongoDB connection failed - biometric features will be unavailable');
+    console.error('MongoDB Error:', error);
+  });
+
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

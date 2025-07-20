@@ -47,6 +47,7 @@ import SimpleDebtorsDashboard from "@/pages/simple-debtors-dashboard";
 import DebtorsVerificationAudit from "@/pages/debtors-verification-audit";
 import DoctorConsultation from "@/pages/doctor-consultation";
 import FocusedClaims from "@/pages/focused-claims";
+import BiometricDemo from "@/pages/biometric-demo";
 
 function Router() {
   return (
@@ -104,6 +105,9 @@ function Router() {
       
       {/* Focused Claims Interface */}
       <Route path="/focused-claims" component={FocusedClaims} />
+      
+      {/* Biometric Demo */}
+      <ProtectedRoute path="/biometric-demo" component={BiometricDemo} />
       
       <Route component={NotFound} />
     </Switch>

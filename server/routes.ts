@@ -853,6 +853,143 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // =================
+  // BIOMETRIC API ROUTES
+  // =================
+  
+  // Import biometric service only when needed
+  const getBiometricService = async () => {
+    try {
+      const { biometricService } = await import('./biometric-service');
+      return biometricService;
+    } catch (error) {
+      throw new Error('Biometric service unavailable - MongoDB not connected');
+    }
+  };
+  
+  // Middleware for biometric authentication
+  const requireBiometricAuth = (req: any, res: any, next: any) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+    next();
+  };
+
+  // Check if fingerprint exists for patient
+  app.get("/api/biometric/exists/:patientId", requireAuth, async (req, res) => {
+    try {
+      const { patientId } = req.params;
+      const biometricService = await getBiometricService();
+      const exists = await biometricService.checkFingerprintExists(patientId);
+      
+      res.json({ exists, patientId });
+    } catch (error) {
+      console.error("Biometric exists check error:", error);
+      res.status(503).json({ error: "Biometric service unavailable" });
+    }
+  });
+
+  // Register new fingerprint
+  app.post("/api/biometric/register", requireAuth, async (req, res) => {
+    try {
+      const { patientId, fingerprintData, deviceId } = req.body;
+      const userId = req.user.id.toString();
+      const ipAddress = req.ip || req.connection.remoteAddress || 'unknown';
+      const userAgent = req.get('User-Agent') || 'unknown';
+
+      if (!patientId || !fingerprintData) {
+        return res.status(400).json({ error: "Patient ID and fingerprint data are required" });
+      }
+
+      const biometricService = await getBiometricService();
+      const result = await biometricService.registerFingerprint(
+        patientId,
+        fingerprintData,
+        userId,
+        deviceId || 'web-browser',
+        ipAddress,
+        userAgent
+      );
+
+      if (result.success) {
+        res.json({ 
+          success: true, 
+          message: "Fingerprint registered successfully",
+          fingerprintId: result.fingerprintId 
+        });
+      } else {
+        res.status(400).json({ error: result.error });
+      }
+    } catch (error) {
+      console.error("Biometric registration error:", error);
+      res.status(503).json({ error: "Biometric service unavailable" });
+    }
+  });
+
+  // Verify fingerprint
+  app.post("/api/biometric/verify", requireAuth, async (req, res) => {
+    try {
+      const { patientId, fingerprintData, deviceId } = req.body;
+      const userId = req.user.id.toString();
+      const userRole = req.user.role || 'unknown';
+      const ipAddress = req.ip || req.connection.remoteAddress || 'unknown';
+      const userAgent = req.get('User-Agent') || 'unknown';
+
+      if (!patientId || !fingerprintData) {
+        return res.status(400).json({ error: "Patient ID and fingerprint data are required" });
+      }
+
+      const biometricService = await getBiometricService();
+      const result = await biometricService.verifyFingerprint(
+        patientId,
+        fingerprintData,
+        userId,
+        userRole,
+        deviceId || 'web-browser',
+        ipAddress,
+        userAgent
+      );
+
+      if (result.success) {
+        // Generate biometric token for subsequent actions
+        const biometricToken = biometricService.generateBiometricToken(userId, userRole, 'verified');
+        
+        res.json({ 
+          success: true, 
+          message: "Fingerprint verified successfully",
+          verificationScore: result.verificationScore,
+          biometricToken 
+        });
+      } else {
+        res.status(400).json({ 
+          error: result.error,
+          verificationScore: result.verificationScore 
+        });
+      }
+    } catch (error) {
+      console.error("Biometric verification error:", error);
+      res.status(503).json({ error: "Biometric service unavailable" });
+    }
+  });
+
+  // Get fingerprint info (without sensitive data)
+  app.get("/api/biometric/info/:patientId", requireAuth, async (req, res) => {
+    try {
+      const { patientId } = req.params;
+      const biometricService = await getBiometricService();
+      const info = await biometricService.getFingerprintInfo(patientId);
+      
+      if (info) {
+        res.json({ info });
+      } else {
+        res.json({ info: null, message: "No fingerprint registered for this patient" });
+      }
+    } catch (error) {
+      console.error("Biometric info error:", error);
+      res.status(503).json({ error: "Biometric service unavailable" });
+    }
+  });
+
   // Advanced Analytics and Prognosis API
   app.get("/api/analytics/prognosis-models", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
