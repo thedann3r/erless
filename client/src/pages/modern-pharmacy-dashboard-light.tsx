@@ -215,6 +215,7 @@ function QuickStats({ user }: { user: any }) {
 
 // Recent Prescriptions Component
 function RecentPrescriptions() {
+  const [, setLocation] = useLocation();
   const prescriptions = [
     {
       id: "RX-2024-001",
@@ -258,7 +259,12 @@ function RecentPrescriptions() {
     <Card className="bg-white border-gray-200 shadow-sm">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-gray-900">Recent Prescriptions</CardTitle>
-        <Button variant="ghost" size="sm" className="text-[#265651] hover:text-[#265651]/80">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="text-[#265651] hover:text-[#265651]/80"
+          onClick={() => setLocation("/pharmacy")}
+        >
           View All <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       </CardHeader>
@@ -293,7 +299,11 @@ function RecentPrescriptions() {
               </div>
               <div className="text-right">
                 <p className="text-xs text-gray-500">{rx.time}</p>
-                <Button size="sm" className="mt-2 bg-[#265651] hover:bg-[#265651]/90 text-white">
+                <Button 
+                  size="sm" 
+                  className="mt-2 bg-[#265651] hover:bg-[#265651]/90 text-white"
+                  onClick={() => setLocation("/ai-preauth")}
+                >
                   Process
                 </Button>
               </div>
@@ -307,34 +317,36 @@ function RecentPrescriptions() {
 
 // Quick Actions Component
 function QuickActions({ user }: { user: any }) {
+  const [, setLocation] = useLocation();
+  
   const actions = [
     {
-      label: "Verify Patient",
+      label: "Preauthorization",
       description: "Biometric verification",
       icon: Shield,
       color: "from-[#265651] to-[#265651]/80",
-      href: "/modern-pharmacy/verify"
+      action: () => setLocation("/biometric-demo")
     },
     {
       label: "Validate Prescription",
       description: "Check drug interactions",
       icon: FileSearch,
       color: "from-[#6BBDB4] to-[#6BBDB4]/80",
-      href: "/modern-pharmacy/validate"
+      action: () => setLocation("/ai-preauth")
     },
     {
-      label: "Process Claim",
-      description: "Submit to insurer",
+      label: "Secure Claim Log",
+      description: "Blockchain anchoring",
       icon: FileText,
       color: "from-purple-500 to-purple-600",
-      href: "/modern-pharmacy/claim"
+      action: () => setLocation("/blockchain")
     },
     {
-      label: "Inventory Check",
-      description: "Stock levels & orders",
+      label: "System Analytics",
+      description: "Performance metrics",
       icon: Package,
       color: "from-orange-500 to-orange-600",
-      href: "/modern-pharmacy/inventory"
+      action: () => setLocation("/analytics")
     }
   ];
 
@@ -349,23 +361,26 @@ function QuickActions({ user }: { user: any }) {
             const Icon = action.icon;
             
             return (
-              <Link key={index} href={action.href}>
-                <div className="block p-4 rounded-lg bg-gray-50 border border-gray-200 hover:border-[#6BBDB4] hover:bg-[#6BBDB4]/5 transition-all group cursor-pointer">
-                  <div className="flex items-start space-x-4">
-                    <div className={`p-3 rounded-lg bg-gradient-to-r ${action.color} group-hover:scale-110 transition-transform`}>
-                      <Icon className="w-6 h-6 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-medium text-gray-900 group-hover:text-[#265651] transition-colors">
-                        {action.label}
-                      </h4>
-                      <p className="text-sm text-gray-600 mt-1">
-                        {action.description}
-                      </p>
-                    </div>
+              <Button
+                key={index}
+                variant="ghost"
+                onClick={action.action}
+                className="h-auto p-4 rounded-lg bg-gray-50 border border-gray-200 hover:border-[#6BBDB4] hover:bg-[#6BBDB4]/5 transition-all group"
+              >
+                <div className="flex items-start space-x-4 w-full">
+                  <div className={`p-3 rounded-lg bg-gradient-to-r ${action.color} group-hover:scale-110 transition-transform`}>
+                    <Icon className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <h4 className="font-medium text-gray-900 group-hover:text-[#265651] transition-colors">
+                      {action.label}
+                    </h4>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {action.description}
+                    </p>
                   </div>
                 </div>
-              </Link>
+              </Button>
             );
           })}
         </div>
