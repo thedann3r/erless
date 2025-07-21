@@ -15,7 +15,7 @@ import asyncio
 import httpx
 import json
 import pandas as pd
-import xml.etree.ElementTree as ET
+from defusedxml.ElementTree import fromstring as ET_fromstring
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 import aiofiles
@@ -384,7 +384,7 @@ async def process_csv_file(file_content: bytes, data_type: str) -> List[Dict]:
 async def process_xml_file(file_content: bytes, data_type: str) -> List[Dict]:
     """Process XML file and return structured data"""
     try:
-        root = ET.fromstring(file_content)
+        root = ET_fromstring(file_content)
         data = []
         
         # Basic XML parsing - customize based on your XML structure

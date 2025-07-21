@@ -292,6 +292,14 @@ Preferred communication style: Simple, everyday language.
 - Session management now properly maintains authentication state across all dashboard pages
 - Complete authentication flow: login → role-based redirect → persistent session → logout capability
 
+**July 21, 2025 - Critical XML Security Vulnerability Fix:**
+- Identified and resolved XML External Entity (XXE) injection vulnerability in HMS integration microservice
+- Replaced vulnerable xml.etree.ElementTree with secure defusedxml library for XML file processing
+- Fixed security risk in /sync/file/vitals and /sync/file/labs endpoints that process XML uploads
+- Applied minimal security patch without breaking existing functionality
+- Vulnerability could have allowed local file disclosure, SSRF attacks, and XML bomb DoS
+- Production deployment requires testing of XML file upload functionality
+
 **June 20, 2025 - Modern UI Redesign with Teal Healthcare Theme:**
 - Rebuilt entire Erlessed platform with modern, clean design using teal (#14B8A6) and healthcare blue (#3B82F6) brand colors
 - Implemented comprehensive SharedLayout component with session timer, user avatar dropdown, and role-based sidebar navigation
