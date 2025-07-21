@@ -54,7 +54,84 @@ export class BiometricService {
     return !!fingerprint;
   }
 
-  // Register new fingerprint
+  // Register individual finger
+  async registerIndividualFinger(
+    patientId: string,
+    fingerId: string,
+    fingerprintData: string,
+    registeredBy: string,
+    deviceId: string,
+    ipAddress: string,
+    userAgent: string
+  ): Promise<{ success: boolean; fingerprintId?: string; error?: string }> {
+    try {
+      // Check if this specific finger already exists
+      const existingFinger = await this.getDb()
+        .collection(collections.fingerprints)
+        .findOne({ patientId, fingerId, status: 'active' });
+
+      if (existingFinger) {
+        return { success: false, error: `${fingerId} fingerprint already exists for this patient` };
+      }
+
+      const fingerprintHash = this.generateFingerprintHash(fingerprintData);
+      const fingerprintId = `fp_${patientId}_${fingerId}_${Date.now()}`;
+
+      const fingerprintRecord: BiometricFingerprint = {
+        fingerprintId,
+        patientId,
+        fingerId,
+        fingerprintHash,
+        fingerprintData: fingerprintData.length > 1000 ? fingerprintData.substring(0, 1000) : fingerprintData,
+        deviceId,
+        registeredBy,
+        registeredAt: new Date(),
+        status: 'active',
+        metadata: {
+          ipAddress,
+          userAgent,
+          hand: fingerId.startsWith('left') ? 'left' : 'right',
+          finger: fingerId.split('_')[1] || 'unknown'
+        }
+      };
+
+      await this.getDb().collection(collections.fingerprints).insertOne(fingerprintRecord as any);
+
+      // Create audit log
+      await this.createAuditLog({
+        patientId,
+        action: 'register_individual_finger',
+        userId: registeredBy,
+        userRole: 'unknown',
+        deviceId,
+        result: 'success',
+        ipAddress,
+        userAgent,
+        metadata: { fingerId, fingerprintId }
+      });
+
+      return { success: true, fingerprintId };
+    } catch (error) {
+      console.error('Individual finger registration error:', error);
+      
+      // Create failed audit log
+      await this.createAuditLog({
+        patientId,
+        action: 'register_individual_finger',
+        userId: registeredBy,
+        userRole: 'unknown',
+        deviceId,
+        result: 'failed',
+        ipAddress,
+        userAgent,
+        metadata: { fingerId, error: error instanceof Error ? error.message : 'Unknown error' }
+      });
+
+      return { success: false, error: 'Failed to register fingerprint' };
+    }
+  }
+
+  // Register new fingerprint (legacy single fingerprint)
   async registerFingerprint(
     patientId: string,
     fingerprintData: string,
@@ -64,14 +141,266 @@ export class BiometricService {
     userAgent: string
   ): Promise<{ success: boolean; fingerprintId?: string; error?: string }> {
     try {
-      // Check if fingerprint already exists
-      const existingFingerprint = await this.getDb()
-        .collection(collections.fingerprints)
-        .findOne({ patientId, status: 'active' });
+      // For legacy compatibility, register as right thumb
+      return await this.registerIndividualFinger(
+        patientId,
+        'right_thumb',
+        fingerprintData,
+        registeredBy,
+        deviceId,
+        ipAddress,
+        userAgent
+      );
+    } catch (error) {
+      console.error('Legacy fingerprint registration error:', error);
+      return { success: false, error: 'Failed to register fingerprint' };
+    }
+  }
 
-      if (existingFingerprint) {
-        return { success: false, error: 'Fingerprint already exists for this patient' };
+  // Get all registered fingers for a patient
+  async getPatientFingerprints(patientId: string): Promise<Array<{
+    fingerId: string;
+    fingerprintId: string;
+    registeredAt: Date;
+    status: string;
+    hand: string;
+    finger: string;
+  }>> {
+    try {
+      const fingerprints = await this.getDb()
+        .collection(collections.fingerprints)
+        .find({ patientId, status: 'active' })
+        .sort({ registeredAt: -1 })
+        .toArray();
+
+      return fingerprints.map((fp: any) => ({
+        fingerId: fp.fingerId,
+        fingerprintId: fp.fingerprintId,
+        registeredAt: fp.registeredAt,
+        status: fp.status,
+        hand: fp.metadata?.hand || 'unknown',
+        finger: fp.metadata?.finger || 'unknown'
+      }));
+    } catch (error) {
+      console.error('Error getting patient fingerprints:', error);
+      return [];
+    }
+  }
+
+  // Check how many fingers are registered for patient
+  async getRegistrationCount(patientId: string): Promise<{
+    total: number;
+    leftHand: number;
+    rightHand: number;
+    fingers: string[];
+  }> {
+    try {
+      const fingerprints = await this.getPatientFingerprints(patientId);
+      
+      const leftHand = fingerprints.filter(fp => fp.hand === 'left').length;
+      const rightHand = fingerprints.filter(fp => fp.hand === 'right').length;
+      const fingers = fingerprints.map(fp => fp.fingerId);
+
+      return {
+        total: fingerprints.length,
+        leftHand,
+        rightHand,
+        fingers
+      };
+    } catch (error) {
+      console.error('Error getting registration count:', error);
+      return { total: 0, leftHand: 0, rightHand: 0, fingers: [] };
+    }
+  }
+
+  // Enhanced verification with multiple fingerprint support
+  async verifyMultipleFingerprints(
+    patientId: string,
+    fingerprintData: string,
+    userId: string,
+    userRole: string,
+    deviceId: string,
+    ipAddress: string,
+    userAgent: string
+  ): Promise<{ success: boolean; verificationScore?: number; matchedFinger?: string; error?: string }> {
+    try {
+      const fingerprintHash = this.generateFingerprintHash(fingerprintData);
+      
+      // Get all active fingerprints for patient
+      const fingerprints = await this.getDb()
+        .collection(collections.fingerprints)
+        .find({ patientId, status: 'active' })
+        .toArray();
+
+      if (fingerprints.length === 0) {
+        return { success: false, error: 'No fingerprints registered for this patient' };
       }
+
+      // Check against all registered fingerprints
+      let bestMatch = { score: 0, fingerId: '' };
+      
+      for (const fp of fingerprints) {
+        const similarity = this.calculateSimilarity(fingerprintHash, fp.fingerprintHash);
+        if (similarity > bestMatch.score) {
+          bestMatch = { score: similarity, fingerId: fp.fingerId };
+        }
+      }
+
+      const threshold = 85; // 85% similarity threshold
+      const success = bestMatch.score >= threshold;
+
+      // Create audit log
+      await this.createAuditLog({
+        patientId,
+        action: 'verify_multiple_fingerprints',
+        userId,
+        userRole,
+        deviceId,
+        result: success ? 'success' : 'failed',
+        ipAddress,
+        userAgent,
+        metadata: { 
+          verificationScore: bestMatch.score,
+          matchedFinger: success ? bestMatch.fingerId : null,
+          threshold
+        }
+      });
+
+      if (success) {
+        return { 
+          success: true, 
+          verificationScore: bestMatch.score,
+          matchedFinger: bestMatch.fingerId
+        };
+      } else {
+        return { 
+          success: false, 
+          error: `Verification failed. Best match: ${Math.round(bestMatch.score)}% (required: ${threshold}%)`,
+          verificationScore: bestMatch.score
+        };
+      }
+    } catch (error) {
+      console.error('Multi-fingerprint verification error:', error);
+      
+      // Create failed audit log
+      await this.createAuditLog({
+        patientId,
+        action: 'verify_multiple_fingerprints',
+        userId,
+        userRole,
+        deviceId,
+        result: 'failed',
+        ipAddress,
+        userAgent,
+        metadata: { error: error instanceof Error ? error.message : 'Unknown error' }
+      });
+
+      return { success: false, error: 'Verification service unavailable' };
+    }
+  }
+
+  // Original single fingerprint verification (for backward compatibility)
+  async verifyFingerprint(
+    patientId: string,
+    fingerprintData: string,
+    userId: string,
+    userRole: string,
+    deviceId: string,
+    ipAddress: string,
+    userAgent: string
+  ): Promise<{ success: boolean; verificationScore?: number; error?: string }> {
+    try {
+      const result = await this.verifyMultipleFingerprints(
+        patientId,
+        fingerprintData,
+        userId,
+        userRole,
+        deviceId,
+        ipAddress,
+        userAgent
+      );
+
+      return {
+        success: result.success,
+        verificationScore: result.verificationScore,
+        error: result.error
+      };
+    } catch (error) {
+      console.error('Legacy fingerprint verification error:', error);
+      return { success: false, error: 'Verification service unavailable' };
+    }
+  }
+
+  // Enhanced fingerprint info
+  async getEnhancedFingerprintInfo(patientId: string): Promise<{
+    registered: boolean;
+    count: number;
+    leftHand: number;
+    rightHand: number;
+    fingers: Array<{
+      fingerId: string;
+      hand: string;
+      finger: string;
+      registeredAt: Date;
+    }>;
+  } | null> {
+    try {
+      const fingerprints = await this.getPatientFingerprints(patientId);
+      
+      if (fingerprints.length === 0) {
+        return {
+          registered: false,
+          count: 0,
+          leftHand: 0,
+          rightHand: 0,
+          fingers: []
+        };
+      }
+
+      const leftHand = fingerprints.filter(fp => fp.hand === 'left').length;
+      const rightHand = fingerprints.filter(fp => fp.hand === 'right').length;
+
+      return {
+        registered: true,
+        count: fingerprints.length,
+        leftHand,
+        rightHand,
+        fingers: fingerprints.map(fp => ({
+          fingerId: fp.fingerId,
+          hand: fp.hand,
+          finger: fp.finger,
+          registeredAt: fp.registeredAt
+        }))
+      };
+    } catch (error) {
+      console.error('Error getting enhanced fingerprint info:', error);
+      return null;
+    }
+  }
+
+  // Legacy fingerprint info (for backward compatibility)
+  async getFingerprintInfo(patientId: string): Promise<any> {
+    try {
+      const enhancedInfo = await this.getEnhancedFingerprintInfo(patientId);
+      
+      if (!enhancedInfo || !enhancedInfo.registered) {
+        return null;
+      }
+
+      // Return legacy format for backward compatibility
+      const firstFingerprint = enhancedInfo.fingers[0];
+      
+      return {
+        patientId,
+        fingerprintHash: 'hash_hidden_for_security',
+        registeredBy: 'system',
+        registeredAt: firstFingerprint.registeredAt.toISOString(),
+        status: 'active'
+      };
+    } catch (error) {
+      console.error('Error getting legacy fingerprint info:', error);
+      return null;
+    }
 
       // Create fingerprint hash
       const fingerprintHash = this.generateFingerprintHash(fingerprintData);

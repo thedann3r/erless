@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BiometricVerificationFlow } from '@/components/BiometricVerificationFlow';
+import { MultiFingerprintRegistration } from '@/components/MultiFingerprintRegistration';
 import { BiometricManagement } from '@/components/BiometricManagement';
 import { BiometricScanner } from '@/components/BiometricScanner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -116,6 +117,7 @@ export default function BiometricDemo() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="verification-flow">Full Verification Flow</SelectItem>
+                    <SelectItem value="multi-register">Multi-Fingerprint Registration</SelectItem>
                     <SelectItem value="scanner-only">Scanner Component Only</SelectItem>
                     <SelectItem value="management">Biometric Management</SelectItem>
                   </SelectContent>
@@ -124,7 +126,7 @@ export default function BiometricDemo() {
             </div>
 
             <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
-              <strong>Current User:</strong> {user.firstName} {user.lastName} ({user.role}) 
+              <strong>Current User:</strong> {user.username} ({user.role}) 
               {['care_manager', 'insurer', 'admin'].includes(user.role) && (
                 <span className="ml-2 text-blue-600">• Admin Controls Available</span>
               )}
@@ -143,6 +145,21 @@ export default function BiometricDemo() {
                 onVerificationSuccess={handleVerificationSuccess}
                 onRegistrationComplete={handleRegistrationComplete}
                 redirectTo="/modern-pharmacy"
+              />
+            )}
+
+            {demoMode === 'multi-register' && (
+              <MultiFingerprintRegistration
+                patientId={selectedPatientId}
+                patientName={selectedPatientName}
+                onComplete={(results) => {
+                  console.log('Multi-fingerprint registration complete:', results);
+                  alert(`Successfully registered ${results.length} fingerprints!`);
+                }}
+                onError={(error) => {
+                  console.error('Multi-registration error:', error);
+                  alert(`Registration error: ${error}`);
+                }}
               />
             )}
 
@@ -210,7 +227,23 @@ export default function BiometricDemo() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-green-600">POST</span>
+                    <span>/api/biometric/register-finger</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-green-600">POST</span>
                     <span>/api/biometric/verify</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-green-600">POST</span>
+                    <span>/api/biometric/verify-multi</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-blue-600">GET</span>
+                    <span>/api/biometric/enhanced-info/:id</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-blue-600">GET</span>
+                    <span>/api/biometric/count/:id</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-orange-600">POST</span>

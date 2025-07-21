@@ -889,7 +889,45 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Register new fingerprint
+  // Register individual finger
+  app.post("/api/biometric/register-finger", requireAuth, async (req, res) => {
+    try {
+      const { patientId, fingerId, fingerprintData, deviceId } = req.body;
+      const userId = req.user.id.toString();
+      const ipAddress = req.ip || req.connection.remoteAddress || 'unknown';
+      const userAgent = req.get('User-Agent') || 'unknown';
+
+      if (!patientId || !fingerId || !fingerprintData) {
+        return res.status(400).json({ error: "Patient ID, finger ID, and fingerprint data are required" });
+      }
+
+      const biometricService = await getBiometricService();
+      const result = await biometricService.registerIndividualFinger(
+        patientId,
+        fingerId,
+        fingerprintData,
+        userId,
+        deviceId || 'web-browser',
+        ipAddress,
+        userAgent
+      );
+
+      if (result.success) {
+        res.json({ 
+          success: true, 
+          message: "Finger registered successfully",
+          fingerprintId: result.fingerprintId 
+        });
+      } else {
+        res.status(400).json({ error: result.error });
+      }
+    } catch (error) {
+      console.error("Individual finger registration error:", error);
+      res.status(503).json({ error: "Biometric service unavailable" });
+    }
+  });
+
+  // Register new fingerprint (legacy single fingerprint)
   app.post("/api/biometric/register", requireAuth, async (req, res) => {
     try {
       const { patientId, fingerprintData, deviceId } = req.body;
@@ -972,7 +1010,82 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Get fingerprint info (without sensitive data)
+  // Get enhanced fingerprint info
+  app.get("/api/biometric/enhanced-info/:patientId", requireAuth, async (req, res) => {
+    try {
+      const { patientId } = req.params;
+      const biometricService = await getBiometricService();
+      const info = await biometricService.getEnhancedFingerprintInfo(patientId);
+      
+      if (info) {
+        res.json({ info });
+      } else {
+        res.json({ info: null, message: "No fingerprints registered for this patient" });
+      }
+    } catch (error) {
+      console.error("Enhanced biometric info error:", error);
+      res.status(503).json({ error: "Biometric service unavailable" });
+    }
+  });
+
+  // Verify with multiple fingerprints
+  app.post("/api/biometric/verify-multi", requireAuth, async (req, res) => {
+    try {
+      const { patientId, fingerprintData, deviceId } = req.body;
+      const userId = req.user.id.toString();
+      const userRole = req.user.role || 'unknown';
+      const ipAddress = req.ip || req.connection.remoteAddress || 'unknown';
+      const userAgent = req.get('User-Agent') || 'unknown';
+
+      if (!patientId || !fingerprintData) {
+        return res.status(400).json({ error: "Patient ID and fingerprint data are required" });
+      }
+
+      const biometricService = await getBiometricService();
+      const result = await biometricService.verifyMultipleFingerprints(
+        patientId,
+        fingerprintData,
+        userId,
+        userRole,
+        deviceId || 'web-browser',
+        ipAddress,
+        userAgent
+      );
+
+      if (result.success) {
+        res.json({ 
+          success: true, 
+          message: "Fingerprint verified successfully",
+          verificationScore: result.verificationScore,
+          matchedFinger: result.matchedFinger
+        });
+      } else {
+        res.status(400).json({ 
+          error: result.error,
+          verificationScore: result.verificationScore 
+        });
+      }
+    } catch (error) {
+      console.error("Multi-fingerprint verification error:", error);
+      res.status(503).json({ error: "Biometric service unavailable" });
+    }
+  });
+
+  // Get registration count and status
+  app.get("/api/biometric/count/:patientId", requireAuth, async (req, res) => {
+    try {
+      const { patientId } = req.params;
+      const biometricService = await getBiometricService();
+      const count = await biometricService.getRegistrationCount(patientId);
+      
+      res.json({ count });
+    } catch (error) {
+      console.error("Registration count error:", error);
+      res.status(503).json({ error: "Biometric service unavailable" });
+    }
+  });
+
+  // Get fingerprint info (without sensitive data) - legacy endpoint
   app.get("/api/biometric/info/:patientId", requireAuth, async (req, res) => {
     try {
       const { patientId } = req.params;

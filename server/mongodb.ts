@@ -46,13 +46,21 @@ export const collections = {
 // Types
 export interface BiometricFingerprint {
   _id?: string;
+  fingerprintId: string;
   patientId: string;
+  fingerId: string; // e.g., 'right_thumb', 'left_index'
   fingerprintHash: string;
   fingerprintData: string; // Base64 encoded fingerprint image/data
   deviceId: string;
   registeredBy: string; // user ID who registered
   registeredAt: Date;
   status: 'active' | 'archived' | 'pending_reset';
+  metadata?: {
+    ipAddress: string;
+    userAgent: string;
+    hand: 'left' | 'right';
+    finger: string; // thumb, index, middle, ring, pinky
+  };
   resetRequests?: BiometricResetRequest[];
 }
 
