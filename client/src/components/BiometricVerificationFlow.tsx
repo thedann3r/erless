@@ -103,7 +103,7 @@ export function BiometricVerificationFlow({
                            ['register', 'verify', 'success'].indexOf(stepItem.id);
           
           return (
-            <React.Fragment key={stepItem.id}>
+            <div key={stepItem.id} className="flex items-center">
               <div className={cn(
                 "flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors",
                 isActive && "border-[#265651] bg-[#265651] text-white",
@@ -119,7 +119,7 @@ export function BiometricVerificationFlow({
                   !isCompleted && "bg-gray-300"
                 )} />
               )}
-            </React.Fragment>
+            </div>
           );
         })}
       </div>

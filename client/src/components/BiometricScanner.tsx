@@ -1,10 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
-import { Fingerprint, CheckCircle, AlertCircle, Upload, Loader2 } from 'lucide-react';
+import { Fingerprint, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface BiometricScannerProps {
@@ -27,7 +27,6 @@ export function BiometricScanner({
   const [scanResult, setScanResult] = useState<'success' | 'failed' | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [verificationScore, setVerificationScore] = useState(0);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Simulate fingerprint scanning with progressive updates
   const simulateFingerprint = async (): Promise<string> => {
@@ -97,69 +96,6 @@ export function BiometricScanner({
     } catch (error) {
       setScanResult('failed');
       const errorMsg = error instanceof Error ? error.message : 'Network error occurred';
-      setErrorMessage(errorMsg);
-      onError?.(errorMsg);
-    } finally {
-      setScanning(false);
-    }
-  };
-
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      setErrorMessage('Please upload an image file');
-      return;
-    }
-
-    try {
-      setScanning(true);
-      setScanProgress(25);
-
-      // Convert file to base64
-      const reader = new FileReader();
-      const fileData = await new Promise<string>((resolve) => {
-        reader.onload = () => resolve(reader.result as string);
-        reader.readAsDataURL(file);
-      });
-
-      setScanProgress(75);
-
-      const endpoint = mode === 'register' 
-        ? '/api/biometric/register'
-        : '/api/biometric/verify';
-
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          patientId,
-          fingerprintData: fileData,
-          deviceId: `upload_${Date.now()}`
-        })
-      });
-
-      const result = await response.json();
-      setScanProgress(100);
-
-      if (result.success) {
-        setScanResult('success');
-        if (mode === 'verify' && result.verificationScore) {
-          setVerificationScore(result.verificationScore);
-        }
-        onSuccess?.(result);
-      } else {
-        setScanResult('failed');
-        setErrorMessage(result.error || 'Biometric operation failed');
-        onError?.(result.error || 'Biometric operation failed');
-      }
-    } catch (error) {
-      setScanResult('failed');
-      const errorMsg = error instanceof Error ? error.message : 'File upload failed';
       setErrorMessage(errorMsg);
       onError?.(errorMsg);
     } finally {
@@ -276,42 +212,13 @@ export function BiometricScanner({
               </>
             )}
           </Button>
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">
-                Or
-              </span>
-            </div>
-          </div>
-
-          <Button
-            variant="outline"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={scanning}
-            className="w-full border-[#265651] text-[#265651] hover:bg-[#265651]/5"
-          >
-            <Upload className="mr-2 h-4 w-4" />
-            Upload Fingerprint Image
-          </Button>
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleFileUpload}
-            className="hidden"
-          />
         </div>
 
         {/* Instructions */}
         <div className="text-sm text-gray-600 text-center space-y-2">
           <p>
             {mode === 'register' 
-              ? 'Place your finger on the scanner or upload a fingerprint image'
+              ? 'Place your finger on the scanner to register'
               : 'Verify your identity using the same finger used during registration'
             }
           </p>
