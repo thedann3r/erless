@@ -7,9 +7,12 @@ interface User {
   id: number;
   username: string;
   email: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   role: string;
   department: string | null;
+  insurerRole?: string | null;
+  insurerCompany?: string | null;
 }
 
 interface AuthContextType {
@@ -76,6 +79,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           pharmacist: "/modern-pharmacy",
           "care-manager": "/modern-care-manager",
           insurer: "/modern-insurer",
+          claims_manager: "/insurer-claims-manager",
+          care_manager: "/insurer-care-manager",
+          insurer_admin: "/insurer-admin",
           patient: "/modern-patient",
           admin: "/modern-admin",
           debtors: "/debtors-dashboard"

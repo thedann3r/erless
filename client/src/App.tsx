@@ -36,6 +36,9 @@ import ModernInsurerDashboard from "@/pages/modern-insurer-dashboard";
 import ModernPatientDashboard from "@/pages/modern-patient-dashboard";
 import ModernAdminDashboard from "@/pages/modern-admin-dashboard-light";
 import ModernFrontOfficeDashboard from "@/pages/modern-front-office-dashboard";
+import InsurerClaimsManager from "@/pages/insurer-claims-manager";
+import InsurerCareManager from "@/pages/insurer-care-manager";
+import InsurerAdminDashboard from "@/pages/insurer-admin-dashboard";
 import OnboardingManagement from "@/pages/onboarding-management";
 import SupportDashboard from "@/pages/support-dashboard";
 import MobileFieldWorker from "@/pages/mobile-field-worker";
@@ -95,6 +98,12 @@ function Router() {
       <ProtectedRoute path="/modern-patient" component={ModernPatientDashboard} />
       <ProtectedRoute path="/modern-admin" component={ModernAdminDashboard} />
       <ProtectedRoute path="/modern-front-office" component={ModernFrontOfficeDashboard} />
+      
+      {/* Insurer Role-Based Dashboards */}
+      <ProtectedRoute path="/insurer-claims-manager" component={InsurerClaimsManager} />
+      <ProtectedRoute path="/insurer-care-manager" component={InsurerCareManager} />
+      <ProtectedRoute path="/insurer-admin" component={InsurerAdminDashboard} />
+      
       <Route path="/debtors-dashboard" component={DebtorsDashboard} />
       <Route path="/simple-debtors-dashboard" component={SimpleDebtorsDashboard} />
       <Route path="/verification-audit" component={DebtorsVerificationAudit} />

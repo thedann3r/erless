@@ -65,12 +65,14 @@ export const users = pgTable("users", {
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
   email: text("email").notNull().unique(),
-  role: text("role").notNull(), // doctor, clinician, pharmacist, admin, debtor-officer
+  role: text("role").notNull(), // doctor, clinician, pharmacist, admin, debtor-officer, claims_manager, care_manager, insurer_admin
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
   careProviderId: integer("care_provider_id").references(() => careProviders.id),
   department: text("department"),
   cadre: text("cadre"), // specialist, consultant, registrar, etc.
+  insurerRole: text("insurer_role"), // claims_manager, care_manager, insurer_admin (null for non-insurer users)
+  insurerCompany: text("insurer_company"), // CIC, AAR, SHA, etc. (null for non-insurer users)
   registrationNumber: text("registration_number"), // professional license number
   registrationBody: text("registration_body"), // national medical/pharmacy board
   isActive: boolean("is_active").default(true).notNull(),
@@ -444,7 +446,7 @@ export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
   lastLogin: true,
-  verificationDate: true,
+  updatedAt: true,
 }).extend({
   confirmPassword: z.string().min(8),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -535,12 +537,19 @@ export const userPermissionSchema = z.object({
   users: z.array(z.object({
     name: z.string().min(2),
     email: z.string().email(),
-    role: z.enum(["doctor", "pharmacist", "care-manager", "front-office", "admin"]),
+    role: z.enum(["doctor", "pharmacist", "care-manager", "front-office", "admin", "claims_manager", "insurer_admin"]),
     department: z.string().optional(),
     cadre: z.string().optional(),
     registrationNumber: z.string().optional(),
     permissions: z.array(z.string()),
   })),
+});
+
+// Insurer role schema for validation
+export const insurerRoleSchema = z.object({
+  role: z.enum(["claims_manager", "care_manager", "insurer_admin"]),
+  insurerCompany: z.enum(["CIC", "AAR", "SHA", "Jubilee", "APA", "Britam"]),
+  permissions: z.array(z.string()),
 });
 
 // Types
@@ -581,3 +590,4 @@ export type SampleClaimFlow = typeof sampleClaimFlows.$inferSelect;
 export type InsertSampleClaimFlow = z.infer<typeof insertSampleClaimFlowSchema>;
 export type OnboardingForm = z.infer<typeof onboardingFormSchema>;
 export type UserPermission = z.infer<typeof userPermissionSchema>;
+export type InsurerRole = z.infer<typeof insurerRoleSchema>;
