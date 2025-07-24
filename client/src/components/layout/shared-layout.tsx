@@ -148,9 +148,14 @@ export function SharedLayout({ children, sidebarItems = [], title, user: propUse
       <div className="flex">
         {/* Sidebar - only show if sidebarItems exist */}
         {sidebarItems.length > 0 && (
-          <aside className="fixed left-0 top-16 z-40 h-[calc(100vh-4rem)] w-64 overflow-y-auto border-r bg-card">
+          <aside className="fixed left-0 top-16 z-40 h-[calc(100vh-4rem)] w-64 overflow-y-auto border-r bg-white dark:bg-gray-900 shadow-lg">
             <div className="flex h-full flex-col">
-              <nav className="flex-1 space-y-2 p-4">
+              <div className="p-4 border-b bg-gradient-to-r from-teal-600 to-blue-600">
+                <h2 className="text-sm font-semibold text-white uppercase tracking-wide">
+                  Care Manager
+                </h2>
+              </div>
+              <nav className="flex-1 space-y-1 p-4">
                 {sidebarItems.map((item) => {
                 if (item.roles && !item.roles.includes(user?.role || '')) {
                   return null;
@@ -159,16 +164,23 @@ export function SharedLayout({ children, sidebarItems = [], title, user: propUse
                 return (
                   <Link key={item.path} href={item.path}>
                     <div
-                      className={`flex items-center space-x-3 rounded-2xl px-4 py-3 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer ${
+                      className={`flex items-center space-x-3 rounded-lg px-4 py-3 text-sm font-medium transition-all duration-200 cursor-pointer ${
                         isActive(item.path)
-                          ? 'bg-primary text-primary-foreground'
-                          : 'text-muted-foreground hover:text-foreground'
+                          ? 'bg-gradient-to-r from-teal-500 to-blue-500 text-white shadow-md'
+                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
                       }`}
                     >
                       <span className="flex-shrink-0">{item.icon}</span>
                       <span className="flex-1">{item.label}</span>
                       {item.badge && (
-                        <Badge variant="secondary" className="ml-auto">
+                        <Badge 
+                          variant={isActive(item.path) ? "outline" : "secondary"} 
+                          className={`ml-auto text-xs ${
+                            isActive(item.path) 
+                              ? 'border-white text-white' 
+                              : 'bg-gray-200 dark:bg-gray-700'
+                          }`}
+                        >
                           {item.badge}
                         </Badge>
                       )}
@@ -179,9 +191,9 @@ export function SharedLayout({ children, sidebarItems = [], title, user: propUse
             </nav>
 
             {/* Footer */}
-            <div className="border-t p-4">
-              <p className="text-xs text-muted-foreground text-center">
-                Powered by Aboolean
+            <div className="border-t p-4 bg-gray-50 dark:bg-gray-800">
+              <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                Powered by Erlessed
               </p>
             </div>
           </div>
