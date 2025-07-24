@@ -128,6 +128,48 @@ export default function InsurerCareManagerDashboard() {
     });
   };
 
+  const handleProviderBenchmark = () => {
+    toast({
+      title: "Provider Benchmark Analysis",
+      description: "Opening provider performance comparison across all care facilities.",
+    });
+  };
+
+  const handleAdvancedAnalytics = () => {
+    toast({
+      title: "Advanced Analytics",
+      description: "Loading comprehensive cost trends and outcome analytics dashboard.",
+    });
+  };
+
+  const handleCostTrends = () => {
+    toast({
+      title: "Cost Trends Analysis",
+      description: "Displaying 30-day rolling cost averages and benefit category burn rates.",
+    });
+  };
+
+  const handleNotifications = () => {
+    toast({
+      title: "Notification Center",
+      description: "Opening alert management and notification preferences.",
+    });
+  };
+
+  const handleOverride = (claimId?: number) => {
+    toast({
+      title: "Override Action",
+      description: claimId ? `Processing override for claim #${claimId}` : "Override functionality activated.",
+    });
+  };
+
+  const handleReferralPatterns = () => {
+    toast({
+      title: "Referral Pattern Analysis",
+      description: "Analyzing procedure referral patterns and policy compliance.",
+    });
+  };
+
   const getRiskBadge = (level: string) => {
     switch (level) {
       case "low":
@@ -167,13 +209,17 @@ export default function InsurerCareManagerDashboard() {
             <p className="text-gray-600 mt-1">Monitor patient care programs and health outcomes for {user?.insurerCompany || "your organization"}</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline">
+            <Button variant="outline" onClick={handleNotifications}>
               <FileText className="h-4 w-4 mr-2" />
-              Generate Report
+              Notifications
             </Button>
-            <Button>
+            <Button variant="outline" onClick={handleAdvancedAnalytics}>
+              <Activity className="h-4 w-4 mr-2" />
+              Advanced Analytics
+            </Button>
+            <Button onClick={handleProviderBenchmark}>
               <Stethoscope className="h-4 w-4 mr-2" />
-              New Program
+              Provider Benchmark
             </Button>
           </div>
         </div>
@@ -227,10 +273,12 @@ export default function InsurerCareManagerDashboard() {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="programs" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="programs">Care Programs</TabsTrigger>
             <TabsTrigger value="patients">High-Risk Patients</TabsTrigger>
             <TabsTrigger value="outcomes">Health Outcomes</TabsTrigger>
+            <TabsTrigger value="cost-trends">Cost Trends</TabsTrigger>
+            <TabsTrigger value="referral-patterns">Referral Patterns</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
 
@@ -394,6 +442,10 @@ export default function InsurerCareManagerDashboard() {
                             <Activity className="h-4 w-4 mr-1" />
                             Intervene
                           </Button>
+                          <Button variant="outline" size="sm" onClick={() => handleOverride(patient.id)}>
+                            <Shield className="h-4 w-4 mr-1" />
+                            Override
+                          </Button>
                           <Button variant="outline" size="sm">
                             <Calendar className="h-4 w-4 mr-1" />
                             Schedule
@@ -457,6 +509,92 @@ export default function InsurerCareManagerDashboard() {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          <TabsContent value="cost-trends" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Cost Trends Analysis</CardTitle>
+                <CardDescription>30-day rolling averages and benefit category burn rates</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Cost per Category</h3>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span>Inpatient Care</span>
+                        <span className="font-semibold">KES 8.4M</span>
+                      </div>
+                      <Progress value={75} className="w-full" />
+                      
+                      <div className="flex justify-between">
+                        <span>Outpatient Services</span>
+                        <span className="font-semibold">KES 3.2M</span>
+                      </div>
+                      <Progress value={45} className="w-full" />
+                      
+                      <div className="flex justify-between">
+                        <span>Pharmaceuticals</span>
+                        <span className="font-semibold">KES 2.8M</span>
+                      </div>
+                      <Progress value={38} className="w-full" />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Trend Analysis</h3>
+                    <div className="text-center p-8 text-gray-500">
+                      <TrendingUp className="h-12 w-12 mx-auto mb-4" />
+                      <p>30-Day Cost Trend Chart</p>
+                      <p className="text-sm">Interactive cost visualization</p>
+                      <Button className="mt-4" onClick={handleCostTrends}>
+                        Load Full Analysis
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="referral-patterns" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Referral Pattern Analysis</CardTitle>
+                <CardDescription>Procedure referral patterns and policy compliance tracking</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="text-center p-4 border rounded-lg">
+                      <h4 className="font-semibold">Total Referrals</h4>
+                      <p className="text-2xl font-bold text-blue-600">1,247</p>
+                      <p className="text-sm text-gray-600">+12% this month</p>
+                    </div>
+                    <div className="text-center p-4 border rounded-lg">
+                      <h4 className="font-semibold">Policy Compliance</h4>
+                      <p className="text-2xl font-bold text-green-600">87.3%</p>
+                      <p className="text-sm text-gray-600">Above target</p>
+                    </div>
+                    <div className="text-center p-4 border rounded-lg">
+                      <h4 className="font-semibold">Success Rate</h4>
+                      <p className="text-2xl font-bold text-purple-600">92.1%</p>
+                      <p className="text-sm text-gray-600">+3.2% improvement</p>
+                    </div>
+                  </div>
+                  
+                  <div className="text-center p-8 text-gray-500">
+                    <Users className="h-12 w-12 mx-auto mb-4" />
+                    <p>Referral Pattern Visualization</p>
+                    <p className="text-sm">Network flow and success tracking</p>
+                    <Button className="mt-4" onClick={handleReferralPatterns}>
+                      View Detailed Patterns
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-4">
