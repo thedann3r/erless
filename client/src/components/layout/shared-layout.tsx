@@ -148,7 +148,7 @@ export function SharedLayout({ children, sidebarItems = [], title, user: propUse
       <div className="flex">
         {/* Sidebar - only show if sidebarItems exist */}
         {sidebarItems.length > 0 && (
-          <aside className="fixed left-0 top-16 z-40 h-[calc(100vh-4rem)] w-64 overflow-y-auto border-r bg-white dark:bg-gray-900 shadow-lg">
+          <aside className="fixed left-0 top-16 z-30 h-[calc(100vh-4rem)] w-64 overflow-y-auto border-r bg-white dark:bg-gray-900 shadow-lg">
             <div className="flex h-full flex-col">
               <div className="p-4 border-b bg-gradient-to-r from-teal-600 to-blue-600">
                 <h2 className="text-sm font-semibold text-white uppercase tracking-wide">
@@ -201,8 +201,8 @@ export function SharedLayout({ children, sidebarItems = [], title, user: propUse
         )}
 
         {/* Main Content */}
-        <main className={`flex-1 ${sidebarItems.length > 0 ? 'ml-64' : 'ml-0'}`}>
-          <div className="container mx-auto p-6">
+        <main className={`flex-1 ${sidebarItems.length > 0 ? 'ml-64' : 'ml-0'} transition-all duration-200`}>
+          <div className="p-6">
             <div className="fade-in">
               {children}
             </div>

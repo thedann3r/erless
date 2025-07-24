@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-import { SharedLayout } from "@/components/layout/shared-layout";
+
 import { 
   Activity, TrendingUp, AlertTriangle, Heart, Users, 
   Clock, Shield, CheckCircle, XCircle, Search, Eye,
@@ -212,32 +212,79 @@ export default function InsurerCareManagerDashboard() {
   };
 
   return (
-    <SharedLayout sidebarItems={sidebarItems} title="Care Manager Dashboard" user={user}>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Care Manager Dashboard</h1>
-            <p className="text-gray-600 mt-1">Monitor patient care programs and health outcomes for {user?.insurerCompany || "your organization"}</p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handleNotifications}>
-              <FileText className="h-4 w-4 mr-2" />
-              Notifications
-            </Button>
-            <Button variant="outline" onClick={handleAdvancedAnalytics}>
-              <Activity className="h-4 w-4 mr-2" />
-              Advanced Analytics
-            </Button>
-            <Button onClick={handleProviderBenchmark}>
-              <Stethoscope className="h-4 w-4 mr-2" />
-              Provider Benchmark
-            </Button>
+    <div className="min-h-screen bg-background">
+      {/* Header with logo and user info - standalone */}
+      <header className="sticky top-0 z-50 w-full border-b bg-card shadow-sm">
+        <div className="container flex h-16 items-center justify-between px-4">
+          <div className="flex items-center space-x-4">
+            <h1 className="text-lg font-semibold bg-gradient-to-r from-teal-600 to-blue-600 bg-clip-text text-transparent">
+              Erlessed Care Manager
+            </h1>
           </div>
         </div>
+      </header>
+      
+      <div className="flex">
+        {/* Fixed Sidebar */}
+        <aside className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 overflow-y-auto border-r bg-white shadow-lg">
+          <div className="flex h-full flex-col">
+            <div className="p-4 border-b bg-gradient-to-r from-teal-600 to-blue-600">
+              <h2 className="text-sm font-semibold text-white uppercase tracking-wide">
+                Navigation
+              </h2>
+            </div>
+            <nav className="flex-1 space-y-1 p-4">
+              {sidebarItems.map((item) => (
+                <div
+                  key={item.path}
+                  className="flex items-center space-x-3 rounded-lg px-4 py-3 text-sm font-medium transition-all duration-200 cursor-pointer bg-gradient-to-r from-teal-500 to-blue-500 text-white shadow-md"
+                >
+                  <span className="flex-shrink-0">{item.icon}</span>
+                  <span className="flex-1">{item.label}</span>
+                  {item.badge && (
+                    <Badge variant="outline" className="ml-auto text-xs border-white text-white">
+                      {item.badge}
+                    </Badge>
+                  )}
+                </div>
+              ))}
+            </nav>
+            <div className="border-t p-4 bg-gray-50">
+              <p className="text-xs text-gray-500 text-center">
+                Powered by Erlessed
+              </p>
+            </div>
+          </div>
+        </aside>
 
-        {/* Key Health Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card>
+        {/* Main Content */}
+        <main className="ml-64 flex-1">
+          <div className="p-6">
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900">Care Manager Dashboard</h1>
+                  <p className="text-gray-600 mt-1">Monitor patient care programs and health outcomes for {user?.insurerCompany || "your organization"}</p>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={handleNotifications}>
+                    <FileText className="h-4 w-4 mr-2" />
+                    Notifications
+                  </Button>
+                  <Button variant="outline" onClick={handleAdvancedAnalytics}>
+                    <Activity className="h-4 w-4 mr-2" />
+                    Advanced Analytics
+                  </Button>
+                  <Button onClick={handleProviderBenchmark}>
+                    <Stethoscope className="h-4 w-4 mr-2" />
+                    Provider Benchmark
+                  </Button>
+                </div>
+              </div>
+
+              {/* Key Health Metrics */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Active Members</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
@@ -280,10 +327,10 @@ export default function InsurerCareManagerDashboard() {
               <p className="text-xs text-muted-foreground">-18 from intervention</p>
             </CardContent>
           </Card>
-        </div>
+              </div>
 
-        {/* Main Content Tabs */}
-        <Tabs defaultValue="programs" className="space-y-4">
+              {/* Main Content Tabs */}
+              <Tabs defaultValue="programs" className="space-y-4">
           <TabsList className="grid w-full grid-cols-4 lg:grid-cols-6">
             <TabsTrigger value="programs">Care Programs</TabsTrigger>
             <TabsTrigger value="patients">High-Risk Patients</TabsTrigger>
@@ -672,8 +719,11 @@ export default function InsurerCareManagerDashboard() {
               </CardContent>
             </Card>
           </TabsContent>
-        </Tabs>
+              </Tabs>
+            </div>
+          </div>
+        </main>
       </div>
-    </SharedLayout>
+    </div>
   );
 }
