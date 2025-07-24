@@ -12,7 +12,8 @@ import { SharedLayout } from "@/components/layout/shared-layout";
 import { 
   Activity, TrendingUp, AlertTriangle, Heart, Users, 
   Clock, Shield, CheckCircle, XCircle, Search, Eye,
-  Stethoscope, FileText, Calendar, Settings
+  Stethoscope, FileText, Calendar, Settings, BarChart3,
+  Target, Brain, DollarSign
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
@@ -44,6 +45,16 @@ interface PatientCareData {
   totalCost: number;
   predictedRisk: number;
 }
+
+// Sidebar navigation items
+const sidebarItems = [
+  { path: "/insurer-care-manager", icon: <BarChart3 className="h-5 w-5" />, label: "Claims Overview" },
+  { path: "/insurer-care-manager/fraud", icon: <Shield className="h-5 w-5" />, label: "Fraud Alerts", badge: "12" },
+  { path: "/insurer-care-manager/costs", icon: <TrendingUp className="h-5 w-5" />, label: "Cost Trends" },
+  { path: "/insurer-care-manager/referrals", icon: <Users className="h-5 w-5" />, label: "Referral Patterns" },
+  { path: "/insurer-care-manager/benchmarks", icon: <Target className="h-5 w-5" />, label: "Provider Benchmarks", badge: "Premium" },
+  { path: "/insurer-care-manager/analytics", icon: <Brain className="h-5 w-5" />, label: "Advanced Analytics", badge: "Premium" }
+];
 
 export default function InsurerCareManagerDashboard() {
   const { user } = useAuth();
@@ -201,7 +212,7 @@ export default function InsurerCareManagerDashboard() {
   };
 
   return (
-    <SharedLayout>
+    <SharedLayout sidebarItems={sidebarItems} title="Care Manager Dashboard" user={user}>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
@@ -273,12 +284,12 @@ export default function InsurerCareManagerDashboard() {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="programs" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-6">
             <TabsTrigger value="programs">Care Programs</TabsTrigger>
             <TabsTrigger value="patients">High-Risk Patients</TabsTrigger>
             <TabsTrigger value="outcomes">Health Outcomes</TabsTrigger>
-            <TabsTrigger value="cost-trends">Cost Trends</TabsTrigger>
-            <TabsTrigger value="referral-patterns">Referral Patterns</TabsTrigger>
+            <TabsTrigger value="cost-trends" className="hidden lg:block">Cost Trends</TabsTrigger>
+            <TabsTrigger value="referral-patterns" className="hidden lg:block">Referral Patterns</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
 
@@ -512,50 +523,76 @@ export default function InsurerCareManagerDashboard() {
           </TabsContent>
 
           <TabsContent value="cost-trends" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Cost Trends Analysis</CardTitle>
-                <CardDescription>30-day rolling averages and benefit category burn rates</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <DollarSign className="h-5 w-5 text-green-600" />
+                    <span>Cost Trends Analysis</span>
+                  </CardTitle>
+                  <CardDescription>30-day rolling averages and benefit category burn rates</CardDescription>
+                </CardHeader>
+                <CardContent>
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold">Cost per Category</h3>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
                         <span>Inpatient Care</span>
                         <span className="font-semibold">KES 8.4M</span>
                       </div>
                       <Progress value={75} className="w-full" />
                       
-                      <div className="flex justify-between">
+                      <div className="flex justify-between items-center">
                         <span>Outpatient Services</span>
                         <span className="font-semibold">KES 3.2M</span>
                       </div>
                       <Progress value={45} className="w-full" />
                       
-                      <div className="flex justify-between">
+                      <div className="flex justify-between items-center">
                         <span>Pharmaceuticals</span>
                         <span className="font-semibold">KES 2.8M</span>
                       </div>
                       <Progress value={38} className="w-full" />
+                      
+                      <div className="flex justify-between items-center">
+                        <span>Laboratory Tests</span>
+                        <span className="font-semibold">KES 1.9M</span>
+                      </div>
+                      <Progress value={28} className="w-full" />
                     </div>
                   </div>
-                  
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle>Trend Analysis & Projections</CardTitle>
+                </CardHeader>
+                <CardContent>
                   <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">Trend Analysis</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="text-center p-4 border rounded-lg">
+                        <p className="text-sm text-gray-600">Monthly Growth</p>
+                        <p className="text-2xl font-bold text-green-600">+8.2%</p>
+                      </div>
+                      <div className="text-center p-4 border rounded-lg">
+                        <p className="text-sm text-gray-600">Cost Efficiency</p>
+                        <p className="text-2xl font-bold text-blue-600">91.3%</p>
+                      </div>
+                    </div>
+                    
                     <div className="text-center p-8 text-gray-500">
                       <TrendingUp className="h-12 w-12 mx-auto mb-4" />
-                      <p>30-Day Cost Trend Chart</p>
-                      <p className="text-sm">Interactive cost visualization</p>
+                      <p>Interactive Cost Visualization</p>
+                      <p className="text-sm">30-day rolling trends and forecasts</p>
                       <Button className="mt-4" onClick={handleCostTrends}>
-                        Load Full Analysis
+                        Load Detailed Analysis
                       </Button>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           <TabsContent value="referral-patterns" className="space-y-4">
