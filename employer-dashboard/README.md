@@ -1,156 +1,134 @@
 # Employer Benefits Dashboard
 
-A comprehensive system for managing employee benefits and claims processing with fund tracking capabilities.
+A complete employer benefits management system with secure authentication and claims processing.
 
 ## Features
 
-- **Employer Management**: Track multiple employers with fund allocation
-- **Employee Benefits**: Flexible JSON-based benefit limits per employee  
-- **Claims Processing**: Submit, review, approve/reject employee claims
-- **Fund Tracking**: Monitor total funds and payouts
-- **Analytics Dashboard**: Real-time statistics and reporting
-- **API-First**: RESTful API for all operations
+- **Secure Authentication**: Session-based login with bcrypt password hashing
+- **Role-Based Access**: Employer and admin user roles with proper permissions
+- **Claims Management**: Submit, approve, reject, and track benefit claims
+- **Employee Management**: Track benefit limits and usage by employee
+- **Fund Tracking**: Monitor employer fund totals and usage
+- **Real-Time Analytics**: Dashboard with live statistics and reporting
 
-## Technology Stack
+## Getting Started
 
-- **Backend**: Node.js + Express.js
-- **Database**: SQLite with Prisma ORM
-- **Frontend**: Vanilla JavaScript + HTML/CSS
-- **CORS**: Enabled for cross-origin requests
+### Prerequisites
 
-## Database Schema
+- Node.js 20+
+- npm or yarn
 
-### Employer
-- `id` (String, Primary Key)
-- `name` (String) - Company name
-- `contact` (String) - Contact email
-- `fundTotal` (Float) - Total allocated fund amount
-- `createdAt` (DateTime)
+### Installation
 
-### Employee  
-- `id` (String, Primary Key)
-- `name` (String) - Employee name
-- `employerId` (String, Foreign Key)
-- `benefitLimits` (JSON) - Flexible benefit categories and limits
-- `status` (String) - active/inactive
-- `createdAt` (DateTime)
+1. Install dependencies:
+```bash
+npm install
+```
 
-### Claim
-- `id` (String, Primary Key)
-- `employeeId` (String, Foreign Key)
-- `provider` (String) - Healthcare/service provider name
-- `category` (String) - medical/dental/vision/wellness
-- `amount` (Float) - Claim amount
-- `status` (String) - pending/approved/rejected
-- `justification` (String, Optional) - Claim description
-- `createdAt` (DateTime)
+2. Set up the database:
+```bash
+npx prisma migrate dev
+npx prisma generate
+```
+
+3. Seed the database with demo data:
+```bash
+node seed.js
+```
+
+4. Start the server:
+```bash
+node server.js
+```
+
+The application will be available at http://localhost:3001
+
+## Demo Accounts
+
+Use these accounts to test the application:
+
+- **Employer Account**: 
+  - Email: hr@techcorp.com
+  - Password: demo123
+
+- **Admin Account**:
+  - Email: admin@benefits.com  
+  - Password: admin123
 
 ## API Endpoints
 
+### Authentication
+- `POST /api/auth/login` - User login
+- `POST /api/auth/register` - User registration
+- `GET /api/auth/user` - Get current user
+- `POST /api/auth/logout` - User logout
+
 ### Employers
-- `GET /api/employers` - List all employers with employees and claims
+- `GET /api/employers` - List all employers
 - `POST /api/employers` - Create new employer
+- `GET /api/employers/:id/employees` - Get employees for employer
 
 ### Employees
-- `GET /api/employers/:id/employees` - Get employees for employer
 - `POST /api/employees` - Create new employee
+- `GET /api/employees/:id/claims` - Get claims for employee
 
 ### Claims
-- `GET /api/employees/:id/claims` - Get claims for employee
 - `POST /api/claims` - Submit new claim
 - `PATCH /api/claims/:id/status` - Update claim status
 
 ### Analytics
 - `GET /api/analytics/dashboard` - Dashboard statistics
 
-## Setup Instructions
+## Database Schema
 
-1. **Install Dependencies**:
-   ```bash
-   npm install
-   ```
+### Users
+- id, email, password (hashed), role, employerId
+- Roles: 'employer', 'admin'
 
-2. **Initialize Database**:
-   ```bash
-   npx prisma generate
-   npx prisma migrate dev --name employer_init
-   ```
+### Employers
+- id, name, contact, fundTotal, createdAt
 
-3. **Seed Sample Data**:
-   ```bash
-   npm run seed
-   ```
+### Employees  
+- id, name, employerId, benefitLimits (JSON), createdAt
 
-4. **Start Server**:
-   ```bash
-   npm run dev     # Development mode with auto-reload
-   npm start       # Production mode
-   ```
+### Claims
+- id, employeeId, provider, category, amount, status, justification, createdAt
 
-5. **Access Dashboard**:
-   Open http://localhost:3001 in your browser
+## Technology Stack
 
-## Sample Data
+- **Backend**: Node.js, Express.js
+- **Database**: SQLite with Prisma ORM
+- **Authentication**: express-session, bcryptjs
+- **Frontend**: Vanilla HTML/CSS/JavaScript
+- **Session Storage**: connect-sqlite3
 
-The seed script creates:
-- **2 Employers**: TechCorp Ltd, HealthPlus Solutions
-- **3 Employees**: With varying benefit limits
-- **4 Claims**: Mix of pending and approved claims
+## Security Features
 
-## Usage Examples
+- Bcrypt password hashing
+- Session-based authentication
+- Protected API routes
+- CORS configuration
+- Secure cookie settings
 
-### Create New Employer
-```bash
-curl -X POST http://localhost:3001/api/employers \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "NewCorp Ltd",
-    "contact": "hr@newcorp.com", 
-    "fundTotal": 300000.00
-  }'
-```
+## Development
 
-### Submit Employee Claim
-```bash
-curl -X POST http://localhost:3001/api/claims \
-  -H "Content-Type: application/json" \
-  -d '{
-    "employeeId": "employee_id_here",
-    "provider": "City Hospital",
-    "category": "medical",
-    "amount": 25000.00,
-    "justification": "Emergency surgery"
-  }'
-```
+To modify the database schema:
 
-### Approve/Reject Claim
-```bash
-curl -X PATCH http://localhost:3001/api/claims/claim_id_here/status \
-  -H "Content-Type: application/json" \
-  -d '{"status": "approved"}'
-```
+1. Edit `prisma/schema.prisma`
+2. Run `npx prisma migrate dev --name your_migration_name`
+3. Update seed.js if needed
+4. Run `node seed.js` to refresh data
 
-## Frontend Features
+## Production Deployment
 
-- **Dashboard Overview**: Real-time statistics display
-- **Claims Management**: View, filter, and update claim statuses  
-- **Claim Submission**: Form-based claim creation
-- **Responsive Design**: Works on desktop and mobile
-- **Auto-refresh**: Real-time updates after actions
+For production deployment:
 
-## Development Notes
+1. Set `NODE_ENV=production`
+2. Configure secure session secrets
+3. Enable HTTPS and update cookie settings
+4. Set up proper database backups
+5. Configure reverse proxy (nginx/Apache)
 
-- Server runs on port 3001 by default
-- Database file: `prisma/dev.db`
-- CORS enabled for frontend integration
-- Graceful shutdown handling
-- Error logging and validation
+## Support
 
-## Future Enhancements
-
-- User authentication and role-based access
-- Email notifications for claim status changes
-- Advanced reporting and analytics
-- Integration with external payment systems
-- Bulk claim processing
-- Document upload support
+For issues or questions, please check the API documentation or contact the development team.

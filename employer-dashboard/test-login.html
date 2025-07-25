@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Login - Employer Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>Employer Dashboard Login Test</h1>
+    <div id="results"></div>
+    
+    <script>
+        const API_BASE = 'http://localhost:3001/api';
+        
+        async function testLogin() {
+            const results = document.getElementById('results');
+            
+            try {
+                // Test login
+                results.innerHTML += '<div class="info">Testing login with hr@techcorp.com...</div>';
+                
+                const loginResponse = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        email: 'hr@techcorp.com',
+                        password: 'demo123'
+                    })
+                });
+                
+                if (loginResponse.ok) {
+                    const userData = await loginResponse.json();
+                    results.innerHTML += '<div class="success">✓ Login successful! User: ' + userData.email + '</div>';
+                    
+                    // Test authenticated request
+                    const userResponse = await fetch(`${API_BASE}/auth/user`, {
+                        credentials: 'include'
+                    });
+                    
+                    if (userResponse.ok) {
+                        const user = await userResponse.json();
+                        results.innerHTML += '<div class="success">✓ Authentication check passed!</div>';
+                        results.innerHTML += '<div class="info">User: ' + JSON.stringify(user, null, 2) + '</div>';
+                        
+                        // Redirect to dashboard
+                        results.innerHTML += '<div class="success">Redirecting to dashboard...</div>';
+                        setTimeout(() => {
+                            window.location.href = '/';
+                        }, 2000);
+                    } else {
+                        results.innerHTML += '<div class="error">✗ Authentication check failed</div>';
+                    }
+                } else {
+                    const error = await loginResponse.json();
+                    results.innerHTML += '<div class="error">✗ Login failed: ' + error.error + '</div>';
+                }
+            } catch (error) {
+                results.innerHTML += '<div class="error">✗ Network error: ' + error.message + '</div>';
+            }
+        }
+        
+        // Start test
+        testLogin();
+    </script>
+</body>
+</html>
