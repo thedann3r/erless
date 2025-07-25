@@ -1,0 +1,40 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Employer {
+  id        String   @id @default(cuid())
+  name      String
+  contact   String
+  fundTotal Float
+  createdAt DateTime @default(now())
+  employees Employee[]
+}
+
+model Employee {
+  id           String   @id @default(cuid())
+  name         String
+  employerId   String
+  benefitLimits Json
+  status       String   @default("active")
+  createdAt    DateTime @default(now())
+  employer     Employer @relation(fields: [employerId], references: [id])
+  claims       Claim[]
+}
+
+model Claim {
+  id            String   @id @default(cuid())
+  employeeId    String
+  provider      String
+  category      String
+  amount        Float
+  status        String   @default("pending")
+  justification String?
+  createdAt     DateTime @default(now())
+  employee      Employee @relation(fields: [employeeId], references: [id])
+}
