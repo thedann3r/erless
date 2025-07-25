@@ -7,6 +7,16 @@ datasource db {
   url      = "file:./dev.db"
 }
 
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  role      String   @default("employer") // employer, admin, employee
+  employerId String?
+  employer  Employer? @relation(fields: [employerId], references: [id])
+  createdAt DateTime @default(now())
+}
+
 model Employer {
   id        String   @id @default(cuid())
   name      String
@@ -14,6 +24,7 @@ model Employer {
   fundTotal Float
   createdAt DateTime @default(now())
   employees Employee[]
+  users     User[]
 }
 
 model Employee {

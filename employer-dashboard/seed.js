@@ -1,8 +1,15 @@
 const { PrismaClient } = require('@prisma/client');
+const bcrypt = require('bcryptjs');
 const prisma = new PrismaClient();
 
 async function main() {
   console.log('🌱 Seeding employer dashboard database...');
+
+  // Clear existing data
+  await prisma.claim.deleteMany({});
+  await prisma.employee.deleteMany({});
+  await prisma.user.deleteMany({});
+  await prisma.employer.deleteMany({});
 
   // Create sample employers
   const employer1 = await prisma.employer.create({
@@ -107,8 +114,32 @@ async function main() {
     },
   });
 
+  // Create demo users
+  const hashedPassword1 = await bcrypt.hash('demo123', 10);
+  const hashedPassword2 = await bcrypt.hash('admin123', 10);
+
+  const user1 = await prisma.user.create({
+    data: {
+      email: 'hr@techcorp.com',
+      password: hashedPassword1,
+      role: 'employer',
+      employerId: employer1.id,
+    },
+  });
+
+  const user2 = await prisma.user.create({
+    data: {
+      email: 'admin@benefits.com',
+      password: hashedPassword2,
+      role: 'admin',
+    },
+  });
+
   console.log('✅ Database seeded successfully!');
-  console.log(`📊 Created: 2 employers, 3 employees, 4 claims`);
+  console.log(`📊 Created: 2 employers, 3 employees, 4 claims, 2 users`);
+  console.log(`🔐 Demo accounts:`);
+  console.log(`   Employer: hr@techcorp.com / demo123`);
+  console.log(`   Admin: admin@benefits.com / admin123`);
 }
 
 main()
