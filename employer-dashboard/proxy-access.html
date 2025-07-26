@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Employer Dashboard Access</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            text-align: center; 
+            padding: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            color: #333;
+            padding: 40px;
+            border-radius: 10px;
+            max-width: 500px;
+            margin: 0 auto;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn:hover { transform: translateY(-2px); }
+        .status { margin: 20px 0; }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Employer Dashboard Access</h1>
+        <p>Click the button below to access the employer benefits dashboard with authentication:</p>
+        
+        <div id="status" class="status">Checking server status...</div>
+        
+        <a href="http://localhost:3001/" class="btn" id="accessBtn" style="display: none;">
+            Access Employer Dashboard
+        </a>
+        
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+            <h3>Demo Accounts</h3>
+            <p><strong>Employer:</strong> hr@techcorp.com / demo123</p>
+            <p><strong>Admin:</strong> admin@benefits.com / admin123</p>
+        </div>
+    </div>
+
+    <script>
+        async function checkServer() {
+            const statusDiv = document.getElementById('status');
+            const accessBtn = document.getElementById('accessBtn');
+            
+            try {
+                const response = await fetch('http://localhost:3001/health');
+                if (response.ok) {
+                    statusDiv.innerHTML = '<span class="success">✓ Server is running!</span>';
+                    accessBtn.style.display = 'inline-block';
+                } else {
+                    statusDiv.innerHTML = '<span class="error">✗ Server not responding</span>';
+                }
+            } catch (error) {
+                statusDiv.innerHTML = '<span class="error">✗ Cannot connect to server</span>';
+            }
+        }
+        
+        checkServer();
+        setInterval(checkServer, 5000); // Check every 5 seconds
+    </script>
+</body>
+</html>
