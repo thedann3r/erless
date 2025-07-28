@@ -188,9 +188,7 @@ export default function AuthPage() {
           </Card>
           
           <div className="text-center">
-            <p className="text-xs text-gray-500">
-              Secure healthcare data management platform
-            </p>
+            <p className="text-xs text-gray-500">Secure healthcare claims management platform</p>
             <p className="text-xs text-gray-400 mt-1">Powered by Aboolean.</p>
           </div>
         </div>
