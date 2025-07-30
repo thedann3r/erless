@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quick Access - Employer Dashboard</title>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="2;url=http://localhost:3001/">
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            text-align: center; 
+            padding: 50px;
+            background: #f0f8ff;
+        }
+        .redirect-box {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            max-width: 400px;
+            margin: 0 auto;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="redirect-box">
+        <h2>Redirecting to Employer Dashboard...</h2>
+        <p>If you're not redirected automatically, click the button below:</p>
+        <a href="http://localhost:3001/" class="btn">Access Dashboard</a>
+        <br><br>
+        <small>Login: hr@techcorp.com / demo123</small>
+    </div>
+    
+    <script>
+        setTimeout(() => {
+            window.location.href = 'http://localhost:3001/';
+        }, 2000);
+    </script>
+</body>
+</html>
