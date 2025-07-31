@@ -22,50 +22,65 @@ export async function createSimpleUsers() {
         username: "testuser",
         email: "test@test.med",
         password: testPasswordHash,
-        name: "Test User",
+        firstName: "Test",
+        lastName: "User", 
         role: "admin"
       },
       {
         username: "doctor1",
         email: "doctor@test.med", 
         password: testPasswordHash,
-        name: "Dr. Sarah Mwangi",
+        firstName: "Dr. Sarah",
+        lastName: "Mwangi",
         role: "doctor"
       },
       {
         username: "pharmacist1",
         email: "pharmacist@test.med",
         password: testPasswordHash,
-        name: "John Kimani",
+        firstName: "John",
+        lastName: "Kimani",
         role: "pharmacy"
       },
       {
         username: "frontoffice1",
         email: "frontoffice@test.med",
         password: testPasswordHash,
-        name: "Grace Wanjiku",
+        firstName: "Grace",
+        lastName: "Wanjiku",
         role: "front-office"
       },
       {
         username: "debtors1",
         email: "debtors@test.med",
         password: testPasswordHash,
-        name: "Mary Njoroge",
+        firstName: "Mary",
+        lastName: "Njoroge",
         role: "debtors"
       },
       {
         username: "caremanager1",
         email: "caremanager@test.med",
         password: testPasswordHash,
-        name: "Peter Ochieng",
+        firstName: "Peter",
+        lastName: "Ochieng",
         role: "care-manager"
       },
       {
         username: "insurer1",
         email: "insurer@cic.co.ke",
         password: testPasswordHash,
-        name: "Mary Njeri",
+        firstName: "Mary",
+        lastName: "Njeri",
         role: "insurer"
+      },
+      {
+        username: "hr@techcorp.com",
+        email: "hr@techcorp.com",
+        password: testPasswordHash,
+        firstName: "HR",
+        lastName: "Manager",
+        role: "admin"
       }
     ];
 

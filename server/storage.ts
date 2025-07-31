@@ -58,6 +58,14 @@ export interface IStorage {
   // Audit logging
   createAuditLog(log: Omit<AuditLog, 'id' | 'createdAt'>): Promise<AuditLog>;
   
+  // Decision logs
+  createDecisionLog(log: any): Promise<any>;
+  getDecisionLog(id: number): Promise<any>;
+  getDecisionLogs(limit: number, offset: number): Promise<any[]>;
+  getDecisionLogsByType(type: string, limit: number): Promise<any[]>;
+  updateDecisionLogFeedback(id: number, feedback: any): Promise<void>;
+  updateSessionActivity(sessionId: string, lastActivity: Date): Promise<void>;
+  
   // Onboarding
   createOnboardingApplication(data: any): Promise<any>;
   getOnboardingApplications(): Promise<any[]>;
@@ -103,14 +111,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db
+    const result = await db
       .insert(users)
       .values({
         ...insertUser,
         role: this.detectRoleFromEmail(insertUser.email)
       })
       .returning();
-    return user;
+    return result[0];
   }
 
   async updateLastLogin(userId: number): Promise<void> {
@@ -275,37 +283,33 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createAuditLog(log: Omit<AuditLog, 'id' | 'createdAt'>): Promise<AuditLog> {
-    const [auditLog] = await db
+    const result = await db
       .insert(auditLogs)
       .values(log)
       .returning();
-    return auditLog;
+    return result[0];
   }
 
   // Onboarding implementation
   async createOnboardingApplication(data: any): Promise<any> {
-    const [provider] = await db
+    const result = await db
       .insert(careProviders)
       .values({
-        organizationType: data.organizationType,
-        organizationName: data.organizationName,
+        name: data.organizationName,
         domain: data.domain,
+        type: data.organizationType,
         contactPerson: data.contactPerson,
         contactEmail: data.contactEmail,
         contactPhone: data.contactPhone,
         address: data.address,
         licenseNumber: data.licenseNumber,
-        schemesSupported: data.schemesSupported,
+        schemesSupported: data.schemesSupported || [],
         branch: data.branch,
-        servicesOffered: data.servicesOffered,
-        specializations: data.specializations,
-        operatingHours: data.operatingHours,
-        emergencyServices: data.emergencyServices,
         onboardingStatus: 'pending',
         onboardingData: data
       })
       .returning();
-    return provider;
+    return result[0];
   }
 
   async getOnboardingApplications(): Promise<any[]> {
@@ -356,30 +360,42 @@ export class DatabaseStorage implements IStorage {
     const sampleFlows = [
       {
         providerId,
+        flowName: 'Outpatient Consultation',
         flowType: 'outpatient_consultation',
-        title: 'Outpatient Consultation',
-        description: 'Submit and process a routine outpatient consultation claim',
-        steps: ['Patient registration', 'Service delivery', 'Claim submission', 'Processing', 'Payment'],
-        estimatedDuration: 30,
-        completed: false
+        steps: {
+          steps: ['Patient registration', 'Service delivery', 'Claim submission', 'Processing', 'Payment']
+        },
+        testData: {
+          description: 'Submit and process a routine outpatient consultation claim',
+          estimatedDuration: 30
+        },
+        isCompleted: false
       },
       {
         providerId,
+        flowName: 'Emergency Department Visit',
         flowType: 'emergency_visit',
-        title: 'Emergency Department Visit',
-        description: 'Handle emergency department visit with preauthorization',
-        steps: ['Emergency admission', 'Immediate preauth', 'Treatment', 'Claim processing'],
-        estimatedDuration: 45,
-        completed: false
+        steps: {
+          steps: ['Emergency admission', 'Immediate preauth', 'Treatment', 'Claim processing']
+        },
+        testData: {
+          description: 'Handle emergency department visit with preauthorization',
+          estimatedDuration: 45
+        },
+        isCompleted: false
       },
       {
         providerId,
+        flowName: 'Pharmacy Dispensing',
         flowType: 'pharmacy_dispensing',
-        title: 'Pharmacy Dispensing',
-        description: 'Process prescription validation and dispensing',
-        steps: ['Prescription verification', 'Benefit checking', 'Dispensing', 'Claim submission'],
-        estimatedDuration: 20,
-        completed: false
+        steps: {
+          steps: ['Prescription verification', 'Benefit checking', 'Dispensing', 'Claim submission']
+        },
+        testData: {
+          description: 'Process prescription validation and dispensing',
+          estimatedDuration: 20
+        },
+        isCompleted: false
       }
     ];
 
@@ -400,6 +416,7 @@ export class DatabaseStorage implements IStorage {
     await db
       .update(sampleClaimFlows)
       .set({ 
+        isCompleted: true,
         completedAt: new Date()
       })
       .where(eq(sampleClaimFlows.id, flowId));
@@ -416,56 +433,68 @@ export class DatabaseStorage implements IStorage {
     const policies = [
       {
         policyName: 'SHA Universal Health Coverage',
-        provider: 'Social Health Authority',
-        coverageType: 'comprehensive',
-        benefitLimits: {
+        insurerName: 'Social Health Authority',
+        policyType: 'comprehensive',
+        coverageDetails: {
           annual: 1000000,
           outpatient: 50000,
           inpatient: 500000,
           emergency: 200000
         },
-        copayStructure: {
+        benefitCategories: {
           outpatient: 200,
           inpatient: 2000,
           emergency: 1000
         },
-        excludedServices: ['cosmetic surgery', 'experimental treatments'],
+        preauthorizationRules: {
+          automatic: ['outpatient'],
+          manual: ['inpatient', 'emergency']
+        },
+        exclusions: ['cosmetic surgery', 'experimental treatments'],
         isActive: true
       },
       {
         policyName: 'UNHCR Refugee Health Insurance',
-        provider: 'United Nations High Commissioner for Refugees',
-        coverageType: 'basic',
-        benefitLimits: {
+        insurerName: 'United Nations High Commissioner for Refugees',
+        policyType: 'basic',
+        coverageDetails: {
           annual: 500000,
           outpatient: 30000,
           inpatient: 300000,
           emergency: 150000
         },
-        copayStructure: {
+        benefitCategories: {
           outpatient: 100,
           inpatient: 1000,
           emergency: 500
         },
-        excludedServices: ['dental', 'vision correction'],
+        preauthorizationRules: {
+          automatic: ['outpatient'],
+          manual: ['inpatient', 'emergency']
+        },
+        exclusions: ['dental', 'vision correction'],
         isActive: true
       },
       {
         policyName: 'CIC General Insurance',
-        provider: 'CIC Insurance Group',
-        coverageType: 'premium',
-        benefitLimits: {
+        insurerName: 'CIC Insurance Group',
+        policyType: 'premium',
+        coverageDetails: {
           annual: 2000000,
           outpatient: 100000,
           inpatient: 1000000,
           emergency: 400000
         },
-        copayStructure: {
+        benefitCategories: {
           outpatient: 500,
           inpatient: 5000,
           emergency: 2000
         },
-        excludedServices: [],
+        preauthorizationRules: {
+          automatic: ['outpatient'],
+          manual: ['inpatient', 'emergency']
+        },
+        exclusions: [],
         isActive: true
       }
     ];
@@ -575,6 +604,65 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     return result[0];
+  }
+
+  // Decision log methods
+  async createDecisionLog(log: any): Promise<any> {
+    // For now, create a simple audit log entry since we don't have a separate decision logs table
+    return await this.createAuditLog({
+      userId: log.userId,
+      action: log.action || 'decision',
+      entityType: log.entityType || 'preauthorization',
+      entityId: log.entityId,
+      details: log.details,
+      ipAddress: log.ipAddress || 'unknown',
+      userAgent: log.userAgent || 'unknown'
+    });
+  }
+
+  async getDecisionLog(id: number): Promise<any> {
+    const result = await db.select().from(auditLogs).where(eq(auditLogs.id, id));
+    return result[0];
+  }
+
+  async getDecisionLogs(limit: number, offset: number): Promise<any[]> {
+    return await db.select()
+      .from(auditLogs)
+      .where(eq(auditLogs.action, 'decision'))
+      .orderBy(desc(auditLogs.createdAt))
+      .limit(limit)
+      .offset(offset);
+  }
+
+  async getDecisionLogsByType(type: string, limit: number): Promise<any[]> {
+    return await db.select()
+      .from(auditLogs)
+      .where(and(
+        eq(auditLogs.action, 'decision'),
+        eq(auditLogs.entityType, type)
+      ))
+      .orderBy(desc(auditLogs.createdAt))
+      .limit(limit);
+  }
+
+  async updateDecisionLogFeedback(id: number, feedback: any): Promise<void> {
+    // Update the audit log details with feedback
+    const existing = await this.getDecisionLog(id);
+    if (existing) {
+      const updatedDetails = {
+        ...existing.details,
+        feedback: feedback
+      };
+      
+      await db.update(auditLogs)
+        .set({ details: updatedDetails })
+        .where(eq(auditLogs.id, id));
+    }
+  }
+
+  async updateSessionActivity(sessionId: string, lastActivity: Date): Promise<void> {
+    // This is typically handled by the session store, but we can log it if needed
+    console.log(`Session ${sessionId} last activity: ${lastActivity}`);
   }
 }
 
