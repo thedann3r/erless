@@ -1,150 +1,162 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Employer Dashboard - Direct Access</title>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employer Dashboard Access - Erlessed</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #265651, #6BBDB4);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-        .access-card {
+        
+        .container {
             background: white;
-            padding: 50px;
-            border-radius: 16px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
             text-align: center;
             max-width: 500px;
             width: 90%;
         }
+        
         .logo {
-            font-size: 32px;
+            font-size: 2.5rem;
             font-weight: bold;
-            color: #667eea;
-            margin-bottom: 20px;
+            background: linear-gradient(135deg, #265651, #6BBDB4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
         }
-        .status {
-            padding: 12px;
-            border-radius: 8px;
-            margin: 20px 0;
-            font-weight: 500;
+        
+        h1 {
+            color: #265651;
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
         }
-        .status.checking { background: #fff3cd; color: #856404; }
-        .status.running { background: #d1ecf1; color: #155724; }
-        .status.error { background: #f8d7da; color: #721c24; }
-        .access-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        
+        .description {
+            color: #666;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        
+        .credentials {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            text-align: left;
+        }
+        
+        .credentials h3 {
+            color: #265651;
+            margin-bottom: 1rem;
+        }
+        
+        .credential-item {
+            margin-bottom: 1rem;
+            padding: 0.8rem;
+            background: white;
+            border-radius: 5px;
+            border-left: 4px solid #6BBDB4;
+        }
+        
+        .credential-item strong {
+            color: #265651;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #265651, #6BBDB4);
             color: white;
-            padding: 16px 32px;
+            padding: 1rem 2rem;
             border: none;
-            border-radius: 8px;
-            font-size: 16px;
+            border-radius: 50px;
+            font-size: 1.1rem;
             font-weight: 600;
             cursor: pointer;
             text-decoration: none;
             display: inline-block;
-            margin: 20px 0;
-            transition: all 0.3s ease;
+            transition: transform 0.2s;
+            margin: 0.5rem;
         }
-        .access-btn:hover { 
-            transform: translateY(-2px); 
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
         }
-        .demo-accounts {
-            margin-top: 30px;
-            padding-top: 30px;
-            border-top: 2px solid #f1f1f1;
-        }
-        .account {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 10px 0;
+        
+        .features {
             text-align: left;
+            margin-top: 2rem;
         }
-        .account strong { color: #495057; }
-        .redirect-notice {
-            font-size: 14px;
-            color: #6c757d;
-            margin-top: 20px;
-            font-style: italic;
+        
+        .features h3 {
+            color: #265651;
+            margin-bottom: 1rem;
+        }
+        
+        .features ul {
+            color: #666;
+            line-height: 1.8;
+        }
+        
+        .features li {
+            margin-bottom: 0.5rem;
         }
     </style>
 </head>
 <body>
-    <div class="access-card">
-        <div class="logo">🏢 Employer Benefits Dashboard</div>
-        <h2>Secure Authentication Portal</h2>
-        <p style="color: #6c757d; margin: 15px 0;">Access your company's benefits management system</p>
+    <div class="container">
+        <div class="logo">Erlessed</div>
+        <h1>Employer Benefits Dashboard</h1>
+        <p class="description">
+            Access the employer benefits management system to track employee claims, 
+            manage fund allocations, and monitor benefit usage across your organization.
+        </p>
         
-        <div id="status" class="status checking">🔍 Checking server status...</div>
-        
-        <a href="http://localhost:3001/" class="access-btn" id="accessBtn" style="display: none;">
-            🚀 Access Dashboard
-        </a>
-        
-        <div class="demo-accounts">
-            <h3 style="margin-bottom: 15px;">Demo Login Accounts</h3>
-            <div class="account">
-                <strong>HR Manager:</strong><br>
+        <div class="credentials">
+            <h3>Demo Login Credentials</h3>
+            <div class="credential-item">
+                <strong>Employer Account:</strong><br>
                 Email: hr@techcorp.com<br>
                 Password: demo123
             </div>
-            <div class="account">
-                <strong>System Admin:</strong><br>
+            <div class="credential-item">
+                <strong>Admin Account:</strong><br>
                 Email: admin@benefits.com<br>
                 Password: admin123
             </div>
         </div>
         
-        <div class="redirect-notice">
-            This will open the employer dashboard at localhost:3001<br>
-            (Separate from the main Erlessed app on port 5000)
+        <a href="http://localhost:3001" class="btn-primary" target="_blank">
+            Access Employer Dashboard
+        </a>
+        
+        <a href="http://localhost:3001/login.html" class="btn-primary" target="_blank">
+            Direct Login Page
+        </a>
+        
+        <div class="features">
+            <h3>Dashboard Features</h3>
+            <ul>
+                <li>✓ Secure authentication and session management</li>
+                <li>✓ Employee benefit limits and usage tracking</li>
+                <li>✓ Claims submission and approval workflow</li>
+                <li>✓ Real-time fund monitoring and analytics</li>
+                <li>✓ Comprehensive reporting and statistics</li>
+                <li>✓ Role-based access control</li>
+            </ul>
         </div>
     </div>
-
-    <script>
-        let checkCount = 0;
-        
-        async function checkServerStatus() {
-            const statusEl = document.getElementById('status');
-            const btnEl = document.getElementById('accessBtn');
-            checkCount++;
-            
-            try {
-                const response = await fetch('http://localhost:3001/health');
-                if (response.ok) {
-                    statusEl.className = 'status running';
-                    statusEl.innerHTML = '✅ Server is running and ready!';
-                    btnEl.style.display = 'inline-block';
-                    return true;
-                } else {
-                    throw new Error('Server not responding');
-                }
-            } catch (error) {
-                statusEl.className = 'status error';
-                statusEl.innerHTML = `❌ Server not accessible (attempt ${checkCount})`;
-                btnEl.style.display = 'none';
-                return false;
-            }
-        }
-        
-        // Auto-redirect if server is running
-        checkServerStatus().then(isRunning => {
-            if (isRunning) {
-                setTimeout(() => {
-                    window.open('http://localhost:3001/', '_blank');
-                }, 2000);
-            }
-        });
-        
-        // Check every 3 seconds
-        setInterval(checkServerStatus, 3000);
-    </script>
 </body>
 </html>
