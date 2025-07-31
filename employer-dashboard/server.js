@@ -8,11 +8,11 @@ const { PrismaClient } = require('@prisma/client');
 
 const app = express();
 const prisma = new PrismaClient();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors({
-  origin: 'http://localhost:3001',
+  origin: 'http://localhost:5000',
   credentials: true
 }));
 app.use(bodyParser.json());
@@ -355,7 +355,7 @@ app.get('/health', (req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Employer Dashboard Server running on port ${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/health`);
 });
