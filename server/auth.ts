@@ -53,7 +53,7 @@ export function setupAuth(app: Express) {
   app.use(passport.session());
 
   passport.use(
-    new LocalStrategy(async (emailOrUsername, password, done) => {
+    new LocalStrategy({ usernameField: 'email', passwordField: 'password' }, async (emailOrUsername, password, done) => {
       try {
         console.log(`Login attempt for: ${emailOrUsername}`);
         let user;
@@ -73,6 +73,7 @@ export function setupAuth(app: Express) {
         }
         
         const passwordMatch = await comparePasswords(password, user.password);
+        
         if (!passwordMatch) {
           console.log('Password mismatch');
           return done(null, false, { message: 'Invalid password' });
@@ -134,7 +135,7 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/login", (req, res, next) => {
-    passport.authenticate("local", (err, user, info) => {
+    passport.authenticate("local", (err: any, user: any, info: any) => {
       if (err) {
         console.error("Authentication error:", err);
         return res.status(500).json({ message: "Authentication failed" });
@@ -152,7 +153,7 @@ export function setupAuth(app: Express) {
           return res.status(500).json({ message: "Login failed" });
         }
         
-        console.log("Session after login:", req.session.passport);
+        console.log("Session after login:", (req.session as any).passport);
         
         // Force session save and then send response
         req.session.save((saveErr) => {
@@ -164,15 +165,15 @@ export function setupAuth(app: Express) {
           console.log("Session saved successfully");
           
           // Update last login time (optional)
-          // storage.updateLastLogin(user.id).catch(console.error);
+          storage.updateLastLogin(user.id).catch(console.error);
           
           res.status(200).json({
             id: user.id,
             username: user.username,
             email: user.email,
-            name: user.name,
-            role: user.role,
-            department: user.department
+            firstName: user.firstName,
+            lastName: user.lastName,
+            role: user.role
           });
         });
       });
