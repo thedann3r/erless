@@ -13,6 +13,7 @@ import path from 'path';
 
 const deepSeekService = new DeepSeekService();
 import { registrationService } from "./registration-service";
+import policyManagementRoutes from "./policy-management-api";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
@@ -2668,6 +2669,14 @@ app.get('/api/debtors/user-premium-status', requireAuth, async (req, res) => {
     console.log("✅ Insurer Policy API routes registered successfully");
   } catch (error) {
     console.error("❌ Failed to load insurer policy API:", error);
+  }
+
+  // Setup policy management API routes
+  try {
+    app.use("/api/policy-management", policyManagementRoutes);
+    console.log("✅ Policy Management API routes registered successfully");
+  } catch (error) {
+    console.error("❌ Failed to load policy management API:", error);
   }
 
   // Real-time benefit lookup endpoint for biometric verification

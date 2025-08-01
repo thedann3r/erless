@@ -517,6 +517,101 @@ export const benefitUsage = pgTable("benefit_usage", {
   resetDate: timestamp("reset_date"),
 });
 
+// === ENHANCED ROLE-BASED POLICY MANAGEMENT TABLES ===
+
+// Claim Forms table - Insurer-specific claim form templates
+export const claimForms = pgTable("claim_forms", {
+  id: serial("id").primaryKey(),
+  insurerId: integer("insurer_id").references(() => insurers.id).notNull(),
+  formName: text("form_name").notNull(),
+  formType: text("form_type").notNull(), // outpatient, inpatient, pharmacy, dental, optical
+  formTemplate: jsonb("form_template").notNull(), // JSON structure of form fields
+  autoFillRules: jsonb("auto_fill_rules"), // Rules for pre-filling form data
+  validationRules: jsonb("validation_rules"), // Field validation requirements
+  isActive: boolean("is_active").default(true).notNull(),
+  version: text("version").notNull().default("1.0"),
+  createdBy: integer("created_by").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Employer Groups table - Corporate employer groups assigned to schemes
+export const employerGroups = pgTable("employer_groups", {
+  id: serial("id").primaryKey(),
+  insurerId: integer("insurer_id").references(() => insurers.id).notNull(),
+  groupName: text("group_name").notNull(),
+  groupCode: text("group_code").notNull(),
+  corporateClient: text("corporate_client").notNull(),
+  contactPerson: text("contact_person"),
+  contactEmail: text("contact_email"),
+  contactPhone: text("contact_phone"),
+  assignedSchemes: integer("assigned_schemes").array(), // Array of scheme IDs
+  memberCount: integer("member_count").default(0),
+  isActive: boolean("is_active").default(true).notNull(),
+  effectiveDate: date("effective_date").notNull(),
+  expiryDate: date("expiry_date"),
+  createdBy: integer("created_by").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Preauthorization Rules table - Service-specific preauth configuration
+export const preauthorizationRules = pgTable("preauthorization_rules", {
+  id: serial("id").primaryKey(),
+  insurerId: integer("insurer_id").references(() => insurers.id).notNull(),
+  schemeId: integer("scheme_id").references(() => schemes.id),
+  serviceType: text("service_type").notNull(), // consultation, surgery, imaging, lab
+  serviceCode: text("service_code"), // CPT, ICD codes
+  serviceName: text("service_name").notNull(),
+  requiresPreauth: boolean("requires_preauth").default(false).notNull(),
+  autoApprovalThreshold: decimal("auto_approval_threshold", { precision: 10, scale: 2 }),
+  maxAmount: decimal("max_amount", { precision: 10, scale: 2 }),
+  frequencyLimit: text("frequency_limit"), // per day, per month, per year
+  clinicalCriteria: jsonb("clinical_criteria"), // Required clinical justifications
+  ageRestrictions: jsonb("age_restrictions"), // Min/max age requirements
+  genderRestrictions: text("gender_restrictions").array(), // Applicable genders
+  isActive: boolean("is_active").default(true).notNull(),
+  createdBy: integer("created_by").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Policy Approval Workflow table - Multi-stage approval process
+export const policyApprovals = pgTable("policy_approvals", {
+  id: serial("id").primaryKey(),
+  policyId: integer("policy_id").references(() => policies.id).notNull(),
+  approvalStage: text("approval_stage").notNull(), // draft, review, approved, rejected
+  requestedBy: integer("requested_by").references(() => users.id).notNull(),
+  reviewedBy: integer("reviewed_by").references(() => users.id),
+  approverRole: text("approver_role").notNull(), // insurer_admin, care_manager, claims_manager
+  comments: text("comments"),
+  approvalDate: timestamp("approval_date"),
+  rejectionReason: text("rejection_reason"),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Care Plans table - Care Manager patient assignments
+export const carePlans = pgTable("care_plans", {
+  id: serial("id").primaryKey(),
+  patientId: integer("patient_id").references(() => patients.id).notNull(),
+  careManagerId: integer("care_manager_id").references(() => users.id).notNull(),
+  policyId: integer("policy_id").references(() => policies.id),
+  planName: text("plan_name").notNull(),
+  planDescription: text("plan_description"),
+  healthConditions: text("health_conditions").array(),
+  treatmentGoals: jsonb("treatment_goals"),
+  assignedServices: jsonb("assigned_services"), // Care coordination services
+  priority: text("priority").notNull().default("medium"), // high, medium, low
+  status: text("status").notNull().default("active"), // active, completed, suspended
+  startDate: date("start_date").notNull(),
+  expectedEndDate: date("expected_end_date"),
+  actualEndDate: date("actual_end_date"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Pharmacy Dispensing Records
 export const dispensingRecords = pgTable("dispensing_records", {
   id: serial("id").primaryKey(),

@@ -11,6 +11,13 @@ Preferred communication style: Simple, everyday language.
 ### General Principles
 The application features a modern full-stack architecture prioritizing scalability, security, and maintainability. Key architectural decisions include a component-based frontend, a Node.js backend, and a PostgreSQL database. The system emphasizes clear separation of concerns, microservice-oriented integration for external systems, and a strong focus on compliance with Kenyan healthcare regulations.
 
+### Recent Major Enhancement (August 2025)
+**Comprehensive Policy Management System**: Implemented advanced role-based policy and scheme management with:
+- **5 New Database Tables**: claim_forms, employer_groups, preauthorization_rules, policy_approvals, care_plans
+- **Role-Based API Endpoints**: Complete policy management API (`/api/policy-management/*`) with role-based access control (insurer_admin, care_manager, claims_manager)
+- **Enhanced Dashboards**: Specialized dashboards for Insurer Administrators and Care Managers with real-time policy insights
+- **Sample Data Integration**: Comprehensive sample data for CIC Insurance, SHA, AAR, and other major Kenyan insurers
+
 ### Frontend
 - **Framework**: React 18 with TypeScript
 - **Styling**: Tailwind CSS with custom teal/medical theme using shadcn/ui components; features consistent modern UI with card-based layouts and professional aesthetics. Supports both dark and light themes.
@@ -26,7 +33,8 @@ The application features a modern full-stack architecture prioritizing scalabili
 - **Authentication**: Passport.js with local strategy and PostgreSQL-backed session management, supporting multi-role access and domain-based registration. Includes biometric verification capabilities for patients.
 - **AI Integration**: Utilizes OpenAI (GPT-4o), DeepSeek, and Mistral 7B for AI-powered preauthorization, fraud detection, prescription validation, treatment planning, and reasoning chain generation. AI decisions are transparent with confidence scoring.
 - **Data Flow**: Comprehensive workflows for patient registration, clinical encounters, real-time eligibility checks, claims submission (with AI review), payment processing (with blockchain verification), and analytics.
-- **Features**: Multi-role support, advanced authentication (including biometric simulation), real-time claims processing, multi-stage workflow, void capability for claims, and blockchain anchoring for immutability.
+- **Features**: Multi-role support, advanced authentication (including biometric simulation), real-time claims processing, multi-stage workflow, void capability for claims, blockchain anchoring for immutability, and comprehensive policy management system.
+- **Policy Management**: Full CRUD operations for policies, schemes, claim forms, employer groups, preauthorization rules, and care plans with role-based access control and approval workflows.
 - **Pharmacy Integration**: Prescription validation with safety checks (weight-based, gender-sensitive, drug interaction), benefit category matching, and real-time cost calculation.
 - **Legal Compliance**: Integrated framework for Kenyan compliance (Data Protection Act 2019, SHA guidelines, professional license verification) with legal disclaimers and patient consent management.
 

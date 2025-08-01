@@ -1,514 +1,451 @@
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Progress } from "@/components/ui/progress";
-import { SharedLayout } from "@/components/layout/shared-layout";
-import { 
-  Shield, TrendingUp, AlertTriangle, DollarSign, Users, 
-  Settings, CheckCircle, XCircle, Search, Eye, Download,
-  UserPlus, FileText, BarChart3, Globe, Key, Database
-} from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Building2, FileText, Users, Settings, TrendingUp, Shield, AlertTriangle, CheckCircle } from "lucide-react";
+import { Link } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
-import { apiRequest, queryClient } from "@/lib/queryClient";
 
-interface SystemMetric {
-  id: string;
-  name: string;
-  value: string | number;
-  change: string;
-  status: "up" | "down" | "stable";
-  icon: string;
-}
-
-interface UserAccount {
+interface Policy {
   id: number;
-  username: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  role: "claims_manager" | "care_manager" | "insurer_admin";
-  department: string;
+  policyNumber: string;
+  policyName: string;
+  policyType: string;
+  effectiveDate: string;
+  expiryDate: string;
+  premiumAmount: string;
+  corporateClient: string;
   isActive: boolean;
-  lastLogin?: string;
   createdAt: string;
+  insurerName: string;
+  insurerCode: string;
 }
 
-interface PolicyConfiguration {
+interface ClaimForm {
   id: number;
-  name: string;
-  category: string;
-  currentValue: string;
-  recommendedValue?: string;
-  description: string;
-  lastUpdated: string;
-  status: "active" | "pending" | "inactive";
+  formName: string;
+  formType: string;
+  isActive: boolean;
+  version: string;
+  createdAt: string;
+  insurerName: string;
+}
+
+interface EmployerGroup {
+  id: number;
+  groupName: string;
+  groupCode: string;
+  corporateClient: string;
+  memberCount: number;
+  isActive: boolean;
+  effectiveDate: string;
+  expiryDate: string;
+  assignedSchemes: number[];
 }
 
 export default function InsurerAdminDashboard() {
   const { user } = useAuth();
-  const { toast } = useToast();
-  const [selectedUser, setSelectedUser] = useState<UserAccount | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [roleFilter, setRoleFilter] = useState("all");
+  const [selectedInsurer, setSelectedInsurer] = useState<string>("1");
+  
+  const { data: policies, isLoading: policiesLoading } = useQuery({
+    queryKey: ["/api/policy-management/policies", selectedInsurer],
+    queryFn: () => fetch(`/api/policy-management/policies?insurerId=${selectedInsurer}`).then(res => res.json()),
+    enabled: !!selectedInsurer
+  });
 
-  // Mock system metrics
-  const systemMetrics: SystemMetric[] = [
-    { id: "1", name: "Total Active Policies", value: "45,678", change: "+2.3%", status: "up", icon: "shield" },
-    { id: "2", name: "Claims Processing Rate", value: "97.8%", change: "+1.2%", status: "up", icon: "trending-up" },
-    { id: "3", name: "System Uptime", value: "99.97%", change: "stable", status: "stable", icon: "activity" },
-    { id: "4", name: "User Satisfaction", value: "4.6/5", change: "+0.2", status: "up", icon: "users" }
-  ];
+  const { data: claimForms, isLoading: formsLoading } = useQuery({
+    queryKey: ["/api/policy-management/claim-forms", selectedInsurer],
+    queryFn: () => fetch(`/api/policy-management/claim-forms?insurerId=${selectedInsurer}`).then(res => res.json()),
+    enabled: !!selectedInsurer
+  });
 
-  // Mock user accounts
-  const mockUsers: UserAccount[] = [
-    {
-      id: 1,
-      username: "claims_manager1",
-      email: "claims.manager@cic.co.ke",
-      firstName: "Joseph",
-      lastName: "Kamau",
-      role: "claims_manager",
-      department: "Claims Processing",
-      isActive: true,
-      lastLogin: "2024-01-15T10:30:00Z",
-      createdAt: "2024-01-01T00:00:00Z"
-    },
-    {
-      id: 2,
-      username: "care_manager1", 
-      email: "care.manager@cic.co.ke",
-      firstName: "Grace",
-      lastName: "Wanjiku",
-      role: "care_manager",
-      department: "Care Management",
-      isActive: true,
-      lastLogin: "2024-01-14T15:45:00Z",
-      createdAt: "2024-01-01T00:00:00Z"
-    }
-  ];
+  const { data: employerGroups, isLoading: groupsLoading } = useQuery({
+    queryKey: ["/api/policy-management/employer-groups", selectedInsurer],
+    queryFn: () => fetch(`/api/policy-management/employer-groups?insurerId=${selectedInsurer}`).then(res => res.json()),
+    enabled: !!selectedInsurer
+  });
 
-  // Mock policy configurations
-  const mockPolicies: PolicyConfiguration[] = [
-    {
-      id: 1,
-      name: "Auto-approval Threshold",
-      category: "Claims Processing",
-      currentValue: "KES 5,000",
-      recommendedValue: "KES 8,000",
-      description: "Maximum claim amount for automatic approval",
-      lastUpdated: "2024-01-10",
-      status: "active"
-    },
-    {
-      id: 2,
-      name: "High-risk Patient Threshold",
-      category: "Care Management",
-      currentValue: "75%",
-      recommendedValue: "70%",
-      description: "Risk score threshold for intervention alerts",
-      lastUpdated: "2024-01-08",
-      status: "pending"
-    }
-  ];
+  const { data: preauthRules, isLoading: rulesLoading } = useQuery({
+    queryKey: ["/api/policy-management/preauth-rules", selectedInsurer],
+    queryFn: () => fetch(`/api/policy-management/preauth-rules?insurerId=${selectedInsurer}`).then(res => res.json()),
+    enabled: !!selectedInsurer
+  });
 
-  const handleCreateUser = async () => {
-    toast({
-      title: "User Account Created",
-      description: "New user account has been created successfully.",
-    });
-  };
-
-  const handleToggleUserStatus = async (userId: number) => {
-    toast({
-      title: "User Status Updated",
-      description: "User account status has been updated.",
-    });
-  };
-
-  const handleUpdatePolicy = async (policyId: number) => {
-    toast({
-      title: "Policy Updated",
-      description: "Policy configuration has been updated successfully.",
-    });
-  };
-
-  const getRoleBadge = (role: string) => {
-    switch (role) {
-      case "claims_manager":
-        return <Badge className="bg-blue-500">Claims Manager</Badge>;
-      case "care_manager":
-        return <Badge className="bg-green-500">Care Manager</Badge>;
-      case "insurer_admin":
-        return <Badge className="bg-purple-500">Admin</Badge>;
-      default:
-        return <Badge>{role}</Badge>;
-    }
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "active":
-        return <Badge className="bg-green-500">Active</Badge>;
-      case "pending":
-        return <Badge className="bg-yellow-500">Pending</Badge>;
-      case "inactive":
-        return <Badge className="bg-gray-500">Inactive</Badge>;
-      default:
-        return <Badge>{status}</Badge>;
-    }
-  };
+  // Calculate dashboard metrics
+  const activePolicies = policies?.filter((p: Policy) => p.isActive)?.length || 0;
+  const totalMembers = employerGroups?.reduce((sum: number, group: EmployerGroup) => sum + group.memberCount, 0) || 0;
+  const activeClaimForms = claimForms?.filter((f: ClaimForm) => f.isActive)?.length || 0;
+  const totalPreauthRules = preauthRules?.length || 0;
 
   return (
-    <SharedLayout>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
+    <div className="min-h-screen bg-gradient-to-br from-teal-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
+      <div className="container mx-auto p-6 space-y-8">
+        {/* Header */}
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Insurer Admin Dashboard</h1>
-            <p className="text-gray-600 mt-1">System administration and configuration for {user?.insurerCompany || "your organization"}</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+              Insurer Administrator Dashboard
+            </h1>
+            <p className="text-gray-600 dark:text-gray-300 mt-2">
+              Comprehensive policy and scheme management for {user?.insurerCompany || 'Insurance Company'}
+            </p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline">
-              <Download className="h-4 w-4 mr-2" />
-              System Report
-            </Button>
-            <Button>
-              <UserPlus className="h-4 w-4 mr-2" />
-              Add User
-            </Button>
+          <div className="flex items-center space-x-4">
+            <Select value={selectedInsurer} onValueChange={setSelectedInsurer}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Select Insurer" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">Social Health Authority</SelectItem>
+                <SelectItem value="2">CIC Insurance Group</SelectItem>
+                <SelectItem value="3">AAR Insurance Kenya</SelectItem>
+                <SelectItem value="4">Jubilee Insurance</SelectItem>
+                <SelectItem value="5">AON Minet Insurance</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
-        {/* System Overview Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {systemMetrics.map((metric) => (
-            <Card key={metric.id}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{metric.name}</CardTitle>
-                <Shield className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{metric.value}</div>
-                <p className={`text-xs ${
-                  metric.status === 'up' ? 'text-green-600' : 
-                  metric.status === 'down' ? 'text-red-600' : 'text-gray-600'
-                }`}>
-                  {metric.change} from last period
-                </p>
-              </CardContent>
-            </Card>
-          ))}
+        {/* Key Performance Indicators */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card className="bg-white dark:bg-gray-800">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Active Policies</CardTitle>
+              <Building2 className="h-4 w-4 text-teal-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-teal-600">{activePolicies}</div>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
+                +2 new this month
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white dark:bg-gray-800">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Members</CardTitle>
+              <Users className="h-4 w-4 text-blue-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-600">{totalMembers.toLocaleString()}</div>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
+                Across all employer groups
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white dark:bg-gray-800">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Claim Forms</CardTitle>
+              <FileText className="h-4 w-4 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">{activeClaimForms}</div>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
+                Active form templates
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white dark:bg-gray-800">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Preauth Rules</CardTitle>
+              <Shield className="h-4 w-4 text-purple-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-purple-600">{totalPreauthRules}</div>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
+                Active authorization rules
+              </p>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Main Content Tabs */}
-        <Tabs defaultValue="users" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="users">User Management</TabsTrigger>
-            <TabsTrigger value="policies">Policy Configuration</TabsTrigger>
-            <TabsTrigger value="analytics">System Analytics</TabsTrigger>
-            <TabsTrigger value="settings">Global Settings</TabsTrigger>
+        <Tabs defaultValue="policies" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="policies">Policies</TabsTrigger>
+            <TabsTrigger value="schemes">Schemes</TabsTrigger>
+            <TabsTrigger value="forms">Claim Forms</TabsTrigger>
+            <TabsTrigger value="groups">Employer Groups</TabsTrigger>
+            <TabsTrigger value="preauth">Preauth Rules</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="users" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>User Account Management</CardTitle>
-                <CardDescription>Manage user accounts and permissions for your organization</CardDescription>
-                <div className="flex gap-2 mt-4">
-                  <Input
-                    placeholder="Search users..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="max-w-sm"
-                  />
-                  <Select value={roleFilter} onValueChange={setRoleFilter}>
-                    <SelectTrigger className="w-40">
-                      <SelectValue placeholder="Filter by role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Roles</SelectItem>
-                      <SelectItem value="claims_manager">Claims Manager</SelectItem>
-                      <SelectItem value="care_manager">Care Manager</SelectItem>
-                      <SelectItem value="insurer_admin">Admin</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button onClick={handleCreateUser}>
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    Add User
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {mockUsers.map((userAccount) => (
-                    <div key={userAccount.id} className="border rounded-lg p-4 hover:bg-gray-50">
-                      <div className="flex justify-between items-start">
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-3">
-                            <h3 className="font-semibold">{userAccount.firstName} {userAccount.lastName}</h3>
-                            {getRoleBadge(userAccount.role)}
-                            <Badge className={userAccount.isActive ? "bg-green-500" : "bg-red-500"}>
-                              {userAccount.isActive ? "Active" : "Inactive"}
-                            </Badge>
-                          </div>
-                          
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                            <div>
-                              <p className="text-gray-600">Username</p>
-                              <p className="font-mono text-xs">{userAccount.username}</p>
-                            </div>
-                            <div>
-                              <p className="text-gray-600">Email</p>
-                              <p className="text-xs">{userAccount.email}</p>
-                            </div>
-                            <div>
-                              <p className="text-gray-600">Department</p>
-                              <p className="font-semibold">{userAccount.department}</p>  
-                            </div>
-                            <div>
-                              <p className="text-gray-600">Last Login</p>
-                              <p className="text-xs">
-                                {userAccount.lastLogin 
-                                  ? new Date(userAccount.lastLogin).toLocaleDateString()
-                                  : "Never"
-                                }
-                              </p>
-                            </div>
-                          </div>
+          {/* Policies Tab */}
+          <TabsContent value="policies" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Policy Management</h2>
+              <Button className="bg-teal-600 hover:bg-teal-700">
+                <Building2 className="w-4 h-4 mr-2" />
+                Create New Policy
+              </Button>
+            </div>
+
+            <div className="grid gap-6">
+              {policiesLoading ? (
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="text-center">Loading policies...</div>
+                  </CardContent>
+                </Card>
+              ) : (
+                policies?.map((policy: Policy) => (
+                  <Card key={policy.id} className="bg-white dark:bg-gray-800">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <CardTitle className="text-lg">{policy.policyName}</CardTitle>
+                          <CardDescription>
+                            Policy #{policy.policyNumber} • {policy.policyType}
+                          </CardDescription>
                         </div>
-                        
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleToggleUserStatus(userAccount.id)}
-                          >
-                            {userAccount.isActive ? (
-                              <>
-                                <XCircle className="h-4 w-4 mr-1" />
-                                Deactivate
-                              </>
-                            ) : (
-                              <>
-                                <CheckCircle className="h-4 w-4 mr-1" />
-                                Activate
-                              </>
-                            )}
-                          </Button>
+                        <div className="flex items-center space-x-2">
+                          <Badge variant={policy.isActive ? "default" : "secondary"}>
+                            {policy.isActive ? "Active" : "Inactive"}
+                          </Badge>
                           <Button variant="outline" size="sm">
-                            <Settings className="h-4 w-4 mr-1" />
-                            Edit
+                            <Settings className="w-4 h-4 mr-2" />
+                            Manage
                           </Button>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Corporate Client</p>
+                          <p className="text-sm">{policy.corporateClient || "Individual Policy"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Effective Period</p>
+                          <p className="text-sm">
+                            {new Date(policy.effectiveDate).toLocaleDateString()} - {new Date(policy.expiryDate).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Premium Amount</p>
+                          <p className="text-sm font-semibold text-teal-600">
+                            {policy.premiumAmount ? `KES ${parseFloat(policy.premiumAmount).toLocaleString()}` : "N/A"}
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
           </TabsContent>
 
-          <TabsContent value="policies" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Policy Configuration</CardTitle>
-                <CardDescription>Configure system policies and business rules</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {mockPolicies.map((policy) => (
-                    <div key={policy.id} className="border rounded-lg p-4">
-                      <div className="flex justify-between items-start">
-                        <div className="space-y-2 flex-1">
-                          <div className="flex items-center gap-3">
-                            <h3 className="font-semibold">{policy.name}</h3>
-                            {getStatusBadge(policy.status)}
-                            <Badge variant="outline">{policy.category}</Badge>
-                          </div>
-                          
-                          <p className="text-sm text-gray-600">{policy.description}</p>
-                          
-                          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                            <div>
-                              <p className="text-gray-600">Current Value</p>
-                              <p className="font-semibold">{policy.currentValue}</p>
-                            </div>
-                            {policy.recommendedValue && (
-                              <div>
-                                <p className="text-gray-600">Recommended</p>
-                                <p className="font-semibold text-blue-600">{policy.recommendedValue}</p>
-                              </div>
-                            )}
-                            <div>
-                              <p className="text-gray-600">Last Updated</p>
-                              <p className="text-xs">{new Date(policy.lastUpdated).toLocaleDateString()}</p>
-                            </div>
-                          </div>
+          {/* Claim Forms Tab */}
+          <TabsContent value="forms" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Claim Form Templates</h2>
+              <Button className="bg-green-600 hover:bg-green-700">
+                <FileText className="w-4 h-4 mr-2" />
+                Create New Form
+              </Button>
+            </div>
+
+            <div className="grid gap-4">
+              {formsLoading ? (
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="text-center">Loading claim forms...</div>
+                  </CardContent>
+                </Card>
+              ) : (
+                claimForms?.map((form: ClaimForm) => (
+                  <Card key={form.id} className="bg-white dark:bg-gray-800">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <CardTitle className="text-lg">{form.formName}</CardTitle>
+                          <CardDescription>
+                            {form.formType} • Version {form.version}
+                          </CardDescription>
                         </div>
-                        
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleUpdatePolicy(policy.id)}
-                          >
-                            <Settings className="h-4 w-4 mr-1" />
-                            Configure
+                        <div className="flex items-center space-x-2">
+                          <Badge variant={form.isActive ? "default" : "secondary"}>
+                            {form.isActive ? "Active" : "Inactive"}
+                          </Badge>
+                          <Button variant="outline" size="sm">
+                            <Settings className="w-4 h-4 mr-2" />
+                            Edit Template
                           </Button>
-                          {policy.recommendedValue && (
-                            <Button size="sm">
-                              <CheckCircle className="h-4 w-4 mr-1" />
-                              Apply Recommended
-                            </Button>
-                          )}
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Created: {new Date(form.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div>
+                          <Button variant="ghost" size="sm">
+                            <TrendingUp className="w-4 h-4 mr-2" />
+                            Usage Statistics
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          </TabsContent>
+
+          {/* Employer Groups Tab */}
+          <TabsContent value="groups" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Employer Group Management</h2>
+              <Button className="bg-blue-600 hover:bg-blue-700">
+                <Users className="w-4 h-4 mr-2" />
+                Add Employer Group
+              </Button>
+            </div>
+
+            <div className="grid gap-4">
+              {groupsLoading ? (
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="text-center">Loading employer groups...</div>
+                  </CardContent>
+                </Card>
+              ) : (
+                employerGroups?.map((group: EmployerGroup) => (
+                  <Card key={group.id} className="bg-white dark:bg-gray-800">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <CardTitle className="text-lg">{group.groupName}</CardTitle>
+                          <CardDescription>
+                            {group.corporateClient} • Code: {group.groupCode}
+                          </CardDescription>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Badge variant={group.isActive ? "default" : "secondary"}>
+                            {group.isActive ? "Active" : "Inactive"}
+                          </Badge>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Member Count</p>
+                          <p className="text-xl font-semibold text-blue-600">{group.memberCount.toLocaleString()}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Contract Period</p>
+                          <p className="text-sm">
+                            {new Date(group.effectiveDate).toLocaleDateString()} - 
+                            {group.expiryDate ? new Date(group.expiryDate).toLocaleDateString() : "Ongoing"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Assigned Schemes</p>
+                          <p className="text-sm">{group.assignedSchemes?.length || 0} schemes assigned</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          </TabsContent>
+
+          {/* Preauth Rules Tab */}
+          <TabsContent value="preauth" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Preauthorization Rules</h2>
+              <Button className="bg-purple-600 hover:bg-purple-700">
+                <Shield className="w-4 h-4 mr-2" />
+                Create New Rule
+              </Button>
+            </div>
+
+            <div className="grid gap-4">
+              {rulesLoading ? (
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="text-center">Loading preauth rules...</div>
+                  </CardContent>
+                </Card>
+              ) : (
+                preauthRules?.map((rule: any) => (
+                  <Card key={rule.id} className="bg-white dark:bg-gray-800">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <CardTitle className="text-lg">{rule.serviceName}</CardTitle>
+                          <CardDescription>
+                            {rule.serviceType} • Code: {rule.serviceCode || "N/A"}
+                          </CardDescription>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Badge variant={rule.requiresPreauth ? "destructive" : "default"}>
+                            {rule.requiresPreauth ? "Preauth Required" : "Auto Approved"}
+                          </Badge>
+                          <Badge variant={rule.isActive ? "default" : "secondary"}>
+                            {rule.isActive ? "Active" : "Inactive"}
+                          </Badge>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Auto Approval Threshold</p>
+                          <p className="text-sm font-semibold text-green-600">
+                            {rule.autoApprovalThreshold ? `KES ${parseFloat(rule.autoApprovalThreshold).toLocaleString()}` : "N/A"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Maximum Amount</p>
+                          <p className="text-sm font-semibold text-red-600">
+                            {rule.maxAmount ? `KES ${parseFloat(rule.maxAmount).toLocaleString()}` : "No Limit"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Frequency Limit</p>
+                          <p className="text-sm">{rule.frequencyLimit || "No Restriction"}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          </TabsContent>
+
+          {/* Schemes Tab */}
+          <TabsContent value="schemes" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Policy Schemes</h2>
+              <Button className="bg-indigo-600 hover:bg-indigo-700">
+                <TrendingUp className="w-4 h-4 mr-2" />
+                Create New Scheme
+              </Button>
+            </div>
+
+            <Card className="bg-white dark:bg-gray-800">
+              <CardContent className="p-6">
+                <div className="text-center">
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Select a policy to view and manage its schemes.
+                  </p>
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
-
-          <TabsContent value="analytics" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>System Performance</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="space-y-3">
-                      <div className="flex justify-between">
-                        <span>CPU Usage (23%)</span>
-                        <span>Normal</span>
-                      </div>
-                      <Progress value={23} className="w-full" />
-                      
-                      <div className="flex justify-between">
-                        <span>Memory Usage (67%)</span>
-                        <span>Good</span>
-                      </div>
-                      <Progress value={67} className="w-full" />
-                      
-                      <div className="flex justify-between">
-                        <span>Database Performance (94%)</span>
-                        <span>Excellent</span>
-                      </div>
-                      <Progress value={94} className="w-full" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>User Activity</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="text-center p-8 text-gray-500">
-                      <BarChart3 className="h-12 w-12 mx-auto mb-4" />
-                      <p>User activity analytics</p>
-                      <p className="text-sm">Login patterns, feature usage, and performance metrics</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="settings" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>System Configuration</CardTitle>
-                  <CardDescription>Global system settings and preferences</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="systemName">Organization Name</Label>
-                    <Input id="systemName" value={user?.insurerCompany || "CIC Insurance"} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="timezone">System Timezone</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select timezone" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="africa/nairobi">Africa/Nairobi (EAT)</SelectItem>
-                        <SelectItem value="utc">UTC</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="sessionTimeout">Session Timeout (minutes)</Label>
-                    <Input id="sessionTimeout" type="number" placeholder="30" />
-                  </div>
-                  <Button>Save Configuration</Button>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Security Settings</CardTitle>
-                  <CardDescription>Security policies and access controls</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="passwordPolicy">Password Policy</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select policy" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="standard">Standard (8+ chars)</SelectItem>
-                        <SelectItem value="strict">Strict (12+ chars, symbols)</SelectItem>
-                        <SelectItem value="maximum">Maximum (16+ chars, complex)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="mfaRequired">Multi-Factor Authentication</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="MFA requirement" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="optional">Optional</SelectItem>
-                        <SelectItem value="required">Required for all users</SelectItem>
-                        <SelectItem value="admin-only">Required for admins only</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="apiAccess">API Access</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="API access level" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="disabled">Disabled</SelectItem>
-                        <SelectItem value="read-only">Read-only</SelectItem>
-                        <SelectItem value="full">Full access</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <Button>Update Security Settings</Button>
-                </CardContent>
-              </Card>
-            </div>
           </TabsContent>
         </Tabs>
       </div>
-    </SharedLayout>
+    </div>
   );
 }

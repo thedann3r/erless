@@ -1,0 +1,52 @@
+Title: Insurer Policy & Scheme Management with Role-Based Dashboards
+
+Objective: Implement insurer-specific policy architecture in Erlessed with strict access control across Insurer Admin, Claims Manager, and Care Manager dashboards.
+
+🧩 Core Features to Build:
+
+1. 📁 Policy Management Module (Insurer Admin Dashboard Only)
+   - Create / Edit / Delete Policies
+   - Create / Edit / Delete Schemes (OP, IP, Pharmacy, Maternity, etc.)
+   - Set benefit rules (e.g., co-pay %, frequency limits, exclusions by ICD/CPT codes)
+   - Upload insurer-specific claim form templates
+   - Map employer groups to schemes
+   - Configure preauthorization rules for specific services
+
+2. 🛡 Role-Based Access Control:
+   - ✅ Insurer Admin: Full access to policy configuration and scheme setup
+   - ✅ Claims Manager: View-only policy access + Preauth enforcement + Fraud detection
+   - ✅ Care Manager: View assigned patient policy/scheme + Monitor care coordination
+   - ❌ Front Office & Pharmacy: View patient’s current scheme, but cannot edit policies
+
+3. 🖥 Dashboards Update:
+   - Insurer Admin Dashboard:
+     - Tabs: Policies, Schemes, Employer Groups, Claim Forms, Preauth Rules
+   - Claims Manager Dashboard:
+     - Tabs: Claims Queue, Policy Checks, Preauth Tracking
+   - Care Manager Dashboard:
+     - Tabs: My Patients, Care Plans, Policy Insights
+
+4. 🔐 Access Control System:
+   - Use middleware/guards to restrict access to policy creation/editing endpoints.
+   - Implement `role` field in user schema (e.g., `insurer_admin`, `claims_manager`, `care_manager`, etc.)
+   - Auto-assign dashboards and permissions on login based on role.
+
+5. 📦 Database Schema Extensions:
+   - `Policies` table: `insurer_id`, `policy_name`, `description`, `coverage_rules`
+   - `Schemes` table: `policy_id`, `scheme_type`, `copay`, `limits`, `exclusions`
+   - `ClaimForms` table: `insurer_id`, `form_template`, `auto_fill_rules`
+   - `EmployerGroups` table: `insurer_id`, `group_name`, `assigned_schemes`
+
+Optional:
+- Add versioning to policies for auditing
+- Use JWT claims to enforce UI control and visibility
+
+Stack (suggested):
+- Backend: Node.js / Express or Django
+- Frontend: React with Role-Based Route Guards
+- Database: PostgreSQL
+
+Outcome:
+- Centralized insurer policy engine with clean separation of authority
+- Dynamic UI that adjusts to role and shows relevant modules
+- Auto-prefilled claim forms and preauth control tied to scheme logic

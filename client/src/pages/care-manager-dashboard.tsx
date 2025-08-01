@@ -1,685 +1,493 @@
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import { AlertTriangle, TrendingUp, Users, DollarSign, Activity, Shield, Building2 } from "lucide-react";
-import { CostComparisonDashboard } from "@/components/cost-comparison-dashboard";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
+import { 
+  Heart, Users, Calendar, TrendingUp, AlertCircle, CheckCircle, 
+  Activity, FileText, Shield, Clock, Phone, Mail 
+} from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { LogoutButton } from "@/components/ui/logout-button";
 
-interface ClaimOverview {
+interface CarePlan {
   id: number;
-  patientName: string;
+  planName: string;
+  planDescription: string;
+  healthConditions: string[];
+  treatmentGoals: any;
+  assignedServices: any;
+  priority: string;
+  status: string;
+  startDate: string;
+  expectedEndDate: string;
+  actualEndDate: string;
+  notes: string;
+  createdAt: string;
+  patientFirstName: string;
+  patientLastName: string;
   patientId: string;
-  provider: string;
-  serviceType: string;
-  claimAmount: number;
-  status: "pending" | "approved" | "denied" | "flagged" | "void";
-  submittedAt: string;
-  flaggedReasons?: string[];
-  riskScore?: number;
+  policyName: string;
+  insurerName: string;
 }
 
-interface FraudAlert {
-  id: number;
-  alertType: string;
-  description: string;
-  riskLevel: "low" | "medium" | "high";
-  providerId: number;
-  providerName: string;
-  patientCount: number;
-  flaggedAmount: number;
-  detectedAt: string;
-  status: "open" | "investigating" | "resolved" | "false_positive";
-}
-
-interface ProviderAnalytics {
-  providerId: number;
-  providerName: string;
-  providerType: string;
-  totalClaims: number;
-  totalAmount: number;
-  approvalRate: number;
-  averageClaimValue: number;
-  flaggedClaims: number;
-  topServices: string[];
-  riskScore: number;
+interface PolicyInsight {
+  policyId: number;
+  policyName: string;
+  memberNumber: string;
+  memberType: string;
+  relationship: string;
+  enrollmentDate: string;
+  effectiveDate: string;
+  terminationDate: string;
+  insurerName: string;
+  insurerCode: string;
+  schemeName: string;
+  schemeCode: string;
+  annualLimit: string;
+  perVisitLimit: string;
+  copayPercentage: string;
 }
 
 export default function CareManagerDashboard() {
-  const [activeTab, setActiveTab] = useState("overview");
-  const [selectedTimeframe, setSelectedTimeframe] = useState("30d");
-  const [selectedRiskLevel, setSelectedRiskLevel] = useState("all");
-
-  // Dashboard statistics
-  const { data: dashboardStats } = useQuery({
-    queryKey: ["/api/care-manager/stats", selectedTimeframe],
-    queryFn: async () => ({
-      totalClaims: 1247,
-      pendingClaims: 89,
-      flaggedClaims: 23,
-      totalClaimValue: 15678900,
-      approvalRate: 87.5,
-      fraudDetectionRate: 2.3,
-      averageProcessingTime: 4.2,
-      costPerClaim: 12567
-    }),
+  const { user } = useAuth();
+  const [selectedPatient, setSelectedPatient] = useState<string>("");
+  const [priorityFilter, setPriorityFilter] = useState<string>("all");
+  
+  const { data: carePlans, isLoading: plansLoading } = useQuery({
+    queryKey: ["/api/policy-management/care-plans"],
+    queryFn: () => fetch("/api/policy-management/care-plans").then(res => res.json())
   });
 
-  // Claims overview
-  const { data: claimsOverview = [] } = useQuery({
-    queryKey: ["/api/care-manager/claims", selectedTimeframe],
-    queryFn: async () => [
-      {
-        id: 1,
-        patientName: "John Doe",
-        patientId: "P001234",
-        provider: "Aga Khan University Hospital",
-        serviceType: "Cardiology Consultation",
-        claimAmount: 15000,
-        status: "flagged" as const,
-        submittedAt: "2024-06-18T10:30:00Z",
-        flaggedReasons: ["Unusual frequency", "High cost variance"],
-        riskScore: 8.5
-      },
-      {
-        id: 2,
-        patientName: "Mary Smith",
-        patientId: "P001235",
-        provider: "Kenyatta National Hospital",
-        serviceType: "Laboratory Tests",
-        claimAmount: 3500,
-        status: "approved" as const,
-        submittedAt: "2024-06-18T09:15:00Z"
-      },
-      {
-        id: 3,
-        patientName: "David Wilson",
-        patientId: "P001236",
-        provider: "Carepoint Medical Center",
-        serviceType: "Emergency Care",
-        claimAmount: 25000,
-        status: "pending" as const,
-        submittedAt: "2024-06-18T08:45:00Z"
-      }
-    ] as ClaimOverview[],
+  const { data: policyInsights, isLoading: insightsLoading } = useQuery({
+    queryKey: ["/api/policy-management/policy-insights", selectedPatient],
+    queryFn: () => fetch(`/api/policy-management/policy-insights?patientId=${selectedPatient}`).then(res => res.json()),
+    enabled: !!selectedPatient
   });
 
-  // Fraud alerts
-  const { data: fraudAlerts = [] } = useQuery({
-    queryKey: ["/api/care-manager/fraud-alerts", selectedRiskLevel],
-    queryFn: async () => [
-      {
-        id: 1,
-        alertType: "billing_pattern",
-        description: "Unusual billing frequency for outpatient procedures",
-        riskLevel: "high" as const,
-        providerId: 1,
-        providerName: "QuickCare Clinic",
-        patientCount: 45,
-        flaggedAmount: 127000,
-        detectedAt: "2024-06-18T06:00:00Z",
-        status: "open" as const
-      },
-      {
-        id: 2,
-        alertType: "duplicate_service",
-        description: "Potential duplicate billing for same service",
-        riskLevel: "medium" as const,
-        providerId: 2,
-        providerName: "City Medical Center",
-        patientCount: 12,
-        flaggedAmount: 34000,
-        detectedAt: "2024-06-17T14:30:00Z",
-        status: "investigating" as const
-      }
-    ] as FraudAlert[],
+  // Filter care plans by priority
+  const filteredPlans = carePlans?.filter((plan: CarePlan) => {
+    if (priorityFilter === "all") return true;
+    return plan.priority === priorityFilter;
   });
 
-  // Provider analytics
-  const { data: providerAnalytics = [] } = useQuery({
-    queryKey: ["/api/care-manager/provider-analytics", selectedTimeframe],
-    queryFn: async () => [
-      {
-        providerId: 1,
-        providerName: "Aga Khan University Hospital",
-        providerType: "Hospital",
-        totalClaims: 234,
-        totalAmount: 3450000,
-        approvalRate: 92.3,
-        averageClaimValue: 14744,
-        flaggedClaims: 8,
-        topServices: ["Cardiology", "Surgery", "Emergency Care"],
-        riskScore: 2.1
-      },
-      {
-        providerId: 2,
-        providerName: "Kenyatta National Hospital",
-        providerType: "Hospital",
-        totalClaims: 189,
-        totalAmount: 2890000,
-        approvalRate: 89.4,
-        averageClaimValue: 15291,
-        flaggedClaims: 12,
-        topServices: ["General Medicine", "Pediatrics", "Oncology"],
-        riskScore: 3.2
-      },
-      {
-        providerId: 3,
-        providerName: "Carepoint Medical Centers",
-        providerType: "Clinic Network",
-        totalClaims: 456,
-        totalAmount: 1890000,
-        approvalRate: 94.1,
-        averageClaimValue: 4144,
-        flaggedClaims: 3,
-        topServices: ["Primary Care", "Laboratory", "Pharmacy"],
-        riskScore: 1.8
-      }
-    ] as ProviderAnalytics[],
-  });
+  // Calculate dashboard metrics
+  const totalCarePlans = carePlans?.length || 0;
+  const activePlans = carePlans?.filter((p: CarePlan) => p.status === "active")?.length || 0;
+  const highPriorityPlans = carePlans?.filter((p: CarePlan) => p.priority === "high")?.length || 0;
+  const completedPlans = carePlans?.filter((p: CarePlan) => p.status === "completed")?.length || 0;
 
-  const getStatusBadge = (status: string) => {
-    const variants = {
-      pending: "bg-yellow-100 text-yellow-800",
-      approved: "bg-green-100 text-green-800",
-      denied: "bg-red-100 text-red-800",
-      flagged: "bg-orange-100 text-orange-800",
-      void: "bg-gray-100 text-gray-800"
-    };
-    return variants[status as keyof typeof variants] || "bg-gray-100 text-gray-800";
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case "high": return "text-red-600 bg-red-50 dark:text-red-400 dark:bg-red-900/20";
+      case "medium": return "text-yellow-600 bg-yellow-50 dark:text-yellow-400 dark:bg-yellow-900/20";
+      case "low": return "text-green-600 bg-green-50 dark:text-green-400 dark:bg-green-900/20";
+      default: return "text-gray-600 bg-gray-50 dark:text-gray-400 dark:bg-gray-900/20";
+    }
   };
 
-  const getRiskLevelBadge = (level: string) => {
-    const variants = {
-      low: "bg-green-100 text-green-800",
-      medium: "bg-yellow-100 text-yellow-800",
-      high: "bg-red-100 text-red-800"
-    };
-    return variants[level as keyof typeof variants] || "bg-gray-100 text-gray-800";
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "active": return "text-green-600 bg-green-50 dark:text-green-400 dark:bg-green-900/20";
+      case "completed": return "text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-900/20";
+      case "suspended": return "text-red-600 bg-red-50 dark:text-red-400 dark:bg-red-900/20";
+      default: return "text-gray-600 bg-gray-50 dark:text-gray-400 dark:bg-gray-900/20";
+    }
   };
 
-  const getRiskScoreColor = (score: number) => {
-    if (score >= 7) return "text-red-600";
-    if (score >= 4) return "text-yellow-600";
-    return "text-green-600";
+  const calculatePlanProgress = (plan: CarePlan) => {
+    const startDate = new Date(plan.startDate);
+    const endDate = plan.expectedEndDate ? new Date(plan.expectedEndDate) : new Date();
+    const currentDate = new Date();
+    
+    const totalDuration = endDate.getTime() - startDate.getTime();
+    const elapsed = currentDate.getTime() - startDate.getTime();
+    
+    return Math.min(100, Math.max(0, (elapsed / totalDuration) * 100));
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Care Manager Dashboard</h1>
-          <p className="text-gray-600">Monitor claims activity, fraud detection, and provider analytics</p>
-        </div>
-        <div className="flex items-center space-x-4">
-          <Select value={selectedTimeframe} onValueChange={setSelectedTimeframe}>
-            <SelectTrigger className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="7d">Last 7 days</SelectItem>
-              <SelectItem value="30d">Last 30 days</SelectItem>
-              <SelectItem value="90d">Last 90 days</SelectItem>
-              <SelectItem value="1y">Last year</SelectItem>
-            </SelectContent>
-          </Select>
-          <Badge variant="outline" className="text-teal-600 border-teal-200">
-            <Shield className="w-4 h-4 mr-1" />
-            Care Manager
-          </Badge>
-          <LogoutButton variant="dropdown" />
-        </div>
-      </div>
-
-      {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <Activity className="h-8 w-8 text-teal-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Claims</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {dashboardStats?.totalClaims?.toLocaleString()}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <DollarSign className="h-8 w-8 text-green-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Value</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  KES {(dashboardStats?.totalClaimValue || 0).toLocaleString()}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <AlertTriangle className="h-8 w-8 text-orange-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Flagged Claims</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {dashboardStats?.flaggedClaims}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <TrendingUp className="h-8 w-8 text-blue-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Approval Rate</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {dashboardStats?.approvalRate}%
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="overview">Claims Overview</TabsTrigger>
-          <TabsTrigger value="fraud">Fraud Alerts</TabsTrigger>
-          <TabsTrigger value="providers">Provider Analytics</TabsTrigger>
-          <TabsTrigger value="benchmarks">Cost Benchmarks</TabsTrigger>
-          <TabsTrigger value="cost-comparison">Cost Comparison</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Activity className="w-5 h-5 mr-2" />
-                Claims Activity ({claimsOverview.length})
-              </CardTitle>
-              <CardDescription>
-                Real-time view of all claims across the healthcare network
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {claimsOverview.map((claim) => (
-                  <Card key={claim.id} className="border-l-4 border-l-teal-500">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                          <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center text-teal-800 font-bold">
-                            {claim.id}
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-lg">{claim.patientName}</h3>
-                            <p className="text-gray-600">ID: {claim.patientId}</p>
-                            <p className="text-sm text-gray-500">{claim.provider}</p>
-                          </div>
-                        </div>
-                        <div className="text-right space-y-2">
-                          <Badge className={getStatusBadge(claim.status)}>
-                            {claim.status.charAt(0).toUpperCase() + claim.status.slice(1)}
-                          </Badge>
-                          <div className="text-lg font-semibold">
-                            KES {claim.claimAmount.toLocaleString()}
-                          </div>
-                        </div>
-                      </div>
-
-                      <Separator className="my-3" />
-
-                      <div className="grid grid-cols-3 gap-4">
-                        <div>
-                          <h4 className="font-medium text-gray-900 mb-1">Service Type</h4>
-                          <p className="text-gray-700">{claim.serviceType}</p>
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-gray-900 mb-1">Submitted</h4>
-                          <p className="text-gray-700">
-                            {new Date(claim.submittedAt).toLocaleDateString()}
-                          </p>
-                        </div>
-                        {claim.riskScore && (
-                          <div>
-                            <h4 className="font-medium text-gray-900 mb-1">Risk Score</h4>
-                            <p className={`font-semibold ${getRiskScoreColor(claim.riskScore)}`}>
-                              {claim.riskScore}/10
-                            </p>
-                          </div>
-                        )}
-                      </div>
-
-                      {claim.flaggedReasons && claim.flaggedReasons.length > 0 && (
-                        <div className="mt-3">
-                          <h4 className="font-medium text-gray-900 mb-2 flex items-center">
-                            <AlertTriangle className="w-4 h-4 text-orange-500 mr-1" />
-                            Flagged Reasons
-                          </h4>
-                          <div className="flex flex-wrap gap-2">
-                            {claim.flaggedReasons.map((reason, index) => (
-                              <Badge key={index} variant="outline" className="text-orange-700 border-orange-300">
-                                {reason}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="fraud" className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-semibold">Fraud Detection Alerts</h2>
-              <p className="text-gray-600">AI-powered fraud pattern detection and risk assessment</p>
-            </div>
-            <Select value={selectedRiskLevel} onValueChange={setSelectedRiskLevel}>
-              <SelectTrigger className="w-40">
-                <SelectValue />
+    <div className="min-h-screen bg-gradient-to-br from-teal-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
+      <div className="container mx-auto p-6 space-y-8">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+              Care Manager Dashboard
+            </h1>
+            <p className="text-gray-600 dark:text-gray-300 mt-2">
+              Coordinated care planning and patient management for {user?.insurerCompany || 'Healthcare Network'}
+            </p>
+          </div>
+          <div className="flex items-center space-x-4">
+            <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Filter by Priority" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Risk Levels</SelectItem>
-                <SelectItem value="high">High Risk</SelectItem>
-                <SelectItem value="medium">Medium Risk</SelectItem>
-                <SelectItem value="low">Low Risk</SelectItem>
+                <SelectItem value="all">All Priorities</SelectItem>
+                <SelectItem value="high">High Priority</SelectItem>
+                <SelectItem value="medium">Medium Priority</SelectItem>
+                <SelectItem value="low">Low Priority</SelectItem>
               </SelectContent>
             </Select>
           </div>
+        </div>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="space-y-4">
-                {fraudAlerts.map((alert) => (
-                  <Card key={alert.id} className="border-l-4 border-l-red-500">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                          <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                            <AlertTriangle className="w-5 h-5 text-red-600" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-lg">{alert.providerName}</h3>
-                            <p className="text-gray-600 capitalize">{alert.alertType.replace('_', ' ')}</p>
-                            <p className="text-sm text-gray-500">{alert.description}</p>
-                          </div>
-                        </div>
-                        <div className="text-right space-y-2">
-                          <Badge className={getRiskLevelBadge(alert.riskLevel)}>
-                            {alert.riskLevel.charAt(0).toUpperCase() + alert.riskLevel.slice(1)} Risk
-                          </Badge>
-                          <div className="text-sm text-gray-600">
-                            {alert.patientCount} patients affected
-                          </div>
-                        </div>
-                      </div>
-
-                      <Separator className="my-3" />
-
-                      <div className="grid grid-cols-4 gap-4 text-sm">
-                        <div>
-                          <span className="font-medium text-gray-900">Flagged Amount:</span>
-                          <div className="text-red-600 font-semibold">
-                            KES {alert.flaggedAmount.toLocaleString()}
-                          </div>
-                        </div>
-                        <div>
-                          <span className="font-medium text-gray-900">Detected:</span>
-                          <div className="text-gray-700">
-                            {new Date(alert.detectedAt).toLocaleDateString()}
-                          </div>
-                        </div>
-                        <div>
-                          <span className="font-medium text-gray-900">Status:</span>
-                          <div className="text-gray-700 capitalize">
-                            {alert.status.replace('_', ' ')}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <Button size="sm" variant="outline">
-                            Investigate
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="providers" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Building2 className="w-5 h-5 mr-2" />
-                Provider Performance Analytics
-              </CardTitle>
-              <CardDescription>
-                Compare performance metrics across healthcare providers
-              </CardDescription>
+        {/* Key Performance Indicators */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card className="bg-white dark:bg-gray-800">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Care Plans</CardTitle>
+              <Heart className="h-4 w-4 text-teal-600" />
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {providerAnalytics.map((provider) => (
-                  <Card key={provider.providerId} className="border-l-4 border-l-blue-500">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between mb-4">
+              <div className="text-2xl font-bold text-teal-600">{totalCarePlans}</div>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
+                Active care coordination
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white dark:bg-gray-800">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Active Plans</CardTitle>
+              <Activity className="h-4 w-4 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">{activePlans}</div>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
+                Currently managed patients
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white dark:bg-gray-800">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">High Priority</CardTitle>
+              <AlertCircle className="h-4 w-4 text-red-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600">{highPriorityPlans}</div>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
+                Requiring immediate attention
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white dark:bg-gray-800">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Completed Plans</CardTitle>
+              <CheckCircle className="h-4 w-4 text-blue-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-600">{completedPlans}</div>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
+                Successfully concluded
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Main Content Tabs */}
+        <Tabs defaultValue="care-plans" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="care-plans">Care Plans</TabsTrigger>
+            <TabsTrigger value="policy-insights">Policy Insights</TabsTrigger>
+            <TabsTrigger value="patient-coordination">Patient Coordination</TabsTrigger>
+          </TabsList>
+
+          {/* Care Plans Tab */}
+          <TabsContent value="care-plans" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Active Care Plans</h2>
+              <Button className="bg-teal-600 hover:bg-teal-700">
+                <Heart className="w-4 h-4 mr-2" />
+                Create New Plan
+              </Button>
+            </div>
+
+            <div className="grid gap-6">
+              {plansLoading ? (
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="text-center">Loading care plans...</div>
+                  </CardContent>
+                </Card>
+              ) : (
+                filteredPlans?.map((plan: CarePlan) => (
+                  <Card key={plan.id} className="bg-white dark:bg-gray-800">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
                         <div>
-                          <h3 className="font-semibold text-lg">{provider.providerName}</h3>
-                          <p className="text-gray-600">{provider.providerType}</p>
+                          <CardTitle className="text-lg">{plan.planName}</CardTitle>
+                          <CardDescription>
+                            Patient: {plan.patientFirstName} {plan.patientLastName} • ID: {plan.patientId}
+                          </CardDescription>
                         </div>
-                        <div className="text-right">
-                          <div className="text-2xl font-bold text-blue-600">
-                            {provider.approvalRate}%
-                          </div>
-                          <p className="text-sm text-gray-600">Approval Rate</p>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-4 gap-4 mb-4">
-                        <div className="text-center">
-                          <div className="text-lg font-semibold text-gray-900">
-                            {provider.totalClaims}
-                          </div>
-                          <p className="text-sm text-gray-600">Total Claims</p>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-lg font-semibold text-gray-900">
-                            KES {provider.averageClaimValue.toLocaleString()}
-                          </div>
-                          <p className="text-sm text-gray-600">Avg. Claim Value</p>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-lg font-semibold text-gray-900">
-                            {provider.flaggedClaims}
-                          </div>
-                          <p className="text-sm text-gray-600">Flagged Claims</p>
-                        </div>
-                        <div className="text-center">
-                          <div className={`text-lg font-semibold ${getRiskScoreColor(provider.riskScore)}`}>
-                            {provider.riskScore}
-                          </div>
-                          <p className="text-sm text-gray-600">Risk Score</p>
+                        <div className="flex items-center space-x-2">
+                          <Badge className={getPriorityColor(plan.priority)}>
+                            {plan.priority} Priority
+                          </Badge>
+                          <Badge className={getStatusColor(plan.status)}>
+                            {plan.status}
+                          </Badge>
                         </div>
                       </div>
-
-                      <Separator className="my-3" />
-
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {/* Health Conditions */}
                       <div>
-                        <h4 className="font-medium text-gray-900 mb-2">Top Service Categories</h4>
+                        <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Health Conditions</p>
                         <div className="flex flex-wrap gap-2">
-                          {provider.topServices.map((service, index) => (
-                            <Badge key={index} variant="secondary">
-                              {service}
+                          {plan.healthConditions?.map((condition, index) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              {condition}
                             </Badge>
                           ))}
                         </div>
                       </div>
+
+                      {/* Plan Progress */}
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Plan Progress</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {Math.round(calculatePlanProgress(plan))}%
+                          </p>
+                        </div>
+                        <Progress value={calculatePlanProgress(plan)} className="h-2" />
+                      </div>
+
+                      {/* Plan Details */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Start Date</p>
+                          <p className="text-sm flex items-center">
+                            <Calendar className="w-3 h-3 mr-1" />
+                            {new Date(plan.startDate).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Expected End</p>
+                          <p className="text-sm flex items-center">
+                            <Clock className="w-3 h-3 mr-1" />
+                            {plan.expectedEndDate ? new Date(plan.expectedEndDate).toLocaleDateString() : "Ongoing"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Insurance Coverage</p>
+                          <p className="text-sm flex items-center">
+                            <Shield className="w-3 h-3 mr-1" />
+                            {plan.insurerName || "Multiple Insurers"}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Treatment Goals */}
+                      {plan.treatmentGoals && (
+                        <div>
+                          <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Treatment Goals</p>
+                          <div className="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700 p-3 rounded-md">
+                            {JSON.stringify(plan.treatmentGoals).replace(/[{},"]/g, '').replace(/:/g, ': ')}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Assigned Services */}
+                      {plan.assignedServices && (
+                        <div>
+                          <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Assigned Services</p>
+                          <div className="text-sm text-gray-700 dark:text-gray-300 bg-teal-50 dark:bg-teal-900/20 p-3 rounded-md">
+                            {JSON.stringify(plan.assignedServices).replace(/[{}"]/g, '').replace(/:/g, ': ').replace(/,/g, ', ')}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Notes */}
+                      {plan.notes && (
+                        <div>
+                          <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Care Notes</p>
+                          <p className="text-sm text-gray-700 dark:text-gray-300 italic">{plan.notes}</p>
+                        </div>
+                      )}
+
+                      {/* Action Buttons */}
+                      <div className="flex items-center justify-between pt-4 border-t">
+                        <div className="flex space-x-2">
+                          <Button variant="outline" size="sm">
+                            <FileText className="w-4 h-4 mr-2" />
+                            Update Plan
+                          </Button>
+                          <Button variant="outline" size="sm">
+                            <Phone className="w-4 h-4 mr-2" />
+                            Contact Patient
+                          </Button>
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          Created: {new Date(plan.createdAt).toLocaleDateString()}
+                        </div>
+                      </div>
                     </CardContent>
                   </Card>
-                ))}
+                ))
+              )}
+            </div>
+          </TabsContent>
+
+          {/* Policy Insights Tab */}
+          <TabsContent value="policy-insights" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Patient Policy Insights</h2>
+              <div className="flex items-center space-x-4">
+                <Input 
+                  placeholder="Enter Patient ID" 
+                  value={selectedPatient}
+                  onChange={(e) => setSelectedPatient(e.target.value)}
+                  className="w-48"
+                />
+                <Button>
+                  <TrendingUp className="w-4 h-4 mr-2" />
+                  Analyze Coverage
+                </Button>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+            </div>
 
-        <TabsContent value="benchmarks" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <TrendingUp className="w-5 h-5 mr-2" />
-                Cost Benchmarking & Referral Analytics
-              </CardTitle>
-              <CardDescription>
-                Compare costs across providers and track referral patterns
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                {/* Cost Benchmarking */}
-                <div>
-                  <h3 className="font-semibold text-lg mb-4">Service Cost Benchmarks</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Card className="p-4">
-                      <h4 className="font-medium mb-2">Cardiology Consultation</h4>
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <span className="text-sm text-gray-600">Hospital Average:</span>
-                          <span className="font-medium">KES 15,000</span>
+            {selectedPatient ? (
+              <div className="grid gap-6">
+                {insightsLoading ? (
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="text-center">Loading policy insights...</div>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  policyInsights?.map((insight: PolicyInsight) => (
+                    <Card key={insight.policyId} className="bg-white dark:bg-gray-800">
+                      <CardHeader>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <CardTitle className="text-lg">{insight.policyName}</CardTitle>
+                            <CardDescription>
+                              {insight.insurerName} • Member: {insight.memberNumber}
+                            </CardDescription>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Badge variant="default">
+                              {insight.memberType}
+                            </Badge>
+                            <Badge variant="outline">
+                              {insight.relationship}
+                            </Badge>
+                          </div>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-sm text-gray-600">Clinic Average:</span>
-                          <span className="font-medium">KES 8,000</span>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Scheme Details</p>
+                            <p className="text-sm">{insight.schemeName}</p>
+                            <p className="text-xs text-gray-500">Code: {insight.schemeCode}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Coverage Limits</p>
+                            <p className="text-sm">
+                              Annual: {insight.annualLimit ? `KES ${parseFloat(insight.annualLimit).toLocaleString()}` : "Unlimited"}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              Per Visit: {insight.perVisitLimit ? `KES ${parseFloat(insight.perVisitLimit).toLocaleString()}` : "No limit"}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Cost Sharing</p>
+                            <p className="text-sm">
+                              Copay: {insight.copayPercentage ? `${insight.copayPercentage}%` : "N/A"}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              Effective: {new Date(insight.effectiveDate).toLocaleDateString()}
+                            </p>
+                          </div>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-sm text-gray-600">Network Average:</span>
-                          <span className="font-medium text-teal-600">KES 12,500</span>
-                        </div>
-                      </div>
+                      </CardContent>
                     </Card>
-
-                    <Card className="p-4">
-                      <h4 className="font-medium mb-2">Laboratory Panel (Basic)</h4>
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <span className="text-sm text-gray-600">Hospital Average:</span>
-                          <span className="font-medium">KES 3,500</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-sm text-gray-600">Clinic Average:</span>
-                          <span className="font-medium">KES 2,800</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-sm text-gray-600">Network Average:</span>
-                          <span className="font-medium text-teal-600">KES 3,150</span>
-                        </div>
-                      </div>
-                    </Card>
-                  </div>
-                </div>
-
-                {/* Referral Analytics */}
-                <div>
-                  <h3 className="font-semibold text-lg mb-4">Referral Success Rates</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Card className="p-4 text-center">
-                      <div className="text-2xl font-bold text-green-600">94%</div>
-                      <p className="text-sm text-gray-600">Cardiology Referrals</p>
-                      <p className="text-xs text-gray-500">AKU Hospital</p>
-                    </Card>
-
-                    <Card className="p-4 text-center">
-                      <div className="text-2xl font-bold text-blue-600">89%</div>
-                      <p className="text-sm text-gray-600">Oncology Referrals</p>
-                      <p className="text-xs text-gray-500">KNH</p>
-                    </Card>
-
-                    <Card className="p-4 text-center">
-                      <div className="text-2xl font-bold text-purple-600">92%</div>
-                      <p className="text-sm text-gray-600">Pediatric Referrals</p>
-                      <p className="text-xs text-gray-500">Gertrude's Hospital</p>
-                    </Card>
-                  </div>
-                </div>
-
-                {/* Co-pay Configuration */}
-                <div>
-                  <h3 className="font-semibold text-lg mb-4">Active Co-pay Policies</h3>
-                  <div className="space-y-3">
-                    <Card className="p-4">
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <h4 className="font-medium">NHIF Scheme</h4>
-                          <p className="text-sm text-gray-600">National Hospital Insurance Fund</p>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-lg font-semibold">10%</div>
-                          <p className="text-sm text-gray-600">Co-pay Rate</p>
-                        </div>
-                      </div>
-                    </Card>
-
-                    <Card className="p-4">
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <h4 className="font-medium">Corporate Health Plans</h4>
-                          <p className="text-sm text-gray-600">Private insurance schemes</p>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-lg font-semibold">15%</div>
-                          <p className="text-sm text-gray-600">Co-pay Rate</p>
-                        </div>
-                      </div>
-                    </Card>
-                  </div>
-                </div>
+                  ))
+                )}
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+            ) : (
+              <Card className="bg-white dark:bg-gray-800">
+                <CardContent className="p-8">
+                  <div className="text-center">
+                    <TrendingUp className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                      Policy Coverage Analysis
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400">
+                      Enter a patient ID above to view their comprehensive insurance coverage and benefit utilization.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
 
-        <TabsContent value="cost-comparison" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <DollarSign className="w-5 h-5 mr-2 text-green-600" />
-                Premium Cost Comparison Analytics
-              </CardTitle>
-              <CardDescription>
-                Real-time cost analysis and provider benchmarking for premium care managers
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <CostComparisonDashboard />
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+          {/* Patient Coordination Tab */}
+          <TabsContent value="patient-coordination" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Patient Care Coordination</h2>
+              <Button className="bg-blue-600 hover:bg-blue-700">
+                <Users className="w-4 h-4 mr-2" />
+                Schedule Team Meeting
+              </Button>
+            </div>
 
-      {/* Footer */}
-      <div className="text-center text-sm text-gray-500 mt-8">
-        Powered by Aboolean
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Care Team Communication */}
+              <Card className="bg-white dark:bg-gray-800">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center">
+                    <Mail className="w-5 h-5 mr-2 text-blue-600" />
+                    Care Team Communication
+                  </CardTitle>
+                  <CardDescription>
+                    Coordinate with healthcare providers and specialists
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="text-center py-8">
+                    <Users className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                    <p className="text-gray-600 dark:text-gray-400">
+                      Care team coordination features coming soon
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Patient Engagement */}
+              <Card className="bg-white dark:bg-gray-800">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center">
+                    <Activity className="w-5 h-5 mr-2 text-green-600" />
+                    Patient Engagement
+                  </CardTitle>
+                  <CardDescription>
+                    Monitor patient adherence and outcomes
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="text-center py-8">
+                    <Activity className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                    <p className="text-gray-600 dark:text-gray-400">
+                      Patient engagement tracking coming soon
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
