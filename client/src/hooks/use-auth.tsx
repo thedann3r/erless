@@ -86,38 +86,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         description: `Welcome to your ${userData.role} dashboard!`,
       });
       
-      // Wait for auth cookie to be set, then redirect
-      const checkAuthCookie = () => {
-        const authStatus = document.cookie
-          .split('; ')
-          .find(row => row.startsWith('auth-status='));
-        
-        if (authStatus && authStatus.split('=')[1] === 'authenticated') {
-          // Auth cookie detected, safe to redirect
-          const roleDashboards: Record<string, string> = {
-            doctor: "/modern-doctor",
-            pharmacy: "/modern-pharmacy", 
-            pharmacist: "/modern-pharmacy",
-            "care-manager": "/modern-care-manager",
-            insurer: "/modern-insurer",
-            claims_manager: "/insurer-claims-manager",
-            care_manager: "/insurer-care-manager",
-            insurer_admin: "/insurer-admin",
-            patient: "/modern-patient",
-            admin: "/modern-admin",
-            debtors: "/debtors-dashboard"
-          };
-          
-          const targetDashboard = roleDashboards[userData.role] || "/";
-          window.location.href = targetDashboard;
-        } else {
-          // Wait a bit more for cookie to be set
-          setTimeout(checkAuthCookie, 100);
-        }
+      // Map user roles to dashboard routes
+      const roleDashboards: Record<string, string> = {
+        doctor: "/modern-doctor",
+        pharmacy: "/modern-pharmacy", 
+        pharmacist: "/modern-pharmacy",
+        "care-manager": "/modern-care-manager",
+        insurer: "/modern-insurer",
+        claims_manager: "/insurer-claims-manager",
+        care_manager: "/insurer-care-manager",
+        insurer_admin: "/insurer-admin",
+        patient: "/modern-patient",
+        admin: "/modern-admin",
+        debtors: "/debtors-dashboard"
       };
       
-      // Start checking for auth cookie
-      setTimeout(checkAuthCookie, 200);
+      const targetDashboard = roleDashboards[userData.role] || "/";
+      
+      // Use React Router navigation instead of page reload
+      setLocation(targetDashboard);
     },
     onError: (error: Error) => {
       toast({
