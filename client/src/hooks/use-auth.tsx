@@ -38,8 +38,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Get current user
   const { data: user, isLoading, error } = useQuery<User>({
     queryKey: ["/api/user"],
+    queryFn: async () => {
+      const response = await fetch("/api/user", {
+        credentials: "include",
+      });
+      
+      if (response.status === 401) {
+        return null;
+      }
+      
+      if (!response.ok) {
+        throw new Error("Failed to fetch user");
+      }
+      
+      return response.json();
+    },
     retry: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
+    refetchOnMount: true,
   });
 
   // Login mutation
@@ -64,43 +81,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       queryClient.setQueryData(["/api/user"], userData);
       updateActivity();
       
-      // Wait a moment then refetch to ensure session is established
-      setTimeout(async () => {
-        await queryClient.invalidateQueries({ queryKey: ["/api/user"] });
-        await queryClient.refetchQueries({ queryKey: ["/api/user"] });
-      }, 100);
+      // Invalidate all queries to force fresh data
+      await queryClient.invalidateQueries();
       
-      // Small delay to ensure session is properly established
-      setTimeout(() => {
-        // Redirect based on user role
-        const roleDashboards: Record<string, string> = {
-          doctor: "/modern-doctor",
-          pharmacy: "/modern-pharmacy", 
-          pharmacist: "/modern-pharmacy",
-          "care-manager": "/modern-care-manager",
-          insurer: "/modern-insurer",
-          claims_manager: "/insurer-claims-manager",
-          care_manager: "/insurer-care-manager",
-          insurer_admin: "/insurer-admin",
-          patient: "/modern-patient",
-          admin: "/modern-admin",
-          debtors: "/debtors-dashboard"
-        };
-        
-        const targetDashboard = roleDashboards[userData.role] || "/";
-        
-        // Force page reload for debtors to ensure proper authentication state
-        if (userData.role === 'debtors') {
-          window.location.href = targetDashboard;
-        } else {
-          setLocation(targetDashboard);
-        }
-        
-        toast({
-          title: "Login Successful",
-          description: `Welcome to your ${userData.role} dashboard!`,
-        });
-      }, 100);
+      // Force a page reload to ensure proper session handling
+      const roleDashboards: Record<string, string> = {
+        doctor: "/modern-doctor",
+        pharmacy: "/modern-pharmacy", 
+        pharmacist: "/modern-pharmacy",
+        "care-manager": "/modern-care-manager",
+        insurer: "/modern-insurer",
+        claims_manager: "/insurer-claims-manager",
+        care_manager: "/insurer-care-manager",
+        insurer_admin: "/insurer-admin",
+        patient: "/modern-patient",
+        admin: "/modern-admin",
+        debtors: "/debtors-dashboard"
+      };
+      
+      const targetDashboard = roleDashboards[userData.role] || "/";
+      
+      toast({
+        title: "Login Successful",
+        description: `Welcome to your ${userData.role} dashboard!`,
+      });
+      
+      // Force page reload to ensure proper session state
+      window.location.href = targetDashboard;
     },
     onError: (error: Error) => {
       toast({
