@@ -1,524 +1,66 @@
 # Erlessed Healthcare Management System
 
 ## Overview
+Erlessed is a comprehensive healthcare claims management system designed to streamline operations for hospitals, clinics, and pharmacies. It integrates AI-powered preauthorization, patient verification, prescription validation, and blockchain anchoring for immutable claim records. The system's vision is to enhance efficiency, reduce fraud, and improve decision-making in healthcare claims management across multiple care provider types.
 
-Erlessed is a comprehensive healthcare claims management system that combines AI-powered preauthorization, patient verification, prescription validation, and blockchain anchoring for healthcare claims. The system is designed to streamline healthcare operations across multiple care provider types including hospitals, clinics, and pharmacy chains.
+## User Preferences
+Preferred communication style: Simple, everyday language.
 
 ## System Architecture
 
-The application follows a modern full-stack architecture with the following key components:
+### General Principles
+The application features a modern full-stack architecture prioritizing scalability, security, and maintainability. Key architectural decisions include a component-based frontend, a Node.js backend, and a PostgreSQL database. The system emphasizes clear separation of concerns, microservice-oriented integration for external systems, and a strong focus on compliance with Kenyan healthcare regulations.
 
-### Frontend Architecture
+### Frontend
 - **Framework**: React 18 with TypeScript
-- **Styling**: Tailwind CSS with custom teal/medical theme using shadcn/ui components
-- **State Management**: TanStack Query for server state management
-- **Routing**: Wouter for client-side routing
-- **Build Tool**: Vite for fast development and production builds
+- **Styling**: Tailwind CSS with custom teal/medical theme using shadcn/ui components; features consistent modern UI with card-based layouts and professional aesthetics. Supports both dark and light themes.
+- **State Management**: TanStack Query
+- **Routing**: Wouter
+- **Build Tool**: Vite
+- **UI/UX Decisions**: Employs a clean, modern design with a consistent teal/healthcare blue color scheme. Features role-specific dashboards (Admin, Doctor, Pharmacist, Care Manager, Insurer, Patient, Front Office, Debtors) with tailored KPIs and workflows. Incorporates visual elements like progress rings, heatmaps, and confidence badges.
+- **Mobile Experience**: Responsive design for field workers and patient self-service.
 
-### Backend Architecture
+### Backend
 - **Runtime**: Node.js with Express.js
 - **Language**: TypeScript with ES modules
-- **Authentication**: Passport.js with local strategy using session-based auth
-- **Session Storage**: PostgreSQL-backed sessions via connect-pg-simple
+- **Authentication**: Passport.js with local strategy and PostgreSQL-backed session management, supporting multi-role access and domain-based registration. Includes biometric verification capabilities for patients.
+- **AI Integration**: Utilizes OpenAI (GPT-4o), DeepSeek, and Mistral 7B for AI-powered preauthorization, fraud detection, prescription validation, treatment planning, and reasoning chain generation. AI decisions are transparent with confidence scoring.
+- **Data Flow**: Comprehensive workflows for patient registration, clinical encounters, real-time eligibility checks, claims submission (with AI review), payment processing (with blockchain verification), and analytics.
+- **Features**: Multi-role support, advanced authentication (including biometric simulation), real-time claims processing, multi-stage workflow, void capability for claims, and blockchain anchoring for immutability.
+- **Pharmacy Integration**: Prescription validation with safety checks (weight-based, gender-sensitive, drug interaction), benefit category matching, and real-time cost calculation.
+- **Legal Compliance**: Integrated framework for Kenyan compliance (Data Protection Act 2019, SHA guidelines, professional license verification) with legal disclaimers and patient consent management.
 
-### Data Storage Solutions
-- **Primary Database**: PostgreSQL via Neon serverless
-- **ORM**: Drizzle ORM with type-safe queries
-- **Schema Location**: Shared schema definitions in `/shared/schema.ts`
-- **Migrations**: Drizzle Kit for database migrations
+### Data Storage
+- **Primary Database**: PostgreSQL (Neon serverless)
+- **ORM**: Drizzle ORM for type-safe queries
+- **Schema**: Shared schema definitions for consistency.
+- **Migrations**: Drizzle Kit
 
-## Key Components
-
-### Authentication System
-- **Multi-role Support**: front-office, doctor, pharmacist, care-manager, debtors-officer
-- **Domain-based Registration**: Automatic care provider detection from email domains
-- **Professional Validation**: Integration with medical/pharmacy board registration verification
-- **Enhanced Security**: Biometric verification capabilities for patient authentication
-
-### AI Integration
-- **OpenAI Integration**: GPT-4o for intelligent decision making
-- **Preauthorization Analysis**: AI-powered approval/denial decisions with confidence scoring
-- **Fraud Detection**: Pattern analysis for suspicious claims
-- **Prescription Validation**: Safety checks including drug interactions and dosage validation
-- **Chain-of-Thought Reasoning**: Transparent AI decision process with step-by-step explanations
-
-### Patient Management
-- **Biometric Verification**: Fingerprint scanning simulation for patient identity
-- **Insurance Integration**: Multi-provider support with benefit tracking
-- **Dependent Management**: Family member coverage tracking
-- **Clinical History**: Comprehensive medical record management
-
-### Claims Processing
-- **Real-time Processing**: Immediate claim validation and status updates
-- **Multi-stage Workflow**: Submission → AI Review → Approval/Denial → Payment
-- **Void Capability**: Claims can be voided with audit trails
-- **Blockchain Anchoring**: Immutable claim records via smart contracts
-
-### Pharmacy Integration
-- **Prescription Validation**: Weight-based, gender-sensitive, and interaction checking
-- **Benefit Category Matching**: Automatic formulary compliance
-- **Cost Calculation**: Real-time pricing with insurance coverage
-- **Safety Flagging**: Clinical decision support
-
-## Data Flow
-
-1. **Patient Registration**: Biometric enrollment with insurance verification
-2. **Clinical Encounter**: Patient queue management with triage prioritization
-3. **Service Delivery**: Real-time eligibility checking and preauthorization
-4. **Claims Submission**: Automated coding and AI review
-5. **Payment Processing**: Electronic adjudication with blockchain verification
-6. **Analytics**: Real-time dashboards and fraud monitoring
+### Other Technical Implementations
+- **Claim Form Generation**: Dynamic PDF claim form generation for various insurers (SHA, CIC, AAR, Jubilee, AON Minet) using PDFMake.
+- **Verification Audit Log**: Comprehensive tracking of biometric verifications with filtering and analytics.
+- **Decision Feedback System**: Tracks AI decisions and allows care managers to provide feedback on outcomes.
+- **HMS Integration Microservice**: Secure FastAPI microservice for integration with Hospital Management Systems (OpenMRS, AfyaPro, custom EMRs) supporting REST API and FHIR protocol.
 
 ## External Dependencies
 
 ### Core Infrastructure
 - **Database**: Neon PostgreSQL serverless
-- **AI Services**: OpenAI API for GPT-4o integration
+- **AI Services**: OpenAI API (for GPT-4o), DeepSeek API, Mistral 7B API
 - **Session Store**: PostgreSQL-backed sessions
 
 ### Frontend Libraries
-- **UI Components**: Radix UI primitives with shadcn/ui styling
-- **Form Handling**: React Hook Form with Zod validation
+- **UI Components**: Radix UI primitives, shadcn/ui
+- **Form Handling**: React Hook Form, Zod
 - **State Management**: TanStack Query v5
 - **Icons**: Lucide React icons
+- **Biometric Simulation**: FingerprintJS2
 
 ### Backend Services
-- **Blockchain**: Simulated Web3 integration for claim anchoring
-- **Authentication**: Passport.js with bcrypt password hashing
-- **Validation**: Zod schemas for type-safe data validation
-
-## Deployment Strategy
-
-### Development Environment
-- **Platform**: Replit with Node.js 20 runtime
-- **Database**: PostgreSQL 16 module
-- **Hot Reload**: Vite HMR with Express middleware mode
-- **Port Configuration**: 5000 (internal) → 80 (external)
-
-### Production Build
-- **Frontend**: Vite build to `dist/public`
-- **Backend**: esbuild bundling with ESM output
-- **Asset Serving**: Express static file serving
-- **Environment**: Production mode with optimized bundles
-
-### Scaling Strategy
-- **Deployment Target**: Autoscale configuration
-- **Session Management**: Database-backed sessions for horizontal scaling
-- **Static Assets**: CDN-ready build output
-- **Database**: Serverless PostgreSQL with connection pooling
-
-## User Preferences
-
-Preferred communication style: Simple, everyday language.
-
-## Recent Changes
-
-**January 8, 2025 - Modern Dashboard Component Architecture:**
-- Implemented component-based architecture for all modern dashboards per user specifications
-- Created standardized components: Sidebar, WelcomeCard, QuickStats, RecentClaims, QuickActions
-- Applied consistent dark gradient theme (#0e0d3c → #1b1150 → #2a1a5e) across all dashboards
-- Updated Modern Admin Dashboard with new component structure and admin-specific metrics
-- Updated Modern Doctor Dashboard with patient queue view and medical quick actions
-- Updated Modern Pharmacy Dashboard with prescription management and verification actions
-- All dashboards now feature role-specific sidebars with Erlessed branding (teal/blue gradient)
-- Maintained authentication flow with test users (admin/test123, doctor1/test123, pharmacist1/test123)
-
-**July 3, 2025 - Authentication & Dashboard Navigation Updates:**
-- Fixed PostgreSQL connection error by properly configuring WebSocket for Neon database in db.ts
-- Resolved session persistence issues with proper cookie configuration and serialization/deserialization
-- Updated dashboard navigation to use modern design paths (/modern-doctor, /modern-pharmacy, etc.) per user request
-- Updated auth hook and dashboard-toggle component to use modern dashboard routes
-- Created test users for all roles with password "test123": admin, testuser, doctor1, pharmacist1, frontoffice1, debtors1, caremanager1, insurer1
-- Added dedicated admin user (admin/test123) for admin dashboard access
-- Verified authentication flow works correctly with session cookies and proper role-based redirects
-
-**July 3, 2025 - Erlessed Theme Color Update:**
-- Updated theme colors to match the official Erlessed logo colors
-- Primary dark teal: #265651 (from logo's medical cross)
-- Secondary light teal: #6BBDB4 (from logo's lighter accent)
-- Updated all modern dashboards (Admin, Doctor, Pharmacy) with new color scheme
-- Applied consistent gradient: from-[#265651] to-[#6BBDB4] for branding
-- Updated active menu states and hover effects with new teal colors
-- Maintained dark gradient background (#0a0a2e → #1a1150 → #2a1a5e) for contrast
-- Fixed DOM nesting errors by replacing <a> with <div> in Link components
-
-**July 4, 2025 - Light Theme Dashboard Redesign:**
-- Created new light-themed versions of all major dashboards matching the login panel style
-- Applied soft gradient background: light mint to light teal (#e8f5f0 → #f0faf7 → #d1e7e0)
-- Redesigned Admin Dashboard with white cards, subtle shadows, and Erlessed brand colors
-- Redesigned Doctor Dashboard with patient queue, vital signs display, and medical quick actions
-- Redesigned Pharmacy Dashboard with prescription validation, system status, and inventory management
-- Redesigned Debtors Dashboard with claim batch management, KPI tracking, and pending diagnosis alerts
-- All dashboards now feature consistent light theme with professional healthcare aesthetic
-- Updated navigation to use light-themed dashboard versions (-light.tsx files)
-
-**July 4, 2025 - Focused Claims Interface with Dark Theme:**
-- Created focused claims interface (/focused-claims) with dark gradient theme
-- Applied dark gradient background: from-[#0e0d3c] via-[#1b1150] to-[#2a1a5e]
-- Built role-based Sidebar component with specific menu items for doctor, pharmacy, and front-office roles
-- Implemented informative Dashboard component clarifying Erlessed's scope as claims platform
-- Added clear notes about what Erlessed handles vs what remains in hospital systems
-- Listed platform limitations: no inventory management, triage booking, patient registration, or prescription writing
-- Emphasized Erlessed's focus on claims processing and clearinghouse functionality only
-
-**June 18, 2025 - Comprehensive 6-Role Dashboard System Implementation:**
-- **Doctor/Clinician Dashboard** (/doctor): Patient queue with triage vitals, consultation workflow with ICD-10 AI suggestions, smart prescription builder with safety validation, lab order forms with preauthorization status, fingerprint/OTP sign-off capability
-- **Pharmacy Dashboard** (/pharmacy-dashboard): Prescription validation with drug interaction checks, benefit tracking and depletion warnings, medication dispensing workflow, preauthorization validation, real-time copay calculation
-- **Care Manager Dashboard** (/care-manager-dashboard): Cross-network claims oversight, fraud pattern detection with AI scoring, provider performance analytics, cost benchmarking between facilities, referral success rate tracking, copay policy management
-- **Insurer Dashboard** (/insurer): AI-assisted preauthorization decisions with confidence scoring, real-time claims inflow monitoring, scheme usage tracking with burnout alerts, appeals management workflow, automated approval thresholds
-- **Patient Dashboard** (/patient): Claims history with appeal functionality, family dependent management, benefit utilization tracking with visual progress bars, preauthorized services status, cost estimates by scheme type
-- **Admin Dashboard** (/admin): Platform user management, care provider registration, AI feature configuration with threshold controls, system performance monitoring, registration validation API testing
-
-**Database Enhancements:**
-- Added comprehensive tables: lab_orders, patient_queue, consultations, insurance_schemes, benefit_usage, dispensing_records, claim_appeals
-- Enhanced user schema with care provider relationships and professional verification
-- Implemented audit logging and fraud detection structures
-
-**AI Integration Features:**
-- Demo mode with realistic mock responses for all AI features
-- Configurable confidence thresholds for automated decisions
-- Chain-of-thought reasoning display for transparency
-- Fraud pattern detection with risk scoring
-
-**Kenya Clinical Registration Board Integration:**
-- Professional license validation API with `/verify-registration` endpoint
-- KMPDC, Clinical Officers Council, and PPB board integration
-- 15 realistic practitioner records with proper Kenyan naming conventions
-- Comprehensive validation including license expiry, suspension status
-- Returns 403 for invalid/inactive/suspended registrations
-- Admin Dashboard registration validator with testing interface
-- Real-time verification with detailed practitioner information
-
-**Advanced Analytics and Prognosis Modeling:**
-- AI-powered prognosis models for diabetes, cardiovascular, cancer, and mental health
-- Individual patient outcome tracking with predicted vs actual results
-- Population health trend analysis with incidence and recovery rates
-- Multi-dimensional risk assessment with radar charts and scoring
-- Real-time model accuracy tracking and confidence scoring
-- Comprehensive outcome metrics with treatment plan effectiveness
-- Risk factor analysis with severity grading and recommendations
-
-**Secure FastAPI HMS Integration Microservice:**
-- Comprehensive microservice for hospital management system integration
-- Support for OpenMRS, AfyaPro, and custom EMR systems
-- REST API and FHIR protocol compatibility with OAuth2/token authentication
-- Real-time data synchronization for vitals, labs, prescriptions, and diagnoses
-- Patient consent management with fingerprint/OTP verification
-- CSV/XML file upload fallback for offline data import
-- Secure database mapping to Erlessed PostgreSQL schema
-- Audit logging and compliance tracking for all sync operations
-
-**Comprehensive Legal Framework for Kenyan Compliance:**
-- Complete Terms of Service for healthcare providers and insurers (21 sections)
-- Comprehensive Privacy Policy with Data Protection Act 2019 compliance (18 sections)
-- Detailed Patient Consent and Data Access Statement (16 sections with 5 consent forms)
-- AI-powered decision making disclaimers and patient rights protection
-- Biometric data special protections with AES-256 encryption requirements
-- SHA (Social Health Authority) billing guidelines integration and real-time compliance checking (replacing NHIF)
-- Professional license verification requirements (KMPDC, PPB, Clinical Officers Council)
-- Cross-border data transfer safeguards and adequacy decision compliance
-
-**December 19, 2024 - Legal Compliance Framework Completion:**
-- Created comprehensive 4-document legal framework ensuring full Kenyan healthcare compliance
-- Updated all references from NHIF to SHA (Social Health Authority) per current Kenyan healthcare system structure
-- Implemented Data Protection Act 2019 complete compliance with all 45 articles covered
-- Added AI transparency requirements with human review rights and explainable decision-making
-- Enhanced biometric data protections with AES-256 encryption and separate consent mechanisms
-- Established professional license verification framework for KMPDC, PPB, and Clinical Officers Council
-- Created patient consent management system with 5 granular consent types and withdrawal mechanisms
-- Documentation includes Terms of Service, Privacy Policy, Patient Consent Statement, and Compliance Summary
-
-**December 19, 2024 - Production Deployment Infrastructure:**
-- Implemented comprehensive Docker containerization with multi-stage builds for frontend and FastAPI HMS integration
-- Created Fly.io and Render.com deployment configurations with health checks and auto-scaling
-- Added production security middleware: Helmet.js, CORS, rate limiting with Redis backend, and compression
-- Implemented enhanced health monitoring with database connectivity checks and Prometheus metrics endpoint
-- Created automated PostgreSQL backup system with 6-hour intervals and 7-day retention
-- Added graceful shutdown handling with SIGTERM/SIGINT support and connection cleanup
-- Deployed uptime monitoring script with multi-service health checks and alert notifications
-- Enhanced error handling and logging for production debugging and monitoring
-
-**December 19, 2024 - Comprehensive Support Module Implementation:**
-- Built FastAPI support service (port 8002) with SQLite database for tickets, documentation, and FAQ management
-- Created interactive support widget with role-specific quick help, FAQ browser, and ticket creation interface
-- Implemented contextual chat support with simulated real-time assistance and role-based automated responses
-- Developed admin support dashboard for ticket management, response tracking, and performance analytics
-- Added role-specific documentation system with markdown content, category filtering, and search functionality
-- Integrated support widgets into all user dashboards with contextual help based on user roles and workflows
-- Created comprehensive documentation system with deployment guides and external chat integration options
-
-**December 19, 2024 - Universal Logout Functionality Implementation:**
-- Implemented comprehensive logout functionality across all 6 role-based dashboards (Doctor, Pharmacist, Care Manager, Insurer, Patient, Admin)
-- Created reusable LogoutButton component with dropdown variant showing session timeout and user information
-- Added server-side `/api/logout` route with session destruction and cookie cleanup
-- Implemented 15-minute auto-logout functionality for users handling sensitive claims and patient data
-- Added activity tracking with inactivity warnings and session timeout notifications
-- Enhanced authentication system with comprehensive session management and security features
-
-**December 20, 2024 - Mobile App Implementation for Field Workers and Patient Self-Service:**
-- Built comprehensive mobile field worker application (`/mobile-field-worker`) with responsive design
-- Features include: scheduled patient visits with GPS navigation, real-time vitals collection, photo documentation, emergency contacts
-- Implemented patient self-service mobile portal (`/mobile-patient-portal`) with full healthcare management
-- Mobile portal includes: appointment scheduling, prescription management, claims tracking, health metrics dashboard
-- Created mobile navigation component with role-based menu systems and quick access widgets
-- Added mobile-responsive layouts with touch-friendly interfaces optimized for healthcare workflows
-- Integrated emergency services access and supervisor communication for field workers
-- Patient portal features benefit tracking, medication reminders, and health score visualization
-
-**December 20, 2024 - Enhanced Professional Registration System:**
-- Implemented comprehensive two-step onboarding flow (`/signup`) with professional validation
-- Step 1: Basic information collection (name, email, password) with care provider auto-detection
-- Step 2: Role selection with clinical/non-clinical differentiation and automatic facility assignment
-- Added Kenya regulatory board integration (KMPDC, COC, PPB) with license verification for clinical roles
-- Non-clinical roles (Billing Officer, Care Manager, Front Office, Insurer Officer) skip regulatory validation
-- Integrated care provider domain detection for major Kenyan healthcare institutions
-- Role-based dashboard redirection after successful registration
-- Enhanced form validation with real-time feedback and professional license verification stub
-
-**December 20, 2024 - Flexible Email/Username Authentication System:**
-- Updated login form to accept single "Email or Username" input field
-- Backend automatically detects @ symbol to determine authentication method
-- Enhanced LocalStrategy to support both getUserByEmail and getUserByUsername queries
-- Added comprehensive error handling with inline error messaging
-- Created test user for authentication validation (username: testuser, email: test@aku.edu)
-- Implemented proper session management and login response formatting
-- Added visual feedback for authentication attempts with Erlessed teal/blue theming
-
-**December 20, 2024 - Session Management and Logout System:**
-- Fixed session persistence issues with proper cookie configuration and 24-hour expiration
-- Enhanced session serialization/deserialization with detailed logging and type handling
-- Implemented logout functionality accessible from header (dropdown) and sidebar
-- Added role-based dashboard redirection after successful authentication
-- Session management now properly maintains authentication state across all dashboard pages
-- Complete authentication flow: login → role-based redirect → persistent session → logout capability
-
-**July 25, 2025 - Employer Benefits Dashboard with Authentication System:**
-- Created complete standalone employer benefits management system in separate `/employer-dashboard` directory
-- Implemented Node.js/Express backend with Prisma ORM and SQLite database for employer fund tracking
-- Built comprehensive database schema: Employer (fund management), Employee (flexible benefit limits), Claim (processing workflow), User (authentication)
-- Added session-based authentication system with bcrypt password hashing and secure login/register pages
-- Created RESTful API with endpoints for employers, employees, claims, analytics, and authentication
-- Developed responsive HTML/CSS/JavaScript frontend with real-time dashboard statistics and protected routes
-- Added claim submission form, approval/rejection workflow, and fund tracking visualization
-- Seeded database with sample data: 2 employers (TechCorp Ltd, HealthPlus Solutions), 3 employees, 4 claims, 2 demo users
-- Server running on port 3001 with CORS enabled, session management, and static file serving
-- Demo accounts: hr@techcorp.com/demo123 (employer), admin@benefits.com/admin123 (admin)
-- Features include: secure authentication, dashboard analytics, claims management, employee benefit tracking, logout functionality
-- Access employer dashboard directly at: http://localhost:3001/ (separate from main Erlessed app on port 5000)
-
-**July 23, 2025 - Insurer Role-Based Access Control Implementation:**
-- Created comprehensive role-based access system for insurer users with three distinct roles
-- Claims Manager Dashboard (/insurer-claims-manager): Claim batch management, individual claim review, approval workflows, analytics, and processing settings
-- Care Manager Dashboard (/insurer-care-manager): Patient care program management, high-risk patient monitoring, health outcome tracking, and intervention protocols
-- Insurer Admin Dashboard (/insurer-admin): User account management, policy configuration, system analytics, and global settings
-- Updated database schema with insurer_role and insurer_company fields for role-based data segregation
-- Enhanced authentication system to support role-based dashboard routing (claims_manager, care_manager, insurer_admin)
-- Created test users: claims_manager1, care_manager1, insurer_admin1 (password: test123) representing CIC, AAR, and SHA organizations
-- Each dashboard features role-specific KPIs, workflow management, and organization-scoped data access
-- Implemented SharedLayout integration for consistent navigation and user session management across insurer dashboards
-
-**July 21, 2025 - Critical XML Security Vulnerability Fix:**
-- Identified and resolved XML External Entity (XXE) injection vulnerability in HMS integration microservice
-- Replaced vulnerable xml.etree.ElementTree with secure defusedxml library for XML file processing
-- Fixed security risk in /sync/file/vitals and /sync/file/labs endpoints that process XML uploads
-- Applied minimal security patch without breaking existing functionality
-- Vulnerability could have allowed local file disclosure, SSRF attacks, and XML bomb DoS
-- Production deployment requires testing of XML file upload functionality
-
-**June 20, 2025 - Modern UI Redesign with Teal Healthcare Theme:**
-- Rebuilt entire Erlessed platform with modern, clean design using teal (#14B8A6) and healthcare blue (#3B82F6) brand colors
-- Implemented comprehensive SharedLayout component with session timer, user avatar dropdown, and role-based sidebar navigation
-- Created modern dashboards for all 6 roles: Doctor (/modern-doctor), Pharmacy (/modern-pharmacy), Care Manager (/modern-care-manager), Insurer (/modern-insurer), Patient (/modern-patient), Admin (/modern-admin)
-- Enhanced visual hierarchy with card-based layouts, priority color coding (high: red, normal: blue, low: green), and smooth animations
-- Integrated advanced features: reasoning chains, benefit progress rings, fraud detection heatmaps, cost calculators, and real-time health scoring
-- Added modern authentication page (/modern-auth) with brand showcase, quick login options for demo access, and responsive mobile design
-- Removed all "AI" terminology from user interface while maintaining intelligent decision support functionality
-- Implemented proper 2xl rounded corners, minimal shadows, and Inter font for professional healthcare aesthetic
-
-**June 21, 2025 - Biometric Verification and Insurance Claim Form Generation:**
-- Added comprehensive biometric verification system with fingerprint scanning and SMS OTP verification
-- Implemented insurer-specific claim form generation using PDFMake with support for CIC, AAR, and SHA templates (NHIF replaced by SHA)
-- Enhanced pharmacy dashboard with patient identity verification before dispensing medications
-- Integrated claim form generator with auto-populated patient, provider, and service data from current encounters
-- Added front office dashboard (/modern-front-office) for appointment management, walk-in registration, and insurance verification
-- Enhanced doctor dashboard with patient verification and claim generation workflow integration
-- Claim forms include proper insurer branding, patient demographics, clinical information, service details, and signature sections
-- All claim generation activities are logged and linked to current patient encounters for audit trails
-
-**June 21, 2025 - NHIF to SHA System Update:**
-- Updated all platform references from NHIF to SHA (Social Health Authority) to reflect current Kenyan healthcare system
-- Modified claim form templates, member ID formats, and insurer selection options throughout all dashboards
-- Updated biometric verification system to use SHA member identifiers and branding
-- Ensured compliance with current Social Health Authority billing guidelines and procedures
-- All user interfaces now display SHA terminology instead of deprecated NHIF references
-
-**June 21, 2025 - Pharmacy Dashboard UI Enhancement:**
-- Renamed Quick Actions for improved workflow: "Verify Patient" → "Preauthorization" → "Validate Prescription" → "Secure Claim Log"
-- Updated System Status terminology: "Intelligence Engine", "System Database", "Smart Contract Ledger"
-- Added professional iconography with fingerprint, shield, file-check, and shield-lock icons
-- Implemented rounded buttons with teal color scheme (#14B8A6) for touch-friendly interface
-- Added tooltip for "Secure Claim Log" explaining blockchain anchoring functionality
-- Enhanced mobile responsiveness and consistent healthcare branding throughout interface
-
-**June 22, 2025 - Advanced AI Integration with DeepSeek and Mistral 7B:**
-- Integrated DeepSeek API for chain of thought reasoning across healthcare decisions
-- Added Mistral 7B API for comprehensive healthcare treatment logic and clinical support
-- Created comprehensive DeepSeekService with preauthorization analysis, prescription safety validation, and fraud detection with transparent reasoning chains
-- Developed MistralHealthcareService for treatment plan generation, differential diagnosis analysis, complex drug interaction assessment, and patient education content
-- Enhanced pharmacy dashboard with ChainOfThoughtDisplay component showing expandable reasoning steps, confidence scoring, and supporting evidence
-- Updated all existing API endpoints (/api/preauth, /api/pharmacy/validate) to use AI reasoning with fallback to existing OpenAI integration
-- Added new endpoints: /api/ai/treatment-plan, /api/ai/differential-diagnosis, /api/ai/drug-interactions, /api/ai/patient-education
-- Created TreatmentPlanDisplay component for comprehensive treatment visualization with clinical reasoning, alternative treatments, and patient education
-- All AI-powered decisions now include transparency indicators and confidence scoring for clinical decision support
-
-**June 22, 2025 - Dashboard Navigation Enhancement:**
-- Implemented comprehensive DashboardToggle component for seamless navigation between role-based dashboards
-- Added recent dashboard tracking with localStorage persistence for quick access to previously used dashboards
-- Created responsive design with full dashboard selector for desktop and compact version for mobile
-- Integrated quick back button functionality to return to previous dashboard with one click
-- Enhanced SharedLayout header to include dashboard navigation controls with role-based color coding
-- Added dashboard descriptions and role badges for better user orientation and context switching
-
-**June 22, 2025 - Comprehensive Debtors Dashboard Implementation:**
-- Created dedicated Debtors Dashboard for hospital accounts department to manage medical insurance claims
-- Implemented claim batch tracking with insurer-specific grouping (SHA, CIC, AAR) and submission status monitoring
-- Added pending diagnosis reminders panel with doctor notification system for incomplete claims
-- Integrated biometric verification system for secure claim batch submissions with fingerprint and SMS OTP options
-- Built void claims analysis (premium feature) with categorization by error type and reconciliation tracking
-- Added comprehensive KPI tracking: total claims, clean claims percentage, pending diagnosis count, expected reimbursements
-- Implemented role-based access controls for debtor users with care provider auto-mapping via email domain
-- Created export and submission functionality with PDF/Excel report generation and insurer feedback reconciliation
-- Added comprehensive API endpoints for claims batches, pending diagnosis tracking, reminder notifications, and secure batch submissions
-
-**June 22, 2025 - Verification Audit Log Implementation:**
-- Built premium Verification Audit Log panel for comprehensive biometric verification tracking
-- Implemented audit table with patient name, service, billed by, verification status, and timestamp columns
-- Added advanced filtering by date range, department (pharmacy, triage, lab), and verification status
-- Created status badge system: Verified (green), Missing (red), Time Mismatch (orange), Pending (yellow)
-- Integrated time difference tracking with alerts for verification performed after billing
-- Added detailed audit trail viewer with blockchain hash display and verification metadata
-- Implemented premium access controls with upgrade prompts for basic users
-- Created analytics dashboard with verification rates, missing verification counts, and time mismatch statistics
-- Added CSV/PDF export functionality for audit reporting and compliance documentation
-- API endpoints for verification audit data with filtering, search, and premium status checking
-
-**June 22, 2025 - Restored Debtors Authentication System:**
-- Restored authentication requirements for debtors dashboard access
-- Protected routes now require proper debtors role authentication
-- Verification audit page requires authentication and role-based access control
-- Maintained all existing functionality: claim batches, KPI tracking, verification audit, quick actions
-- Navigation between dashboard and audit pages with proper authentication flow
-- Both /debtors-dashboard and /verification-audit now require valid debtors authentication
-
-**June 24, 2025 - Comprehensive Care Manager Dashboard Implementation:**
-- Built comprehensive Care Manager dashboard (/modern-care-manager) with cross-network claims oversight and provider analytics
-- Implemented header analytics tools with notifications, timeframe selection, and export capabilities
-- Added sidebar navigation: Claims Overview, Fraud Alerts (with live count), Cost Trends, Referral Patterns, Provider Benchmarks, Advanced Analytics
-- Created KPI tracking cards: Gross Claims (KES 24.8M), Net Claims (KES 22.1M), Void Claims (247), and Fraud Risk (3.2%)
-- Built intelligence-flagged claims table with severity badges, risk scoring, pattern flags, and override actions
-- Integrated cross-provider cost trends analysis with 30-day rolling averages and benefit category burn rate tracking
-- Added real-time provider benchmarking with survival rates, patient satisfaction, complication rates, and quality metrics
-- Implemented premium analytics features: real-time cost visibility, procedure referral analysis, and survival rate analytics
-- Created policy fit analysis for inpatient and procedure referrals with cost-to-policy compliance tracking
-- Added comprehensive search and filtering capabilities with provider-specific views and timeframe selection
-
-**June 25, 2025 - Comprehensive Admin Dashboard Implementation:**
-- Built management-focused Admin dashboard (/modern-admin) with complete system oversight and user management
-- Implemented header with global settings, audit log shortcuts, and user avatar with logout functionality
-- Added sidebar navigation: User Management, Care Providers, License Validation, Audit Logs, Global Settings
-- Created system health monitoring with color-coded status for Database, Intelligence Engine, and Blockchain components
-- Built user management table with email, role, license verification status, and comprehensive search/filtering
-- Implemented care provider cards showing compliance status, activity metrics, approval rates, and accreditation details
-- Added license validation API test panel with input for registration number and cadre, returning detailed practitioner information
-- Integrated domain-based auto-mapping logic for users with official healthcare institution emails
-- Created comprehensive user status tracking (active, suspended, pending) with role-based access controls
-- Added care provider performance analytics with compliance ratings, user counts, and claim statistics
-
-**June 25, 2025 - Medical Insurance Claims Validator Integration:**
-- Integrated structured medical insurance claims validator template into existing preauthorization API endpoints
-- Enhanced DeepSeek service with validateInsuranceClaim method using the provided template format
-- Created dedicated /api/claims/validate endpoint for standalone claims validation testing
-- Built comprehensive ClaimsValidator component with form inputs for patient demographics, diagnosis, service details, and insurance information
-- Added claims validation test panel to Admin dashboard for system testing and validation
-- Enhanced preauthorization workflow to use both claims validation and traditional analysis for comprehensive decision-making
-- Implemented structured JSON response format with decision, confidence score, reason, and reasoning chain
-- Added audit logging for all claims validation activities with full request/response tracking
-- Claims validator supports multiple insurance schemes (SHA, CIC, AAR, Jubilee) and policy plan types
-- Real-time validation results display with confidence scoring, reasoning steps, and metadata tracking
-
-**June 26, 2025 - Claim Form Submission and Generation System:**
-- Implemented comprehensive claim form submission endpoint (/api/submit-claim) with insurer-specific template selection
-- Created claim-forms.ts module with PDFMake integration for generating professional PDF claim forms
-- Built form templates for multiple insurers: SHA, CIC, AAR, Jubilee, AON Minet with unique branding and layouts
-- Developed ClaimFormGenerator component with patient demographics, insurance details, services table, and provider information
-- Added automatic template selection based on insurer name with fallback to SHA template
-- Implemented comprehensive form validation with required field checking per insurer template
-- Created services management with quantity, unit cost, and total cost calculations
-- Added PDF generation with professional formatting including headers, patient info, medical details, services table, and signature sections
-- Integrated audit logging for all claim form generation activities with complete metadata tracking
-- Added file download functionality with automatic cleanup of temporary PDF files
-
-**June 26, 2025 - Decision Feedback and Tracking System:**
-- Created comprehensive decision logs table in database schema for tracking AI decisions and outcomes
-- Implemented feedback endpoint (/api/feedback) allowing care managers to update final outcomes and appeal results
-- Built DecisionFeedbackPanel component with decision logs list, filtering by type, and feedback form
-- Added decision log creation in preauthorization workflow to track all AI decisions with confidence scores
-- Enhanced storage interface with decision log CRUD operations and feedback updates
-- Created detailed decision tracking with original decision, final outcome, appeal outcome, and reviewer notes
-- Implemented comprehensive audit trail for all feedback updates with metadata tracking
-- Added decision log filtering by type: preauth, pharmacy_validation, claims_validation, fraud_detection
-- Built visual feedback interface with decision icons, confidence badges, and outcome status tracking
-- Integrated decision feedback panel into Admin dashboard for comprehensive decision oversight
-
-**June 27, 2025 - Biometric Verification with Insurer Selection:**
-- Implemented comprehensive BiometricVerification component with realistic fingerprint scanning simulation
-- Built InsuranceSelectorModal for patients with multiple active insurance policies
-- Created patient verification endpoint (/api/verify-patient/:patientId) with biometric simulation
-- Added automatic generation of multiple insurance policies (SHA, CIC, AAR) based on patient data
-- Integrated policy selection workflow with session storage for claim form pre-population
-- Enhanced ClaimFormGenerator with pre-selected insurer and service data population
-- Built BiometricClaimFlow component combining verification and claim submission workflows
-- Added comprehensive audit logging for all biometric verification activities
-- Created visual progress indicator for verification to claim form workflow
-- Implemented secure policy selection with coverage amounts, expiry dates, and plan types
-
-**June 27, 2025 - Enhanced Schema and Biometric Integration:**
-- Enhanced PostgreSQL schema with fingerprintId field for advanced biometric tracking
-- Added claim_services table for detailed service breakdown per claim (consultation, lab, pharmacy, procedure)
-- Integrated FingerprintJS2 library for realistic device fingerprinting and biometric simulation
-- Built comprehensive BiometricService utility with progressive scanning simulation
-- Enhanced claims schema with insurerName, schemeName, and isActive fields for better tracking
-- Created storage methods for claim services CRUD operations and active claims filtering
-- Implemented EnhancedClaimTracker component with tabbed interface for active/completed claims
-- Added detailed claim service breakdown with status tracking, progress indicators, and cost analysis
-- Enhanced patient verification endpoint with real biometric hash validation and device fingerprinting
-- Created comprehensive audit logging for biometric scan attempts and verification sessions
-
-**June 27, 2025 - Front Office/Front Desk Integration:**
-- Created comprehensive front-desk page accessible from both /front-desk and /front-office routes
-- Implemented dual verification methods: fingerprint scanning and SMS OTP with progressive simulation
-- Built multi-insurer policy selection for patients with multiple active insurance coverage
-- Added cross-facility session detection and continuation modal for seamless patient care transitions
-- Enhanced database with activeSessions table for multi-facility patient session tracking
-- Integrated front office workflow with patient verification, insurer selection, and claim tracking
-- Created step-by-step verification process with visual progress indicators and responsive design
-- Added comprehensive audit logging for all front office patient verification activities
-
-**July 1, 2025 - Lab Order Cancellation with Review Consultation Workflow:**
-- Enhanced ActiveLabOrders component with comprehensive cancellation workflow including justification prompts
-- Implemented POST /api/lab-orders/cancel API endpoint with labId, doctorId, reason parameters for audit trails
-- Added cancelLabOrder storage method to update lab status to 'cancelled' with comprehensive metadata tracking
-- Integrated review consultation workflow: after lab cancellation, prompts "Initiate review consultation?"
-- Created createReviewConsultation functionality that links new consultation to same patient & insurer for care continuity
-- Implemented POST /api/consultations/review endpoint for creating review consultations with cancelled lab context
-- Enhanced doctor consultation sidebar with real-time lab order management and cancellation capabilities
-- Added AlertDialog components for review consultation prompts with loading states and error handling
-- Review consultations maintain patient-insurer linkage ensuring billing approval from prior consultation
-- Complete audit trail for all cancellation activities with reason logging and timestamp tracking
-
-## Changelog
-
-- June 18, 2025. Initial setup
-- June 18, 2025. Comprehensive 6-role dashboard system with AI-powered workflows
-- December 19, 2024. Production-ready deployment infrastructure with monitoring and security
-- December 19, 2024. Complete support module with ticketing, chat, and role-specific documentation
+- **Authentication**: Passport.js, bcrypt
+- **Validation**: Zod schemas
+- **PDF Generation**: PDFMake
+- **XML Security**: defusedxml (for HMS integration)
+- **Blockchain**: Simulated Web3 integration for claim anchoring (not a live blockchain)
+- **Support Module**: FastAPI service (internal microservice)
+- **Employer Benefits Module**: Node.js/Express with Prisma ORM and SQLite (separate, self-contained module)

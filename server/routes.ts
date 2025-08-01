@@ -14,7 +14,7 @@ import path from 'path';
 const deepSeekService = new DeepSeekService();
 import { registrationService } from "./registration-service";
 
-export function registerRoutes(app: Express): Server {
+export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
   setupAuth(app);
 
@@ -2658,6 +2658,83 @@ app.get('/api/debtors/user-premium-status', requireAuth, async (req, res) => {
     } catch (error) {
       console.error('Error creating review consultation:', error);
       res.status(500).json({ message: 'Failed to create review consultation' });
+    }
+  });
+
+  // Setup insurer policy API routes
+  try {
+    const { setupInsurerPolicyAPI } = await import("./insurer-policy-api");
+    setupInsurerPolicyAPI(app);
+    console.log("✅ Insurer Policy API routes registered successfully");
+  } catch (error) {
+    console.error("❌ Failed to load insurer policy API:", error);
+  }
+
+  // Real-time benefit lookup endpoint for biometric verification
+  app.get("/api/real-time-benefits/:patientId", async (req, res) => {
+    try {
+      const { patientId } = req.params;
+      const { realTimeBenefitLookup } = await import("./real-time-benefits");
+      
+      const benefitData = await realTimeBenefitLookup.performRealTimeLookup(patientId);
+      
+      if (!benefitData) {
+        return res.status(404).json({ 
+          success: false, 
+          message: "Patient not found or no active policies" 
+        });
+      }
+
+      res.json({
+        success: true,
+        message: `Found ${benefitData.coverageSummary.totalActivePolicies} active policies with ${benefitData.coverageSummary.totalAvailableBenefits} benefits`,
+        data: benefitData,
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error("Real-time benefit lookup error:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Failed to perform real-time benefit lookup" 
+      });
+    }
+  });
+
+  // Service coverage check endpoint
+  app.post("/api/check-service-coverage", async (req, res) => {
+    try {
+      const { patientId, serviceCode, serviceCategory } = req.body;
+      const { realTimeBenefitLookup } = await import("./real-time-benefits");
+      
+      if (!patientId || (!serviceCode && !serviceCategory)) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Patient ID and either service code or category are required" 
+        });
+      }
+
+      const coverageResult = await realTimeBenefitLookup.checkServiceCoverage(
+        patientId, 
+        serviceCode, 
+        serviceCategory
+      );
+
+      res.json({
+        success: true,
+        patientId,
+        serviceCode,
+        serviceCategory,
+        ...coverageResult,
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error("Service coverage check error:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Failed to check service coverage" 
+      });
     }
   });
 

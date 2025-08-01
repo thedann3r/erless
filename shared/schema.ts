@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, decimal, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, decimal, jsonb, date, varchar, uuid } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -24,6 +24,162 @@ export const careProviders = pgTable("care_providers", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// === INSURER POLICY DATABASE SCHEMA ===
+
+// Insurers table - Multiple insurers can exist (SHA, CIC, AAR, Jubilee, etc.)
+export const insurers = pgTable("insurers", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(), // SHA, CIC, AAR, Jubilee, NHIF
+  code: text("code").notNull().unique(), // SHA001, CIC002, etc.
+  contactInfo: jsonb("contact_info").notNull(), // {email, phone, address, website}
+  apiEndpoints: jsonb("api_endpoints"), // {eligibility, claims, preauth} URLs
+  businessRules: jsonb("business_rules"), // insurer-specific processing rules
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Policies table - Multiple policies under each insurer
+export const policies = pgTable("policies", {
+  id: serial("id").primaryKey(),
+  insurerId: integer("insurer_id").references(() => insurers.id).notNull(),
+  policyNumber: text("policy_number").notNull(),
+  policyName: text("policy_name").notNull(),
+  policyType: text("policy_type").notNull(), // individual, family, corporate, government
+  effectiveDate: date("effective_date").notNull(),
+  expiryDate: date("expiry_date").notNull(),
+  premiumAmount: decimal("premium_amount", { precision: 12, scale: 2 }),
+  policyDocument: text("policy_document"), // path to policy PDF
+  corporateClient: text("corporate_client"), // for corporate policies
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Schemes table - Coverage schemes under each policy (inpatient, outpatient, pharmacy)
+export const schemes = pgTable("schemes", {
+  id: serial("id").primaryKey(),
+  policyId: integer("policy_id").references(() => policies.id).notNull(),
+  schemeName: text("scheme_name").notNull(), // Inpatient, Outpatient, Pharmacy, Dental, Optical
+  schemeCode: text("scheme_code").notNull(), // INP, OPD, PHR, DNT, OPT
+  description: text("description"),
+  coverageType: text("coverage_type").notNull(), // percentage, fixed_amount, hybrid
+  coverageValue: decimal("coverage_value", { precision: 5, scale: 2 }), // 80% or fixed amount
+  annualLimit: decimal("annual_limit", { precision: 12, scale: 2 }),
+  perVisitLimit: decimal("per_visit_limit", { precision: 10, scale: 2 }),
+  copayPercentage: decimal("copay_percentage", { precision: 5, scale: 2 }),
+  deductible: decimal("deductible", { precision: 10, scale: 2 }),
+  waitingPeriod: integer("waiting_period"), // days
+  preauthorizationRequired: boolean("preauthorization_required").default(false),
+  networkRestriction: boolean("network_restriction").default(false),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Scheme benefits - Detailed benefits per scheme
+export const schemeBenefits = pgTable("scheme_benefits", {
+  id: serial("id").primaryKey(),
+  schemeId: integer("scheme_id").references(() => schemes.id).notNull(),
+  benefitCategory: text("benefit_category").notNull(), // consultation, laboratory, radiology, surgery, medication
+  benefitName: text("benefit_name").notNull(),
+  benefitCode: text("benefit_code"), // procedure/diagnosis codes
+  coverageAmount: decimal("coverage_amount", { precision: 10, scale: 2 }),
+  coveragePercentage: decimal("coverage_percentage", { precision: 5, scale: 2 }),
+  sessionLimit: integer("session_limit"), // max sessions per year
+  frequencyLimit: text("frequency_limit"), // daily, weekly, monthly restrictions
+  sublimit: decimal("sublimit", { precision: 10, scale: 2 }), // specific sublimit for this benefit
+  isPreauthorized: boolean("is_preauthorized").default(false),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Member policies - Links members/patients to specific policies
+export const memberPolicies = pgTable("member_policies", {
+  id: serial("id").primaryKey(),
+  patientId: integer("patient_id").references(() => patients.id).notNull(),
+  policyId: integer("policy_id").references(() => policies.id).notNull(),
+  memberNumber: text("member_number").notNull(),
+  memberType: text("member_type").notNull(), // principal, spouse, child, dependent
+  principalMemberId: integer("principal_member_id").references(() => patients.id),
+  relationship: text("relationship"), // self, spouse, child, parent, other
+  enrollmentDate: date("enrollment_date").notNull(),
+  effectiveDate: date("effective_date").notNull(),
+  terminationDate: date("termination_date"),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Member scheme assignments - Links members to specific schemes within their policies
+export const memberSchemes = pgTable("member_schemes", {
+  id: serial("id").primaryKey(),
+  memberPolicyId: integer("member_policy_id").references(() => memberPolicies.id).notNull(),
+  schemeId: integer("scheme_id").references(() => schemes.id).notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  assignedDate: date("assigned_date").defaultNow().notNull(),
+  unassignedDate: date("unassigned_date"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Policy exclusions - Specific exclusions that apply to policies/schemes
+export const policyExclusions = pgTable("policy_exclusions", {
+  id: serial("id").primaryKey(),
+  policyId: integer("policy_id").references(() => policies.id),
+  schemeId: integer("scheme_id").references(() => schemes.id),
+  exclusionType: text("exclusion_type").notNull(), // diagnosis, procedure, medication, provider
+  exclusionCode: text("exclusion_code").notNull(), // ICD-10, CPT, drug codes
+  exclusionName: text("exclusion_name").notNull(),
+  description: text("description"),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Benefit utilization tracking - Real-time tracking of member benefit usage
+export const benefitUtilization = pgTable("benefit_utilization", {
+  id: serial("id").primaryKey(),
+  memberPolicyId: integer("member_policy_id").references(() => memberPolicies.id).notNull(),
+  schemeId: integer("scheme_id").references(() => schemes.id).notNull(),
+  benefitId: integer("benefit_id").references(() => schemeBenefits.id),
+  claimId: integer("claim_id").references(() => claims.id),
+  utilizationDate: date("utilization_date").notNull(),
+  amountUtilized: decimal("amount_utilized", { precision: 10, scale: 2 }).notNull(),
+  sessionsUsed: integer("sessions_used").default(0),
+  remainingLimit: decimal("remaining_limit", { precision: 10, scale: 2 }),
+  remainingSessions: integer("remaining_sessions"),
+  financialYear: text("financial_year").notNull(), // 2024/2025
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Policy history - Historical tracking of policy changes and renewals
+export const policyHistory = pgTable("policy_history", {
+  id: serial("id").primaryKey(),
+  policyId: integer("policy_id").references(() => policies.id).notNull(),
+  changeType: text("change_type").notNull(), // created, updated, renewed, cancelled, suspended
+  changeDescription: text("change_description"),
+  previousValues: jsonb("previous_values"), // store old values for audit
+  newValues: jsonb("new_values"), // store new values
+  changedBy: integer("changed_by").references(() => users.id),
+  changeReason: text("change_reason"),
+  effectiveDate: date("effective_date").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Diagnosis/procedure mapping - Maps codes to policy coverage
+export const coverageMapping = pgTable("coverage_mapping", {
+  id: serial("id").primaryKey(),
+  schemeId: integer("scheme_id").references(() => schemes.id).notNull(),
+  codeType: text("code_type").notNull(), // ICD10, CPT, DRG, medication
+  code: text("code").notNull(),
+  codeName: text("code_name").notNull(),
+  coverageType: text("coverage_type").notNull(), // covered, excluded, restricted, preauth_required
+  coveragePercentage: decimal("coverage_percentage", { precision: 5, scale: 2 }),
+  maxAmount: decimal("max_amount", { precision: 10, scale: 2 }),
+  restrictions: jsonb("restrictions"), // special conditions or requirements
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// === LEGACY INSURANCE POLICIES TABLE (for backward compatibility) ===
 export const insurancePolicies = pgTable("insurance_policies", {
   id: serial("id").primaryKey(),
   policyName: text("policy_name").notNull(),
@@ -391,7 +547,121 @@ export const claimAppeals = pgTable("claim_appeals", {
   resolvedAt: timestamp("resolved_at"),
 });
 
-// Relations
+// === INSURER POLICY RELATIONS ===
+
+export const insurersRelations = relations(insurers, ({ many }) => ({
+  policies: many(policies),
+}));
+
+export const policiesRelations = relations(policies, ({ one, many }) => ({
+  insurer: one(insurers, {
+    fields: [policies.insurerId],
+    references: [insurers.id],
+  }),
+  schemes: many(schemes),
+  memberPolicies: many(memberPolicies),
+  policyExclusions: many(policyExclusions),
+  policyHistory: many(policyHistory),
+}));
+
+export const schemesRelations = relations(schemes, ({ one, many }) => ({
+  policy: one(policies, {
+    fields: [schemes.policyId],
+    references: [policies.id],
+  }),
+  schemeBenefits: many(schemeBenefits),
+  memberSchemes: many(memberSchemes),
+  benefitUtilization: many(benefitUtilization),
+  policyExclusions: many(policyExclusions),
+  coverageMapping: many(coverageMapping),
+}));
+
+export const schemeBenefitsRelations = relations(schemeBenefits, ({ one, many }) => ({
+  scheme: one(schemes, {
+    fields: [schemeBenefits.schemeId],
+    references: [schemes.id],
+  }),
+  benefitUtilization: many(benefitUtilization),
+}));
+
+export const memberPoliciesRelations = relations(memberPolicies, ({ one, many }) => ({
+  patient: one(patients, {
+    fields: [memberPolicies.patientId],
+    references: [patients.id],
+  }),
+  policy: one(policies, {
+    fields: [memberPolicies.policyId],
+    references: [policies.id],
+  }),
+  principalMember: one(patients, {
+    fields: [memberPolicies.principalMemberId],
+    references: [patients.id],
+  }),
+  memberSchemes: many(memberSchemes),
+  benefitUtilization: many(benefitUtilization),
+}));
+
+export const memberSchemesRelations = relations(memberSchemes, ({ one }) => ({
+  memberPolicy: one(memberPolicies, {
+    fields: [memberSchemes.memberPolicyId],
+    references: [memberPolicies.id],
+  }),
+  scheme: one(schemes, {
+    fields: [memberSchemes.schemeId],
+    references: [schemes.id],
+  }),
+}));
+
+export const policyExclusionsRelations = relations(policyExclusions, ({ one }) => ({
+  policy: one(policies, {
+    fields: [policyExclusions.policyId],
+    references: [policies.id],
+  }),
+  scheme: one(schemes, {
+    fields: [policyExclusions.schemeId],
+    references: [schemes.id],
+  }),
+}));
+
+export const benefitUtilizationRelations = relations(benefitUtilization, ({ one }) => ({
+  memberPolicy: one(memberPolicies, {
+    fields: [benefitUtilization.memberPolicyId],
+    references: [memberPolicies.id],
+  }),
+  scheme: one(schemes, {
+    fields: [benefitUtilization.schemeId],
+    references: [schemes.id],
+  }),
+  benefit: one(schemeBenefits, {
+    fields: [benefitUtilization.benefitId],
+    references: [schemeBenefits.id],
+  }),
+  claim: one(claims, {
+    fields: [benefitUtilization.claimId],
+    references: [claims.id],
+  }),
+}));
+
+export const policyHistoryRelations = relations(policyHistory, ({ one }) => ({
+  policy: one(policies, {
+    fields: [policyHistory.policyId],
+    references: [policies.id],
+  }),
+  changedByUser: one(users, {
+    fields: [policyHistory.changedBy],
+    references: [users.id],
+  }),
+}));
+
+export const coverageMappingRelations = relations(coverageMapping, ({ one }) => ({
+  scheme: one(schemes, {
+    fields: [coverageMapping.schemeId],
+    references: [schemes.id],
+  }),
+}));
+
+// === EXISTING RELATIONS ===
+
 export const careProvidersRelations = relations(careProviders, ({ many }) => ({
   users: many(users),
 }));
@@ -500,6 +770,63 @@ export const insertClaimAppealSchema = createInsertSchema(claimAppeals).omit({
   createdAt: true,
 });
 
+// === INSURER POLICY ZOD SCHEMAS ===
+
+export const insertInsurerSchema = createInsertSchema(insurers).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertPolicySchema = createInsertSchema(policies).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertSchemeSchema = createInsertSchema(schemes).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertSchemeBenefitSchema = createInsertSchema(schemeBenefits).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertMemberPolicySchema = createInsertSchema(memberPolicies).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertMemberSchemeSchema = createInsertSchema(memberSchemes).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertPolicyExclusionSchema = createInsertSchema(policyExclusions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertBenefitUtilizationSchema = createInsertSchema(benefitUtilization).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertPolicyHistorySchema = createInsertSchema(policyHistory).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertCoverageMappingSchema = createInsertSchema(coverageMapping).omit({
+  id: true,
+  createdAt: true,
+});
+
+// === LEGACY SCHEMAS ===
+
 export const insertInsurancePolicySchema = createInsertSchema(insurancePolicies).omit({
   id: true,
   createdAt: true,
@@ -588,6 +915,31 @@ export type OnboardingAudit = typeof onboardingAudits.$inferSelect;
 export type InsertOnboardingAudit = z.infer<typeof insertOnboardingAuditSchema>;
 export type SampleClaimFlow = typeof sampleClaimFlows.$inferSelect;
 export type InsertSampleClaimFlow = z.infer<typeof insertSampleClaimFlowSchema>;
+// === INSURER POLICY TYPES ===
+
+export type Insurer = typeof insurers.$inferSelect;
+export type InsertInsurer = z.infer<typeof insertInsurerSchema>;
+export type Policy = typeof policies.$inferSelect;
+export type InsertPolicy = z.infer<typeof insertPolicySchema>;
+export type Scheme = typeof schemes.$inferSelect;
+export type InsertScheme = z.infer<typeof insertSchemeSchema>;
+export type SchemeBenefit = typeof schemeBenefits.$inferSelect;
+export type InsertSchemeBenefit = z.infer<typeof insertSchemeBenefitSchema>;
+export type MemberPolicy = typeof memberPolicies.$inferSelect;
+export type InsertMemberPolicy = z.infer<typeof insertMemberPolicySchema>;
+export type MemberScheme = typeof memberSchemes.$inferSelect;
+export type InsertMemberScheme = z.infer<typeof insertMemberSchemeSchema>;
+export type PolicyExclusion = typeof policyExclusions.$inferSelect;
+export type InsertPolicyExclusion = z.infer<typeof insertPolicyExclusionSchema>;
+export type BenefitUtilization = typeof benefitUtilization.$inferSelect;
+export type InsertBenefitUtilization = z.infer<typeof insertBenefitUtilizationSchema>;
+export type PolicyHistory = typeof policyHistory.$inferSelect;
+export type InsertPolicyHistory = z.infer<typeof insertPolicyHistorySchema>;
+export type CoverageMapping = typeof coverageMapping.$inferSelect;
+export type InsertCoverageMapping = z.infer<typeof insertCoverageMappingSchema>;
+
+// === LEGACY TYPES ===
+
 export type OnboardingForm = z.infer<typeof onboardingFormSchema>;
 export type UserPermission = z.infer<typeof userPermissionSchema>;
 export type InsurerRole = z.infer<typeof insurerRoleSchema>;

@@ -13,6 +13,7 @@ import { db, pool } from "./db";
 import { eq, and, desc, sql } from "drizzle-orm";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
+import { InsurerPolicyStorage } from "./insurer-policy-storage";
 
 const PostgresSessionStore = connectPg(session);
 
@@ -72,6 +73,42 @@ export interface IStorage {
   approveOnboardingApplication(id: number, approvedBy: number): Promise<void>;
   rejectOnboardingApplication(id: number, rejectedBy: number, reason: string): Promise<void>;
   logOnboardingAudit(audit: any): Promise<void>;
+
+  // Insurer Policy Methods
+  getAllInsurers(): Promise<any[]>;
+  getInsurerById(id: number): Promise<any>;
+  createInsurer(insurer: any): Promise<any>;
+  updateInsurer(id: number, insurer: any): Promise<any>;
+  deleteInsurer(id: number): Promise<void>;
+  
+  getAllPolicies(): Promise<any[]>;
+  getPolicyById(id: number): Promise<any>;
+  getPoliciesByInsurer(insurerId: number): Promise<any[]>;
+  createPolicy(policy: any): Promise<any>;
+  updatePolicy(id: number, policy: any): Promise<any>;
+  deletePolicy(id: number): Promise<void>;
+  
+  getAllSchemes(): Promise<any[]>;
+  getSchemeById(id: number): Promise<any>;
+  getSchemesByPolicy(policyId: number): Promise<any[]>;
+  createScheme(scheme: any): Promise<any>;
+  updateScheme(id: number, scheme: any): Promise<any>;
+  deleteScheme(id: number): Promise<void>;
+  
+  getSchemeBenefits(schemeId: number): Promise<any[]>;
+  createSchemeBenefit(benefit: any): Promise<any>;
+  updateSchemeBenefit(id: number, benefit: any): Promise<any>;
+  deleteSchemeBenefit(id: number): Promise<void>;
+  
+  getMemberPolicies(patientId: number): Promise<any[]>;
+  assignPolicyToMember(assignment: any): Promise<any>;
+  unassignPolicyFromMember(id: number): Promise<void>;
+  
+  getBenefitUtilization(memberPolicyId: number, financialYear: string): Promise<any[]>;
+  recordBenefitUtilization(utilization: any): Promise<any>;
+  
+  getCoverageMapping(schemeId: number): Promise<any[]>;
+  createCoverageMapping(mapping: any): Promise<any>;
   generateSampleClaimFlows(providerId: number): Promise<void>;
   getSampleClaimFlows(providerId: number): Promise<any[]>;
   completeSampleFlow(flowId: number): Promise<void>;
@@ -82,9 +119,12 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
+  private insurerPolicyStorage: InsurerPolicyStorage;
   sessionStore: any;
 
   constructor() {
+    this.insurerPolicyStorage = new InsurerPolicyStorage();
+    // Initialize session store
     this.sessionStore = new PostgresSessionStore({ 
       pool: pool as any,
       tableName: 'session',
@@ -93,6 +133,11 @@ export class DatabaseStorage implements IStorage {
       ttl: 24 * 60 * 60, // 24 hours
       disableTouch: false
     });
+  }
+
+  // Expose insurer policy methods
+  get insurerPolicy() {
+    return this.insurerPolicyStorage;
   }
 
   async getUser(id: number): Promise<User | undefined> {
@@ -663,6 +708,121 @@ export class DatabaseStorage implements IStorage {
   async updateSessionActivity(sessionId: string, lastActivity: Date): Promise<void> {
     // This is typically handled by the session store, but we can log it if needed
     console.log(`Session ${sessionId} last activity: ${lastActivity}`);
+  }
+
+  // Insurer Policy method implementations
+  private insurerPolicyStorage = new InsurerPolicyStorage();
+
+  async getAllInsurers(): Promise<any[]> {
+    return this.insurerPolicyStorage.getAllInsurers();
+  }
+
+  async getInsurerById(id: number): Promise<any> {
+    return this.insurerPolicyStorage.getInsurerById(id);
+  }
+
+  async createInsurer(insurer: any): Promise<any> {
+    return this.insurerPolicyStorage.createInsurer(insurer);
+  }
+
+  async updateInsurer(id: number, insurer: any): Promise<any> {
+    return this.insurerPolicyStorage.updateInsurer(id, insurer);
+  }
+
+  async deleteInsurer(id: number): Promise<void> {
+    return this.insurerPolicyStorage.deleteInsurer(id);
+  }
+
+  async getAllPolicies(): Promise<any[]> {
+    return this.insurerPolicyStorage.getAllPolicies();
+  }
+
+  async getPolicyById(id: number): Promise<any> {
+    return this.insurerPolicyStorage.getPolicyById(id);
+  }
+
+  async getPoliciesByInsurer(insurerId: number): Promise<any[]> {
+    return this.insurerPolicyStorage.getPoliciesByInsurer(insurerId);
+  }
+
+  async createPolicy(policy: any): Promise<any> {
+    return this.insurerPolicyStorage.createPolicy(policy);
+  }
+
+  async updatePolicy(id: number, policy: any): Promise<any> {
+    return this.insurerPolicyStorage.updatePolicy(id, policy);
+  }
+
+  async deletePolicy(id: number): Promise<void> {
+    return this.insurerPolicyStorage.deletePolicy(id);
+  }
+
+  async getAllSchemes(): Promise<any[]> {
+    return this.insurerPolicyStorage.getAllSchemes();
+  }
+
+  async getSchemeById(id: number): Promise<any> {
+    return this.insurerPolicyStorage.getSchemeById(id);
+  }
+
+  async getSchemesByPolicy(policyId: number): Promise<any[]> {
+    return this.insurerPolicyStorage.getSchemesByPolicy(policyId);
+  }
+
+  async createScheme(scheme: any): Promise<any> {
+    return this.insurerPolicyStorage.createScheme(scheme);
+  }
+
+  async updateScheme(id: number, scheme: any): Promise<any> {
+    return this.insurerPolicyStorage.updateScheme(id, scheme);
+  }
+
+  async deleteScheme(id: number): Promise<void> {
+    return this.insurerPolicyStorage.deleteScheme(id);
+  }
+
+  async getSchemeBenefits(schemeId: number): Promise<any[]> {
+    return this.insurerPolicyStorage.getSchemeBenefits(schemeId);
+  }
+
+  async createSchemeBenefit(benefit: any): Promise<any> {
+    return this.insurerPolicyStorage.createSchemeBenefit(benefit);
+  }
+
+  async updateSchemeBenefit(id: number, benefit: any): Promise<any> {
+    return this.insurerPolicyStorage.updateSchemeBenefit(id, benefit);
+  }
+
+  async deleteSchemeBenefit(id: number): Promise<void> {
+    return this.insurerPolicyStorage.deleteSchemeBenefit(id);
+  }
+
+  async getMemberPolicies(patientId: number): Promise<any[]> {
+    return this.insurerPolicyStorage.getMemberPolicies(patientId);
+  }
+
+  async assignPolicyToMember(assignment: any): Promise<any> {
+    return this.insurerPolicyStorage.assignPolicyToMember(assignment);
+  }
+
+  async unassignPolicyFromMember(id: number): Promise<void> {
+    return this.insurerPolicyStorage.unassignPolicyFromMember(id);
+  }
+
+  async getBenefitUtilization(memberPolicyId: number, financialYear: string): Promise<any[]> {
+    return this.insurerPolicyStorage.getBenefitUtilization(memberPolicyId, financialYear);
+  }
+
+  async recordBenefitUtilization(utilization: any): Promise<any> {
+    return this.insurerPolicyStorage.recordBenefitUtilization(utilization);
+  }
+
+  async getCoverageMapping(schemeId: number): Promise<any[]> {
+    return this.insurerPolicyStorage.getCoverageMapping(schemeId);
+  }
+
+  async createCoverageMapping(mapping: any): Promise<any> {
+    return this.insurerPolicyStorage.createCoverageMapping(mapping);
   }
 }
 
