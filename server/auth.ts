@@ -34,16 +34,17 @@ export function setupAuth(app: Express) {
   const sessionSettings: session.SessionOptions = {
     secret: sessionSecret,
     resave: false,
-    saveUninitialized: false,
+    saveUninitialized: true,
     store: storage.sessionStore,
     name: 'connect.sid',
-    rolling: true,
+    rolling: false,
     cookie: {
-      secure: process.env.NODE_ENV === 'production',
+      secure: false, // Set to false for development
       httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       sameSite: 'lax' as const,
-      path: '/'
+      path: '/',
+      domain: undefined // Let browser handle domain
     },
   };
 
@@ -147,13 +148,20 @@ export function setupAuth(app: Express) {
         });
       }
       
-      req.login(user, (loginErr) => {
+      req.login(user, async (loginErr) => {
         if (loginErr) {
           console.error("Login error:", loginErr);
           return res.status(500).json({ message: "Login failed" });
         }
         
         console.log("Session after login:", (req.session as any).passport);
+        
+        // Update last login time
+        try {
+          await storage.updateLastLogin(user.id);
+        } catch (error) {
+          console.error("Failed to update last login:", error);
+        }
         
         // Force session save and then send response
         req.session.save((saveErr) => {
@@ -164,8 +172,13 @@ export function setupAuth(app: Express) {
           
           console.log("Session saved successfully");
           
-          // Update last login time (optional)
-          storage.updateLastLogin(user.id).catch(console.error);
+          // Set session indicator cookie for frontend
+          res.cookie('auth-status', 'authenticated', {
+            httpOnly: false,
+            secure: false,
+            sameSite: 'lax',
+            maxAge: 24 * 60 * 60 * 1000 // 24 hours
+          });
           
           res.status(200).json({
             id: user.id,

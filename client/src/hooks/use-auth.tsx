@@ -81,33 +81,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       queryClient.setQueryData(["/api/user"], userData);
       updateActivity();
       
-      // Invalidate all queries to force fresh data
-      await queryClient.invalidateQueries();
-      
-      // Force a page reload to ensure proper session handling
-      const roleDashboards: Record<string, string> = {
-        doctor: "/modern-doctor",
-        pharmacy: "/modern-pharmacy", 
-        pharmacist: "/modern-pharmacy",
-        "care-manager": "/modern-care-manager",
-        insurer: "/modern-insurer",
-        claims_manager: "/insurer-claims-manager",
-        care_manager: "/insurer-care-manager",
-        insurer_admin: "/insurer-admin",
-        patient: "/modern-patient",
-        admin: "/modern-admin",
-        debtors: "/debtors-dashboard"
-      };
-      
-      const targetDashboard = roleDashboards[userData.role] || "/";
-      
       toast({
         title: "Login Successful",
         description: `Welcome to your ${userData.role} dashboard!`,
       });
       
-      // Force page reload to ensure proper session state
-      window.location.href = targetDashboard;
+      // Wait for auth cookie to be set, then redirect
+      const checkAuthCookie = () => {
+        const authStatus = document.cookie
+          .split('; ')
+          .find(row => row.startsWith('auth-status='));
+        
+        if (authStatus && authStatus.split('=')[1] === 'authenticated') {
+          // Auth cookie detected, safe to redirect
+          const roleDashboards: Record<string, string> = {
+            doctor: "/modern-doctor",
+            pharmacy: "/modern-pharmacy", 
+            pharmacist: "/modern-pharmacy",
+            "care-manager": "/modern-care-manager",
+            insurer: "/modern-insurer",
+            claims_manager: "/insurer-claims-manager",
+            care_manager: "/insurer-care-manager",
+            insurer_admin: "/insurer-admin",
+            patient: "/modern-patient",
+            admin: "/modern-admin",
+            debtors: "/debtors-dashboard"
+          };
+          
+          const targetDashboard = roleDashboards[userData.role] || "/";
+          window.location.href = targetDashboard;
+        } else {
+          // Wait a bit more for cookie to be set
+          setTimeout(checkAuthCookie, 100);
+        }
+      };
+      
+      // Start checking for auth cookie
+      setTimeout(checkAuthCookie, 200);
     },
     onError: (error: Error) => {
       toast({

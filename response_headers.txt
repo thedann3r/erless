@@ -1,0 +1,26 @@
+HTTP/1.1 200 OK
+Content-Security-Policy: default-src 'self';style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;font-src 'self' https://fonts.gstatic.com;script-src 'self' 'unsafe-inline' 'unsafe-eval';img-src 'self' data: https:;connect-src 'self' wss: https:;base-uri 'self';form-action 'self';frame-ancestors 'self';object-src 'none';script-src-attr 'none';upgrade-insecure-requests
+Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Resource-Policy: same-origin
+Origin-Agent-Cluster: ?1
+Referrer-Policy: no-referrer
+X-Content-Type-Options: nosniff
+X-DNS-Prefetch-Control: off
+X-Download-Options: noopen
+X-Frame-Options: SAMEORIGIN
+X-Permitted-Cross-Domain-Policies: none
+X-XSS-Protection: 0
+Vary: Origin, Accept-Encoding
+Access-Control-Allow-Credentials: true
+RateLimit-Policy: 10;w=900
+RateLimit-Limit: 10
+RateLimit-Remaining: 8
+RateLimit-Reset: 858
+Content-Type: application/json; charset=utf-8
+Content-Length: 105
+ETag: W/"69-szv+xCCYGqfV/Y0UMLnC9anAusY"
+Set-Cookie: connect.sid=s%3Ao_ZJwM44ASvsUQh05NAjFcPxNv3ecfhw.7UCX%2FNsfa64sib%2BavzXcKfrau2Q7oadC20ha4TJ9JcU; Path=/; Expires=Sat, 02 Aug 2025 06:46:13 GMT; HttpOnly; SameSite=Lax
+Date: Fri, 01 Aug 2025 06:46:13 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
