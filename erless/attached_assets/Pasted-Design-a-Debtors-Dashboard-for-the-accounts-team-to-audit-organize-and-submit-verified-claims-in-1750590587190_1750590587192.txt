@@ -1,0 +1,63 @@
+Design a "Debtors Dashboard" for the accounts team to audit, organize, and submit verified claims in Erlessed. Debtors do not perform fingerprint/OTP verification but only review claims that have passed biometric verification.
+
+🧭 Layout Structure:
+- Header: “Debtors Panel”, date selector, Erlessed logo, logout dropdown
+- Sidebar:
+  - Claim Batches
+  - Diagnosis Audit
+  - Void Claims (Premium Only)
+  - Reimbursement Tracker
+  - Submission Queue
+  - Settings
+
+📊 Top Summary Cards:
+- Verified Claims (Today)
+- Pending Diagnosis
+- Expected Reimbursement (KES)
+- Rejected Claims (Last 30 days)
+- % Void Claims (if premium)
+
+🗂️ Key Features in Main View:
+
+1. **Verified Claims Table**
+   - Show only claims with completed fingerprint/OTP verification
+   - Columns: Patient, Date, Services, Amount, Diagnosis Status, Fingerprint Status ✅
+   - Filter by provider, scheme, service type, and claim status
+   - Add batch selector checkboxes
+
+2. **Audit Trail Viewer**
+   - Click a claim to open full audit log: who verified (name, role), timestamp, terminal used
+   - Show biometric verification hash (for blockchain logging if enabled)
+
+3. **Diagnosis Audit Panel**
+   - Identify claims with missing/uncoded diagnosis
+   - Send reminders to clinicians (only in Premium)
+   - Show last consultation timestamp vs. billing timestamp
+
+4. **Void Claims Overview** (Premium Feature)
+   - Display logic-invalid or expired claims
+   - Sort by reason: missing data, time lapse, service mismatch
+
+5. **Submission Queue Builder**
+   - Create claim batches for export
+   - Buttons: “Add to Batch”, “Mark as Ready”, “Generate NHIF/SHA or CIC Claim PDF”
+   - Match batch to scheme (e.g., CIC outpatient, Minet inpatient)
+
+6. **Insurer Response Tracker**
+   - Upload response files (PDF/Excel) for reconciliation
+   - Highlight: Fully Paid, Partially Paid, Denied (reason tooltip)
+   - Buttons: “Flag for Resubmission”, “Mark Reconciled”
+
+🧠 System Logic:
+- Claims must show `biometric_verified = true` in DB before they appear here
+- Debtors have read-only access to verification and prescription logs
+- All printed claim forms (insurer-specific) are already prefilled upon biometric check
+
+🎨 Styling:
+- Verified icon (🟢) next to each claim with timestamp
+- Use tabs or accordion UI to group claims by insurer
+- Highlight overdue claims (older than 21 days) in orange
+
+🔐 Premium-only notices:
+- Display greyed-out blocks for premium sections (e.g., “Void Claim Filters — Premium Feature”)
+

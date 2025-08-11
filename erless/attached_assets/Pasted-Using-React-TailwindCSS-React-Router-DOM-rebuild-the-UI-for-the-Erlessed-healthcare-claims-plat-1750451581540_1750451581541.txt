@@ -1,0 +1,103 @@
+Using React + TailwindCSS + React Router DOM, rebuild the UI for the Erlessed healthcare claims platform with the following structure:
+
+✨ General Design:
+- Brand color: Teal (#14B8A6) and healthcare blue (#3B82F6)
+- Use a modern, clean layout with minimal shadows, rounded 2xl borders, and responsive grid-based design
+- Font: 'Inter' or 'Open Sans'
+- Shadcn/UI components preferred for consistency
+- Add a top-right logout button to all dashboards
+- Avoid using terms like “AI” in buttons or tabs, even if AI-powered
+
+🔐 Login/Signup:
+- Login accepts either email or username
+- On signup:
+  - Clinical users provide regulator info (e.g. PPB, KMPDC)
+  - Non-clinical users skip this step
+  - Signup does NOT allow new provider/insurer creation (admin-only)
+
+🔁 Shared Layout:
+- Global layout with:
+  - Header: Logo, user role, avatar, session timer, logout
+  - Sidebar: Icon + label nav (contextual to role)
+  - Footer (optional): “Powered by Aboolean”
+
+📋 Dashboard Redesign (by role):
+
+1. /doctor (Doctor/Clinician Dashboard)
+- Sidebar: Queue, Consultations, Lab Orders, Prescriptions, Patient History
+- Main Panel:
+  - Left: Triage Queue (color-coded by urgency)
+  - Center: Active Consultation (tabs for History, Diagnosis, Treatment)
+  - Right: Quick Orders (lab, meds), decision timeline
+- Top: Session timer, Patient search, Logout
+
+2. /pharmacy-dashboard (Pharmacy)
+- Sidebar: Prescription Queue, Dispensing, Benefits, Interaction Alerts
+- Main Panel:
+  - Top: Pending prescriptions with color status
+  - Bottom:
+    - Left: Patient drug list, age/weight checks
+    - Right: Benefit tracker, claim submission, digital signature
+- Benefit progress ring widget
+- Drug warnings popups
+
+3. /care-manager-dashboard
+- Sidebar: Claims, Analytics, Fraud Review, Cost Comparison
+- Main Panel:
+  - KPIs at top (net claims, voids, flagged)
+  - Tabs: View by care provider, View by scheme
+  - Risk heatmap and cluster graph
+  - Quick action: Flag/unflag, push for audit
+
+4. /insurer (Insurer)
+- Sidebar: Preauthorization, Claims, Scheme Config, Appeals
+- Main Panel:
+  - Left: Request Queue (urgency sorted)
+  - Center: Preauth decision flow (reasoning, override)
+  - Right: Scheme usage, burnout alerts, feedback
+- Appeal logs with justification tags
+
+5. /admin (Admin)
+- Sidebar: Users, Licenses, Providers, Insurers, Audit Logs
+- Main Panel:
+  - Tabs for each function
+  - Status badge (Verified, Pending, Flagged)
+  - Registration validation tools
+  - Facility & domain linking (e.g. aku.edu → Aga Khan)
+
+6. /patient (Patient Dashboard)
+- Sidebar: Claims, Benefits, My Family, Appointments
+- Main Panel:
+  - Health ring widget
+  - Claims timeline
+  - Copay calculator
+  - Benefit usage per service
+- Family view with coverage status
+
+7. /mobile-field-worker
+- Bottom Nav: Visits, Patients, Map, Emergency
+- Fullscreen card layout:
+  - Swipe for next patient
+  - Form fields: vitals, voice note, image upload
+- Emergency overlay for fast contact/GPS share
+
+8. /mobile-patient-portal
+- Tabbed interface: Home, Appointments, Claims, Meds
+- Visuals:
+  - Health score donut chart
+  - Calendar for rescheduling
+  - Claim timeline
+  - Adherence tracking with reminders
+
+🧠 Additional Features:
+- Preauthorization forms powered by reasoning chain (don’t label as AI)
+- All biometric + OTP flows simulate verification modals
+- Alerts and claim flags use icons, color coding, and tooltips (no tech buzzwords)
+- Claims anchor to consultation session (not standalone)
+
+Ensure:
+- Responsive design for tablets and mobile
+- Smooth navigation animations (Framer Motion optional)
+- Well-documented component structure
+
+Deploy app shell with routing in Replit and generate reusable layouts per dashboard.

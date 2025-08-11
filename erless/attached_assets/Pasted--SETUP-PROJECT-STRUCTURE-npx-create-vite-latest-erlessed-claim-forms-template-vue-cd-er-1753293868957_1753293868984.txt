@@ -1,0 +1,131 @@
+# === SETUP PROJECT STRUCTURE ===
+npx create-vite@latest erlessed-claim-forms --template vue
+cd erlessed-claim-forms
+npm install
+npm install express cors prisma sqlite3 puppeteer body-parser
+
+# === BACKEND SETUP ===
+mkdir backend
+cd backend
+npm init -y
+npm install express cors body-parser prisma sqlite3 puppeteer
+
+# === PRISMA INIT ===
+npx prisma init --datasource-provider sqlite
+
+# === SCHEMA: DATABASE MODEL ===
+cat > prisma/schema.prisma <<EOL
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model ClaimForm {
+  id           String   @id @default(cuid())
+  insurer      String
+  formType     String
+  version      Int
+  schemaJson   Json
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+}
+
+model SubmittedClaimForm {
+  id           String   @id @default(cuid())
+  patientId    String
+  visitId      String
+  formId       String
+  filledData   Json
+  pdfUrl       String
+  status       String
+  submittedAt  DateTime @default(now())
+}
+EOL
+
+npx prisma generate
+npx prisma migrate dev --name init
+
+# === SERVER SETUP ===
+cat > backend/server.js <<EOF
+const express = require('express');
+const cors = require('cors');
+const bodyParser = require('body-parser');
+const puppeteer = require('puppeteer');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
+
+const app = express();
+app.use(cors());
+app.use(bodyParser.json());
+
+// Upload new claim form schema
+app.post('/api/forms', async (req, res) => {
+  const { insurer, formType, version, schemaJson } = req.body;
+  const form = await prisma.claimForm.create({
+    data: { insurer, formType, version, schemaJson }
+  });
+  res.json(form);
+});
+
+// Fetch latest form
+app.get('/api/forms/:insurer/:formType', async (req, res) => {
+  const { insurer, formType } = req.params;
+  const form = await prisma.claimForm.findFirst({
+    where: { insurer, formType, isActive: true },
+    orderBy: { version: 'desc' }
+  });
+  res.json(form);
+});
+
+// Generate PDF
+app.post('/api/forms/generate-pdf', async (req, res) => {
+  const { html } = req.body;
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  await page.setContent(html);
+  const pdf = await page.pdf({ format: 'A4' });
+  await browser.close();
+  res.setHeader('Content-Type', 'application/pdf');
+  res.send(pdf);
+});
+
+const PORT = 5000;
+app.listen(PORT, () => console.log(\`Backend running on http://localhost:\${PORT}\`));
+EOF
+
+# === FRONTEND STARTER STUB ===
+cat > src/components/ClaimFormRenderer.vue <<EOF
+<template>
+  <div v-if="form">
+    <h2>Claim Form: {{ form.formType }} ({{ form.insurer }})</h2>
+    <form @submit.prevent="submitForm">
+      <div v-for="field in form.schemaJson.fields" :key="field.label">
+        <label>{{ field.label }}</label>
+        <input v-model="filled[field.bind]" :placeholder="field.label" />
+      </div>
+      <button type="submit">Submit</button>
+    </form>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted } from 'vue'
+const form = ref(null)
+const filled = ref({})
+
+onMounted(async () => {
+  const res = await fetch('http://localhost:5000/api/forms/CIC/outpatient')
+  form.value = await res.json()
+})
+
+function submitForm() {
+  console.log('Submitted:', filled.value)
+}
+</script>
+EOF
+
+# === RUN BACKEND SERVER ===
+node backend/server.js

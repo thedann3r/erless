@@ -1,0 +1,170 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 0 0% 100%;
+  --foreground: 220 14% 4%;
+  --muted: 210 40% 98%;
+  --muted-foreground: 215 16% 47%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 224 71% 4%;
+  --card: 0 0% 100%;
+  --card-foreground: 224 71% 4%;
+  --border: 220 13% 91%;
+  --input: 220 13% 91%;
+  --primary: 180 42% 35%; /* #2D7A70 - Teal Primary */
+  --primary-foreground: 210 40% 98%;
+  --secondary: 180 33% 65%; /* #7DCDC4 - Teal Secondary */
+  --secondary-foreground: 222 84% 5%;
+  --accent: 210 40% 98%;
+  --accent-foreground: 222 84% 5%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 210 40% 98%;
+  --ring: 180 42% 35%;
+  --radius: 1rem; /* Modern rounded corners */
+  
+  /* Custom Erlessed colors - matching logo */
+  --erlessed-dark-teal: 173 44% 27%; /* #265651 - dark teal from logo */
+  --erlessed-light-teal: 172 42% 62%; /* #6BBDB4 - light teal from logo */
+  --erlessed-accent: 172 35% 75%; /* #9BCCC6 - lighter accent */
+  --surface: 180 30% 98%; /* #F8FAFA */
+  --medical-cross: 0 0% 100%; /* #FFFFFF - white cross accent */
+  --clinical-gray: 210 20% 98%; /* #F8FAFC */
+}
+
+.dark {
+  --background: 224 71% 4%;
+  --foreground: 213 31% 91%;
+  --muted: 223 47% 11%;
+  --muted-foreground: 215 14% 64%;
+  --popover: 224 71% 4%;
+  --popover-foreground: 215 21% 89%;
+  --card: 224 71% 4%;
+  --card-foreground: 213 31% 91%;
+  --border: 216 34% 17%;
+  --input: 216 34% 17%;
+  --primary: 180 42% 35%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 222 47% 11%;
+  --secondary-foreground: 213 31% 91%;
+  --accent: 216 34% 17%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: 0 63% 31%;
+  --destructive-foreground: 210 40% 98%;
+  --ring: 180 42% 35%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+}
+
+@layer components {
+  .medical-card {
+    @apply bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200;
+  }
+  
+  .teal-button {
+    @apply bg-teal-primary text-white hover:bg-teal-dark focus:ring-2 focus:ring-teal-primary focus:ring-offset-2 transition-colors duration-200;
+  }
+  
+  .ai-indicator {
+    @apply inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700;
+  }
+  
+  .status-approved {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800;
+  }
+  
+  .status-pending {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800;
+  }
+  
+  .status-denied {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800;
+  }
+  
+  .biometric-scanner {
+    @apply relative w-24 h-24 mx-auto bg-gradient-to-br from-teal-primary to-teal-secondary rounded-full flex items-center justify-center shadow-lg;
+  }
+  
+  .fingerprint-icon {
+    @apply text-white text-3xl drop-shadow-sm;
+  }
+  
+  .blockchain-hash {
+    @apply font-mono text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded border text-gray-600 dark:text-gray-400 break-all;
+  }
+  
+  .medical-form-input {
+    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-primary focus:border-transparent transition-all duration-200;
+  }
+  
+  .nav-item {
+    @apply flex items-center space-x-3 px-4 py-3 text-gray-600 hover:text-teal-primary hover:bg-teal-50 rounded-lg transition-colors duration-200 cursor-pointer;
+  }
+  
+  .nav-item.active {
+    @apply text-teal-primary bg-teal-50 font-medium;
+  }
+}
+
+/* Custom animations for healthcare UI */
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes scan-line {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-scan {
+  animation: scan-line 2s ease-in-out infinite;
+}
+
+/* Medical chart styles */
+.medical-chart {
+  @apply bg-white rounded-lg border border-gray-200 p-4;
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse-slow,
+  .animate-scan,
+  .transition-all,
+  .transition-colors,
+  .transition-shadow {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* Print styles for medical documents */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .medical-card {
+    @apply shadow-none border border-gray-400;
+  }
+}

@@ -1,0 +1,91 @@
+Create a full-stack web application with multiple role-based dashboards for a healthcare claims platform called **Erlessed**, using React (frontend), FastAPI (backend), and PostgreSQL (database). Each dashboard should be built with real-world practicality in mind, reflecting actual clinical, insurance, and operational workflows.
+
+🟦 Theme:
+- Use teal/blue color scheme with the Erlessed logo
+- Footer on all pages: “Powered by Aboolean”
+
+🧠 Roles and Practical Dashboard Requirements:
+
+---
+
+👨‍⚕️ 1. **Doctor/Clinician Dashboard**
+Practical Purpose: Streamline the medical consultation workflow and allow service orders to auto-trigger claims.
+
+Features:
+- Patient queue with triage vitals (auto-fetched from HMS)
+- Consultation + ICD-10 diagnosis entry
+- Smart prescription builder with AI validation (dose, gender, interaction checks)
+- Lab/procedure order forms with live preauthorization status
+- Fingerprint or OTP sign-off on each service
+- View pending labs, active prescriptions, and notes
+
+---
+
+💊 2. **Pharmacy Dashboard**
+Practical Purpose: Prevent overbilling and ensure pharmacy aligns with diagnosis and scheme policy.
+
+Features:
+- Pull prescriptions from doctors after consult
+- Validate medication per policy and diagnosis
+- Track how many tablets/syrups/injections should be dispensed based on dose
+- Auto-deplete benefits like chronic meds or family planning
+- Support preauthorization where needed
+- Real-time benefit exhaustion warning
+
+---
+
+🏥 3. **Care Manager Dashboard**
+Practical Purpose: Provide oversight into all claims activity and insurer engagement.
+
+Features:
+- View claims across the hospital (void, pending, paid, flagged)
+- Flagged claims with fraud signals
+- Cluster analytics by provider or cadre
+- Real-time cost benchmarking between care providers
+- Suggested referrals based on procedure success rates
+- Monitor co-pay policies per insurer
+
+---
+
+🧑‍⚖️ 4. **Insurer Dashboard**
+Practical Purpose: Help underwriters and claims teams make decisions on claims or preauthorization.
+
+Features:
+- Real-time claim inflow per care provider
+- Automated preauthorization decisions (AI assisted)
+- Flag high-risk claims or potential fraud
+- Co-pay configuration dashboard
+- Scheme usage tracking (visits, benefit burnout)
+- Claim appeals management module
+
+---
+
+👨‍👩‍👧 5. **Patient Dashboard**
+Practical Purpose: Provide transparency for beneficiaries and help them follow up on care.
+
+Features:
+- View all past claims (approved, denied, void)
+- Dependent management (e.g., add “Baby of Jane Doe”)
+- Co-pay estimates based on scheme
+- View current preauthorized orders (pending lab, drug, etc.)
+- Appeal a denied service or lab
+
+---
+
+🛡️ 6. **Admin (Super Admin) Dashboard**
+Practical Purpose: Manage the platform, users, role mapping, and AI features.
+
+Features:
+- Add/edit care providers, users, and their roles
+- See platform usage analytics
+- Toggle AI features (e.g., auto preauth on/off)
+- View and test registration validation API (KMPDC/PPB logic)
+
+---
+
+🧩 Core Architecture:
+- Auth: JWT-based role + domain email matching
+- DB: PostgreSQL with tables for users, claims, procedures, lab orders, prescriptions, and preauth logs
+- AI: Integrate Open Source LLM (e.g., LLaMA or DeepSeek) via Ollama for preauth decisions
+
+Make dashboards clickable, responsive, and mock data-ready for demo use.

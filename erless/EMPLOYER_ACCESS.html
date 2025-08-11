@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employer Dashboard Access - Erlessed</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #265651, #6BBDB4);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            background: white;
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+        
+        .logo {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #265651, #6BBDB4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+        
+        h1 {
+            color: #265651;
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
+        }
+        
+        .description {
+            color: #666;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        
+        .credentials {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            text-align: left;
+        }
+        
+        .credentials h3 {
+            color: #265651;
+            margin-bottom: 1rem;
+        }
+        
+        .credential-item {
+            margin-bottom: 1rem;
+            padding: 0.8rem;
+            background: white;
+            border-radius: 5px;
+            border-left: 4px solid #6BBDB4;
+        }
+        
+        .credential-item strong {
+            color: #265651;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #265651, #6BBDB4);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: transform 0.2s;
+            margin: 0.5rem;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+        }
+        
+        .features {
+            text-align: left;
+            margin-top: 2rem;
+        }
+        
+        .features h3 {
+            color: #265651;
+            margin-bottom: 1rem;
+        }
+        
+        .features ul {
+            color: #666;
+            line-height: 1.8;
+        }
+        
+        .features li {
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">Erlessed</div>
+        <h1>Employer Benefits Dashboard</h1>
+        <p class="description">
+            Access the employer benefits management system to track employee claims, 
+            manage fund allocations, and monitor benefit usage across your organization.
+        </p>
+        
+        <div class="credentials">
+            <h3>Demo Login Credentials</h3>
+            <div class="credential-item">
+                <strong>Employer Account:</strong><br>
+                Email: hr@techcorp.com<br>
+                Password: demo123
+            </div>
+            <div class="credential-item">
+                <strong>Admin Account:</strong><br>
+                Email: admin@benefits.com<br>
+                Password: admin123
+            </div>
+        </div>
+        
+        <a href="http://localhost:3001" class="btn-primary" target="_blank">
+            Access Employer Dashboard
+        </a>
+        
+        <a href="http://localhost:3001/login.html" class="btn-primary" target="_blank">
+            Direct Login Page
+        </a>
+        
+        <div class="features">
+            <h3>Dashboard Features</h3>
+            <ul>
+                <li>✓ Secure authentication and session management</li>
+                <li>✓ Employee benefit limits and usage tracking</li>
+                <li>✓ Claims submission and approval workflow</li>
+                <li>✓ Real-time fund monitoring and analytics</li>
+                <li>✓ Comprehensive reporting and statistics</li>
+                <li>✓ Role-based access control</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

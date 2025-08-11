@@ -1,0 +1,64 @@
+# Render.com Blueprint for Erlessed Healthcare Platform
+services:
+  - type: web
+    name: erlessed-app
+    env: docker
+    dockerfilePath: ./Dockerfile
+    plan: starter
+    region: oregon
+    branch: main
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: TZ
+        value: Africa/Nairobi
+      - key: PYTHONPATH
+        value: /app/hms_integration
+      - key: DATABASE_URL
+        fromDatabase:
+          name: erlessed-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: erlessed-redis
+          property: connectionString
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: VITE_STRIPE_PUBLIC_KEY
+        sync: false
+      - key: SENTRY_DSN
+        sync: false
+
+  - type: pserv
+    name: erlessed-postgres
+    plan: starter
+    databaseName: erlessed
+    databaseUser: erlessed_user
+    region: oregon
+
+  - type: redis
+    name: erlessed-redis
+    plan: starter
+    region: oregon
+    maxmemoryPolicy: allkeys-lru
+
+  - type: cron
+    name: db-backup
+    env: docker
+    dockerfilePath: ./backup.Dockerfile
+    schedule: "0 */6 * * *"  # Every 6 hours
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: erlessed-postgres
+          property: connectionString

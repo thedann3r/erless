@@ -1,0 +1,91 @@
+Build a fullstack healthcare claims processing platform called Erlessed, themed in light blue and white (use the logo with tagline “powered by Aboolean”). It should support hospitals and care providers in managing patient insurance claims via fingerprint/OTP verification. Include the following:
+
+🧠 Core Functional Modules:
+Biometric/OTP Patient Verification:
+
+Fingerprint (simulated) or OTP verification.
+
+Autofill patient bio and dependents.
+
+Dynamic Claim Form:
+
+Auto-populates patient biodata after verification.
+
+Real-time billing, auto-detect services, deducts benefits.
+
+Apply treatment logic (e.g., one consult per session until full utilization).
+
+Service-specific preauthorization (code or name-based).
+
+Reversible erroneous bills with fingerprint approval.
+
+Pharmacy Logic:
+
+Ensure correct medication quantity (weight-based for peds).
+
+Gender-sensitive and condition-specific medication validation.
+
+Auto-deduct from relevant benefit categories (chronic, FP, vax).
+
+Referral and Continuity:
+
+Claim forms persist across providers.
+
+Referral doesn’t trigger duplicate consult charge.
+
+Care Manager Dashboard:
+
+View void, gross, net claims by provider.
+
+Fraud patterns, survival outcomes, referral recommendations.
+
+Premium tier: Real-time cost comparisons per provider.
+
+Role-based Login:
+
+Detect role by domain/email.
+
+Dashboards for: Front Office, Doctor, Lab, Pharmacy, Debtors, Care Manager.
+
+Debtors Module:
+
+View submitted claims, voids, missing diagnoses.
+
+Basic vs Premium claim visibility structuring.
+
+Smart Contracts & Blockchain:
+
+Use Solidity pseudocode to anchor submitted claims.
+
+Simulate transactions on Sepolia.
+
+RAG + Chain-of-Thought AI:
+
+Auto suggest claim codes.
+
+Detect fraud or overbilling via LLM prompt reasoning.
+
+Retrieve past billing history via RAG.
+
+Analytics + Prognosis Modeling:
+
+Outcomes tracker, success rates by provider, co-pay patterns.
+
+Auto-create "Baby of" account on successful delivery.
+
+Capture Time of Death + death certificate flow.
+
+💾 Tech Stack:
+Frontend: React + Tailwind (or ShadCN UI for production feel)
+
+Backend: Node.js + Express or FastAPI
+
+Database: PostgreSQL
+
+Auth: Role-based login with Firebase or Clerk.dev
+
+Blockchain: Solidity smart contract deployed to Sepolia via Alchemy/Infura
+
+RAG + CoT AI: Integrate OpenAI API + vector store (like Pinecone)
+
+Biometric: Simulated via placeholder (can use camera or password)

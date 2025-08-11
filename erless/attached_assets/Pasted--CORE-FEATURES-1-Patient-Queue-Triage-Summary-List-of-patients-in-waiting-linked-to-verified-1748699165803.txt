@@ -1,0 +1,108 @@
+🧠 CORE FEATURES
+✅ 1. Patient Queue & Triage Summary
+List of patients in waiting (linked to verified claims)
+
+Triage vitals and presenting complaints
+
+Quick filters: lab-pending, referral-pending, emergency
+
+✅ 2. Active Claim Form Viewer
+Access to current patient’s auto-generated claim form
+
+View patient biodata, scheme info, insurer, and co-pay %
+
+Check benefit balance and pre-approvals (live or pending)
+
+✅ 3. Consultation Form
+Chief complaint, HPI, physical exam notes
+
+Structured ICD-10 diagnosis suggestions (auto-suggested via AI or manual)
+
+Differential diagnosis support
+
+Previous history from same or other facilities (if patient is a frequent flier in Erlessed ecosystem)
+
+✅ 4. Smart Prescription Tool
+AI-aided prescription validator: checks for gender, weight-based, chronic meds, and interactions
+
+Autocalculates quantities (tabs, bottles, vials)
+
+Suggests formulary options depending on scheme policy
+
+Flags irrational doses and missing diagnosis
+
+✅ 5. Service Orders & Procedures
+Place orders for:
+
+Labs
+
+Imaging
+
+Minor or major procedures
+
+Admission/referral
+
+For each: system auto-checks for preauthorization needs and policy limits
+
+Doctors see instant AI-generated decision (approve/deny/escalate)
+
+✅ 6. Referral Engine
+Select care level (e.g., dental, psych, orthopedic)
+
+Guided by treatment outcome data, survival rates, and past success of care providers
+
+Includes co-pay preview & travel cost advisory (for long-distance referrals)
+
+📊 ANALYTICS & INTELLIGENCE
+🧠 7. Diagnostics Feedback
+List of pending lab/radiology results with flags for delays
+
+Suggestion engine recommends appropriate follow-up based on:
+
+Trends
+
+Missed tests
+
+Overlapping diagnostics
+
+🔁 8. Ongoing Prognosis & Follow-up Tracking
+AI-generated “next step” suggestions post-consultation
+
+View previous treatments and outcomes for similar cases
+
+Tracks flagged patients with poor adherence or high-risk indicators
+
+🛡️ CLAIMS & BILLING AWARENESS
+📋 9. Claim Trace Viewer
+Doctor sees billing tied to their prescription/order
+
+Flagging system for disputed or denied bills (they can appeal or revise)
+
+Notifies when diagnostics/procedures haven't been billed yet (i.e., pending verification)
+
+💊 10. Auto Billing on Fingerprint
+Every doctor action (consultation, prescription, order) is triggered with fingerprint
+
+Logs the action in real time
+
+Minimizes misuse of doctor codes in other locations
+
+🔒 ACCESS CONTROL
+Access only within assigned facility (based on work email domain)
+
+License validation from doctor registry
+
+If working under temporary permit, dashboard shows expiry & alerts
+
+🧪 Optional Add-ons for Premium Clinics
+📈 Clinical Performance Stats
+Number of claims denied due to missing diagnosis
+
+Average survival rates in referred procedures
+
+AI-generated feedback on documentation quality
+
+🔄 Sync to Practice Management
+Export consult notes to PDF
+
+Sync to EMR or care coordinator dashboard
