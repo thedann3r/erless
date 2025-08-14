@@ -7,6 +7,11 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017';
 const DATABASE_NAME = 'erlessed_biometric';
 
 export async function connectMongoDB(): Promise<void> {
+  if (process.env.NODE_ENV === "development") {
+    console.log("⏩ Skipping MongoDB connection in development mode");
+    return;
+  }
+
   try {
     client = new MongoClient(MONGODB_URI);
     await client.connect();
@@ -17,6 +22,7 @@ export async function connectMongoDB(): Promise<void> {
     // Don't throw error to allow server to start without MongoDB
   }
 }
+
 
 export function getMongoDb(): Db {
   if (!db) {

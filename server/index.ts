@@ -55,7 +55,8 @@ if (process.env.NODE_ENV === 'production') {
 
 // Redis client for rate limiting
 let redisClient: any = null;
-if (process.env.REDIS_URL) {
+
+if (process.env.NODE_ENV !== "development" && process.env.REDIS_URL) {
   try {
     redisClient = createClient({ url: process.env.REDIS_URL });
     redisClient.connect().catch((err: any) => {
@@ -64,7 +65,10 @@ if (process.env.REDIS_URL) {
   } catch (error) {
     console.warn('Redis client creation failed, using memory store for rate limiting');
   }
+} else {
+  console.log('Skipping Redis connection in development mode');
 }
+
 
 // Rate limiting configuration
 const limiter = rateLimit({
